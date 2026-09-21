@@ -9,6 +9,7 @@ import {
   Inbox,
   KeyRound,
   LayoutDashboard,
+  Workflow,
   LogOut,
   Menu,
   Moon,
@@ -58,18 +59,21 @@ interface NavItem {
 
 const NAV: Record<Role, NavItem[]> = {
   advisor: [
+    { to: "/workspace", label: "Live Workspace", icon: Workflow },
     { to: "/", label: "Dashboard", icon: LayoutDashboard },
     { to: "/clients", label: "Clients", icon: Users },
     { to: "/reports", label: "Documents & ROAs", icon: FileText },
     { to: "/integrations", label: "Integrations", icon: Plug },
   ],
   client: [
+    { to: "/workspace", label: "Live Workspace", icon: Workflow },
     { to: "/", label: "Overview", icon: LayoutDashboard },
     { to: "/portfolios", label: "My wealth & protection", icon: Wallet },
     { to: "/actions", label: "Actions & signatures", icon: ClipboardCheck },
     { to: "/reports", label: "My documents", icon: FileText },
   ],
   fsp: [
+    { to: "/workspace", label: "Live Workspace", icon: Workflow },
     { to: "/", label: "Dashboard", icon: LayoutDashboard },
     { to: "/compliance", label: "Compliance & audit", icon: ShieldCheck },
     { to: "/clients", label: "Client pipeline", icon: Users },
@@ -77,6 +81,7 @@ const NAV: Record<Role, NavItem[]> = {
     { to: "/billing", label: "Billing", icon: CreditCard },
   ],
   insurer: [
+    { to: "/workspace", label: "Live Workspace", icon: Workflow },
     { to: "/", label: "Dashboard", icon: LayoutDashboard },
     { to: "/applications", label: "Applications", icon: Inbox },
   ],
@@ -236,7 +241,7 @@ function ThemeItem() {
   );
 }
 
-/** `navyMain` overrides the default (navy behind the home page only), e.g. for previews. */
+/** `navyMain` overrides the default (navy behind the Live Workspace screen only), e.g. for previews. */
 export function AppShell({
   children,
   navyMain,
@@ -341,7 +346,7 @@ export function AppShell({
         </aside>
         <main
           key={role + pathname.split("/")[1]}
-          className={cn("min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8", (navyMain ?? pathname === "/") && "bg-navy")}
+          className={cn("min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8", (navyMain ?? pathname === "/workspace") && "bg-navy")}
         >
           <div className="mx-auto max-w-6xl">{children}</div>
         </main>

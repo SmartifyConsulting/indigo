@@ -6,7 +6,6 @@ import {
   FspDashboard,
   InsurerDashboard,
 } from "@/components/dashboards";
-import { OnDarkContext } from "@/components/common";
 import { LifecycleDiagram } from "@/components/lifecycle-diagram";
 import { lifecycleView } from "@/lib/domain/lifecycle";
 import { useAppState } from "@/lib/domain/store";
@@ -41,9 +40,9 @@ function Home() {
   const state = useAppState();
   const view = lifecycleView(state);
   return (
-    <OnDarkContext.Provider value>
+    <>
       <LifecycleDiagram chips={view.chips} active={view.active} />
       <RoleDashboard role={state.session.role} />
-    </OnDarkContext.Provider>
+    </>
   );
 }

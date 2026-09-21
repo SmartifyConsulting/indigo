@@ -49,7 +49,9 @@ export function AuthLayout({
 }) {
   return (
     <div className="flex min-h-screen flex-col items-center bg-navy px-4 pb-10 pt-16 sm:pt-20">
-      <Logo size="lg" onDark className="mb-8" />
+      <Link to="/welcome" aria-label="Back to the indigro home page" className="mb-8">
+        <Logo size="lg" onDark />
+      </Link>
       <div
         className={`w-full rounded-lg border bg-card px-6 py-10 sm:py-12 ${wide ? "max-w-[560px] sm:px-12" : "max-w-[494px] sm:px-24"}`}
       >

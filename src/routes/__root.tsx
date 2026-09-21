@@ -129,6 +129,7 @@ function RootShell({ children }: { children: ReactNode }) {
 
 /** Auth and client-gateway pages render full-screen, outside the workspace shell. */
 const BARE_PREFIXES = [
+  "/welcome",
   "/login",
   "/signup",
   "/onboard",
@@ -147,7 +148,7 @@ function RootComponent() {
 
   useEffect(() => {
     if (!bare && !loading && !signedIn) {
-      void router.navigate({ to: "/login" });
+      void router.navigate({ to: "/welcome" });
     }
   }, [bare, loading, signedIn, router]);
 

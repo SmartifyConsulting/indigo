@@ -134,6 +134,8 @@ export interface LifecycleDiagramProps {
   chips?: Partial<Record<StageNo, string>>;
   /** Stage to highlight as "you are here". */
   active?: StageNo | undefined;
+  /** Show the built-in eyebrow, headline and subtitle. Pages with their own heading turn this off. */
+  heading?: boolean;
 }
 
 function StageCard({
@@ -244,7 +246,7 @@ function paths(w: number) {
   };
 }
 
-export function LifecycleDiagram({ chips = {}, active }: LifecycleDiagramProps) {
+export function LifecycleDiagram({ chips = {}, active, heading = true }: LifecycleDiagramProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [w, setW] = useState(1152);
   useEffect(() => {
@@ -264,18 +266,20 @@ export function LifecycleDiagram({ chips = {}, active }: LifecycleDiagramProps) 
       className="mb-8 overflow-hidden rounded-lg border border-white/10 bg-navy px-4 py-8 text-navy-foreground sm:px-8"
       aria-label="The advice lifecycle"
     >
-      <div className="mx-auto mb-8 max-w-2xl text-center">
-        <p className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-brand">
-          The advice lifecycle
-        </p>
-        <h2 className="mt-2 text-2xl font-medium leading-8 sm:text-3xl sm:leading-10">
-          From first scan to annual review, in a fixed legal order.
-        </h2>
-        <p className="mt-2 text-sm text-navy-foreground/65">
-          Every step is checked by the compliance engine. Out-of-order actions are refused and
-          logged.
-        </p>
-      </div>
+      {heading && (
+        <div className="mx-auto mb-8 max-w-2xl text-center">
+          <p className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-brand">
+            The advice lifecycle
+          </p>
+          <h2 className="mt-2 text-2xl font-medium leading-8 sm:text-3xl sm:leading-10">
+            From first scan to annual review, in a fixed legal order.
+          </h2>
+          <p className="mt-2 text-sm text-navy-foreground/65">
+            Every step is checked by the compliance engine. Out-of-order actions are refused and
+            logged.
+          </p>
+        </div>
+      )}
 
       {/* Desktop: snaking flow around the hub */}
       <div ref={ref} className="relative mx-auto hidden max-w-6xl lg:block" style={{ height: H }}>
