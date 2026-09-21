@@ -44,7 +44,7 @@ function Login() {
       toast.error(msg);
       return;
     }
-    void navigate({ to: "/" });
+    void navigate({ to: "/dashboard" });
   }
 
   async function google() {
@@ -56,7 +56,7 @@ function Login() {
       return;
     }
     if (result.redirected) return;
-    void navigate({ to: "/" });
+    void navigate({ to: "/dashboard" });
   }
 
   return (

@@ -15,7 +15,7 @@ import { AppShell } from "@/components/app-shell";
 import { Toaster } from "@/components/ui/sonner";
 import { BRAND } from "@/lib/brand";
 import { useStoreHydration } from "@/lib/domain/store";
-import { useAuth } from "@/lib/use-auth";
+import { useAuth, useEmailVerificationGate } from "@/lib/use-auth";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
@@ -127,7 +127,9 @@ function RootShell({ children }: { children: ReactNode }) {
 
 /** Auth and client-gateway pages render full-screen, outside the workspace shell. */
 const BARE_PREFIXES = [
+  "/",
   "/login",
+  "/verify-email",
   "/signup",
   "/onboard",
   "/forgot-password",
@@ -137,15 +139,18 @@ const BARE_PREFIXES = [
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const pathname = useRouterState({ select: (r) => r.location.pathname });
-  const bare = BARE_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"));
+  const bare =
+    pathname === "/" ||
+    BARE_PREFIXES.some((p) => p !== "/" && (pathname === p || pathname.startsWith(p + "/")));
   const { session, loading } = useAuth();
   const signedIn = !!session;
   const router = useRouter();
   useStoreHydration(signedIn && !bare);
+  useEmailVerificationGate(signedIn && !bare);
 
   useEffect(() => {
     if (!bare && !loading && !signedIn) {
-      void router.navigate({ to: "/login" });
+      void router.navigate({ to: "/" });
     }
   }, [bare, loading, signedIn, router]);
 
