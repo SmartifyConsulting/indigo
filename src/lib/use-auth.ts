@@ -41,6 +41,10 @@ export function mapAuthError(message: string): string {
     return "That password appears in a known data breach. Choose a different one.";
   if (m.includes("rate limit") || m.includes("too many"))
     return "Too many attempts. Wait a minute and try again.";
+  if (m.includes("weak") || m.includes("easy to guess"))
+    return "That password is too easy to guess. Choose a longer, less common one.";
+  if (m.includes("not allowed") || m.includes("placeholder") || m.includes("reserved domain"))
+    return "Use a real work email address: test domains such as example.com are not accepted.";
   if (m.includes("password")) return message;
   return "Something went wrong. Please try again.";
 }
