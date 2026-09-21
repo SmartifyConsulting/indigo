@@ -222,6 +222,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const id = useIdentity();
+  const { signOut } = useAuth();
   const role = s.session.role;
 
   return (
@@ -292,7 +293,11 @@ export function AppShell({ children }: { children: ReactNode }) {
               <DropdownMenuItem onSelect={() => resetDemo()}>
                 <RotateCcw className="h-4 w-4" /> Reset demo data
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => void navigate({ to: "/login" })}>
+              <DropdownMenuItem
+                onSelect={() => {
+                  void signOut().then(() => navigate({ to: "/login" }));
+                }}
+              >
                 <LogOut className="h-4 w-4" /> Sign out
               </DropdownMenuItem>
             </DropdownMenuContent>
