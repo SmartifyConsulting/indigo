@@ -6,10 +6,10 @@ import { toast } from "sonner";
 import { Field } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
-import { cn } from "@/lib/utils";
 import { mapAuthError } from "@/lib/use-auth";
 
 /**
@@ -130,7 +130,7 @@ export function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () => void 
   }
 
   const backToSignIn = (label: string) => (
-    <button type="button" onClick={onSwitchToSignIn} className="text-primary hover:underline">
+    <button type="button" onClick={onSwitchToSignIn} className="text-brand-ink hover:underline">
       {label}
     </button>
   );
@@ -138,7 +138,7 @@ export function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () => void 
   if (sent) {
     return (
       <div className="flex flex-col items-center gap-4 py-4 text-center text-sm">
-        <MailCheck className="h-8 w-8 text-primary" />
+        <MailCheck className="h-8 w-8 text-brand-ink" />
         <p className="font-medium">Confirm your email</p>
         <p>
           We sent a confirmation link to <strong>{form.email}</strong>. Click it to finish setting
@@ -204,48 +204,23 @@ export function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () => void 
         </Field>
 
         {strongPassword && (
-          <fieldset className="space-y-2 border-t pt-4">
-            <legend className="mb-1 text-xs font-medium text-muted-foreground">
-              I&apos;m signing up as *
-            </legend>
-            <div role="radiogroup" aria-label="Sign up as" className="space-y-2">
-              {SIGNUP_ROLES.map((r) => {
-                const on = role === r.id;
-                return (
-                  <button
-                    key={r.id}
-                    type="button"
-                    role="radio"
-                    aria-checked={on}
-                    onClick={() => setRole(r.id)}
-                    className={cn(
-                      "flex w-full items-start gap-3 border p-3 text-left transition-colors",
-                      on
-                        ? "border-primary bg-primary-soft"
-                        : "border-border bg-card hover:border-primary/60",
-                    )}
-                  >
-                    <span
-                      className={cn(
-                        "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border",
-                        on ? "border-primary" : "border-input",
-                      )}
-                      aria-hidden
-                    >
-                      {on && <span className="h-2 w-2 rounded-full bg-primary" />}
-                    </span>
-                    <span>
-                      <span className="block text-sm font-medium">{r.label}</span>
-                      <span className="block text-xs text-muted-foreground">{r.hint}</span>
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              This is a request. An administrator confirms your access after you sign up.
-            </p>
-          </fieldset>
+          <Field
+            label="I'm signing up as *"
+            hint={`${SIGNUP_ROLES.find((r) => r.id === role)?.hint ?? "Choose the option that fits you"}. An administrator confirms your access after you sign up.`}
+          >
+            <Select value={role ?? ""} onValueChange={(v) => setRole(v as SignupRole)}>
+              <SelectTrigger aria-label="Sign up as">
+                <SelectValue placeholder="Choose…" />
+              </SelectTrigger>
+              <SelectContent>
+                {SIGNUP_ROLES.map((r) => (
+                  <SelectItem key={r.id} value={r.id}>
+                    {r.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
         )}
 
         {needsOrg && (

@@ -61,14 +61,14 @@ function Welcome() {
   const signedIn = !!session;
 
   return (
-    <div className="min-h-screen bg-navy text-navy-foreground">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-5 sm:px-8">
-        <Logo onDark />
+    <div className="min-h-screen bg-navy text-navy-foreground [--primary-foreground:var(--brand-foreground)] [--primary-soft:var(--brand-soft)] [--primary:var(--brand)] [--ring:var(--brand)]">
+      <header className="mx-auto flex max-w-6xl items-center justify-end px-4 py-5 sm:px-8">
         <LanguageSelector />
       </header>
 
-      <main className="mx-auto grid max-w-6xl items-center gap-10 px-4 pb-16 pt-6 sm:px-8 lg:min-h-[calc(100vh-88px)] lg:grid-cols-[1.1fr_0.9fr] lg:gap-14 lg:pb-24 lg:pt-0">
+      <main className="mx-auto grid max-w-6xl items-start gap-10 px-4 pb-16 pt-2 sm:px-8 lg:min-h-[calc(100vh-88px)] lg:grid-cols-[1.1fr_0.9fr] lg:content-center lg:gap-14 lg:pb-24 lg:pt-0">
         <section>
+          <Logo size="hero" onDark className="mb-8 leading-none" />
           <p className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-brand">
             {HERO.eyebrow}
           </p>

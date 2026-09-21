@@ -27,8 +27,24 @@ export function Logo({
 }: {
   className?: string;
   onDark?: boolean;
-  size?: "md" | "lg";
+  size?: "md" | "lg" | "hero";
 }) {
+  if (size === "hero") {
+    // Sized in em from the wrapper font size, so the mark and wordmark scale together.
+    return (
+      <span
+        className={cn(
+          "inline-flex items-center gap-[0.1em] text-[51px] sm:text-[77px] lg:text-[80px] xl:text-[106px]",
+          className,
+        )}
+      >
+        <LogoMark className="h-[1.33em] w-[1.33em]" />
+        <span className={cn("wordmark leading-none", onDark ? "text-brand" : "text-navy")}>
+          {BRAND.name}
+        </span>
+      </span>
+    );
+  }
   return (
     <span className={cn("inline-flex items-center gap-2", className)}>
       <LogoMark className={size === "lg" ? "h-11 w-11" : "h-8 w-8"} />

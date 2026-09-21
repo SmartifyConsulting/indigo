@@ -100,7 +100,7 @@ export function SignInForm() {
       </Button>
 
       <div className="mt-6 flex flex-col items-center gap-2 text-sm">
-        <Link to="/forgot-password" tabIndex={-1} className="text-primary hover:underline">
+        <Link to="/forgot-password" tabIndex={-1} className="text-brand-ink hover:underline">
           {t("auth.forgot")}
         </Link>
       </div>

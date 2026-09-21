@@ -28,7 +28,7 @@ export function AuthTabs({
   const { t } = useI18n();
   return (
     <nav
-      className="mb-6 grid grid-cols-2 gap-1 rounded-[14px] bg-secondary p-1"
+      className="mb-6 grid grid-cols-2 gap-1 rounded-[14px] bg-[oklch(0.36_0.008_260)] p-1"
       aria-label="Account"
     >
       {TABS.map((tab) => (
@@ -39,9 +39,7 @@ export function AuthTabs({
           aria-pressed={active === tab.id}
           className={cn(
             "rounded-[10px] py-2 text-center text-sm font-medium transition-colors",
-            active === tab.id
-              ? "border border-border bg-card text-foreground"
-              : "text-muted-foreground hover:text-foreground",
+            active === tab.id ? "bg-card text-foreground" : "text-white/70 hover:text-white",
           )}
         >
           {t(tab.key)}
