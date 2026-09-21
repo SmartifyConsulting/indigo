@@ -6,11 +6,15 @@ import {
   useRouter,
   HeadContent,
   Scripts,
+  useRouterState,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { AppShell } from "@/components/app-shell";
+import { Toaster } from "@/components/ui/sonner";
+import { BRAND } from "@/lib/brand";
+import { useStoreHydration } from "@/lib/domain/store";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
@@ -78,10 +82,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "indio — Client & Wealth Management" },
+      { title: `${BRAND.name}: compliance-driven advice platform` },
       {
         name: "description",
-        content: "Adviser workspace for clients, portfolios and reporting.",
+        content: BRAND.tagline,
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -95,9 +99,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
     ],
   }),
   shellComponent: RootShell,
@@ -120,15 +124,26 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+/** Auth and client-gateway pages render full-screen, outside the workspace shell. */
+const BARE_PREFIXES = ["/login", "/signup", "/onboard"];
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (r) => r.location.pathname });
+  const bare = BARE_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"));
+  useStoreHydration();
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AppShell>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+      {bare ? (
         <Outlet />
-      </AppShell>
+      ) : (
+        <AppShell>
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <Outlet />
+        </AppShell>
+      )}
+      <Toaster richColors position="top-right" />
     </QueryClientProvider>
   );
 }

@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Download, FileBarChart, FileSpreadsheet, FileText, Search, ShieldCheck } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Download } from "lucide-react";
+import { useState } from "react";
 
+import { PageHeader } from "@/components/common";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -14,128 +15,180 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { documents } from "@/lib/wealth-data";
+import { useAppState } from "@/lib/domain/store";
+import {
+  SIGNATURE_LABEL,
+  providerName,
+  type CaseRecord,
+  type RoaVersion,
+} from "@/lib/domain/types";
+import { fmtDateTime, zar } from "@/lib/fmt";
 
 export const Route = createFileRoute("/reports")({
-  head: () => ({
-    meta: [
-      { title: "Reports & documents — indio Wealth Management" },
-      {
-        name: "description",
-        content: "Client statements, tax packs, mandates and compliance documents in one library.",
-      },
-      { property: "og:title", content: "Reports & documents — indio Wealth Management" },
-      {
-        property: "og:description",
-        content: "Client statements, tax packs, mandates and compliance documents in one library.",
-      },
-    ],
-  }),
-  component: ReportsPage,
+  head: () => ({ meta: [{ title: "Documents | indigro" }] }),
+  component: Documents,
 });
 
-const shortcuts = [
-  { label: "Portfolio statement", hint: "Per client, any period", icon: FileBarChart },
-  { label: "Performance pack", hint: "Benchmark comparison", icon: FileSpreadsheet },
-  { label: "Compliance review", hint: "KYC and mandate status", icon: ShieldCheck },
-];
+interface Doc {
+  id: string;
+  title: string;
+  client: string;
+  date: string;
+  status: "Signed" | "Current" | "Superseded" | "Issued";
+  fingerprint: string;
+  download?: () => void;
+}
 
-function ReportsPage() {
-  const [query, setQuery] = useState("");
-  const rows = useMemo(
-    () =>
-      documents.filter((d) =>
-        `${d.title} ${d.client} ${d.type}`.toLowerCase().includes(query.toLowerCase()),
-      ),
-    [query],
-  );
+function roaText(c: CaseRecord, v: RoaVersion): string {
+  const x = v.content;
+  return [
+    `RECORD OF ADVICE v${v.version}`,
+    `Client: ${x.clientName}`,
+    `Advisor: ${x.advisor}`,
+    `FSP: ${x.fspName}`,
+    `Basis: ${x.fnaMode === "full" ? "Full needs analysis" : "Single need (disclaimer signed)"}`,
+    `Risk profile: ${x.riskProfile}`,
+    "",
+    "RECOMMENDATIONS",
+    ...x.recommendations.map(
+      (r) =>
+        `- ${r.product} (${r.provider}): ${zar(r.cover)}${r.unit === "monthly" ? " p/m benefit" : " cover"}, ${zar(r.monthlyPremium)} p/m`,
+    ),
+    "",
+    `Total premium: ${zar(x.totalMonthlyPremium)} p/m (${x.affordabilityPct}% of net income, ${x.affordability})`,
+    "",
+    "ADVISOR COMMENTARY",
+    x.commentary,
+    "",
+    `Document fingerprint (SHA-256): ${v.hash}`,
+    `Generated: ${fmtDateTime(v.createdAt)}`,
+    `Case reference: ${c.code}`,
+  ].join("\n");
+}
+
+function download(name: string, text: string) {
+  const url = URL.createObjectURL(new Blob([text], { type: "text/plain" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function Documents() {
+  const s = useAppState();
+  const [q, setQ] = useState("");
+  const role = s.session.role;
+  const cases: CaseRecord[] =
+    role === "client"
+      ? s.cases.filter((c) => c.id === s.session.clientCaseId)
+      : role === "advisor"
+        ? s.cases.filter((c) => c.advisorId === s.advisors[0]!.id)
+        : s.cases;
+
+  const docs: Doc[] = cases.flatMap((c) => [
+    ...c.signatures.map<Doc>((sg) => ({
+      id: sg.id,
+      title: `${SIGNATURE_LABEL[sg.kind]}${sg.roaVersion ? ` (ROA v${sg.roaVersion})` : ""}`,
+      client: c.clientName,
+      date: sg.signedAt,
+      status: "Signed",
+      fingerprint: sg.docHash,
+    })),
+    ...c.roa.map<Doc>((v) => {
+      const signed = c.signatures.some((sg) => sg.kind === "roa" && sg.roaVersion === v.version);
+      return {
+        id: `roa-${c.id}-${v.version}`,
+        title: `Record of Advice v${v.version}`,
+        client: c.clientName,
+        date: v.createdAt,
+        status: signed ? "Signed" : v.version === c.roa.length ? "Current" : "Superseded",
+        fingerprint: v.hash,
+        download: () => download(`ROA-${c.code}-v${v.version}.txt`, roaText(c, v)),
+      };
+    }),
+    ...c.applications
+      .filter((a) => a.status === "issued")
+      .map<Doc>((a) => ({
+        id: `pol-${a.quoteId}`,
+        title: `Policy schedule: ${a.product} (${providerName(a.providerId)})`,
+        client: c.clientName,
+        date: a.decidedAt ?? a.submittedAt,
+        status: "Issued",
+        fingerprint: a.policyNumber ?? "",
+      })),
+  ]);
+
+  const rows = docs
+    .filter((d) => (d.title + d.client).toLowerCase().includes(q.toLowerCase()))
+    .sort((a, b) => b.date.localeCompare(a.date));
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="wordmark text-2xl text-foreground">reports &amp; documents</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Generate new reporting or download an existing document.
-        </p>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-3">
-        {shortcuts.map(({ label, hint, icon: Icon }) => (
-          <Card key={label} className="transition-colors hover:border-brand/60">
-            <CardContent className="flex items-center gap-4 p-5">
-              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-soft text-brand-foreground">
-                <Icon className="h-5 w-5" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-foreground">{label}</p>
-                <p className="text-xs text-muted-foreground">{hint}</p>
-              </div>
-              <Button size="sm" variant="ghost" className="text-brand-foreground">
-                Generate
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <div className="relative max-w-sm">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search documents"
-          className="pl-9"
-        />
-      </div>
-
+    <>
+      <PageHeader
+        title={role === "client" ? "My documents" : "Documents & ROAs"}
+        description="Everything signed or issued, with its tamper-evident fingerprint."
+      />
+      <Input
+        className="mb-4 max-w-sm"
+        placeholder="Search documents"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        aria-label="Search documents"
+      />
       <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                <TableHead>Document</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Client</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead className="text-right">Size</TableHead>
-                <TableHead className="w-12" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((d) => (
-                <TableRow key={d.id}>
-                  <TableCell className="font-medium">
-                    <span className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-muted-foreground" />
-                      {d.title}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" className="font-medium">
-                      {d.type}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">{d.client}</TableCell>
-                  <TableCell className="text-muted-foreground">{d.date}</TableCell>
-                  <TableCell className="text-right text-muted-foreground">{d.size}</TableCell>
-                  <TableCell className="text-right">
-                    <Button size="icon" variant="ghost" aria-label={`Download ${d.title}`}>
-                      <Download className="h-4 w-4" />
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Document</TableHead>
+              {role !== "client" && <TableHead>Client</TableHead>}
+              <TableHead>Date</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Fingerprint</TableHead>
+              <TableHead />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.map((d) => (
+              <TableRow key={d.id}>
+                <TableCell className="font-medium">{d.title}</TableCell>
+                {role !== "client" && <TableCell>{d.client}</TableCell>}
+                <TableCell className="text-muted-foreground">{fmtDateTime(d.date)}</TableCell>
+                <TableCell>
+                  <Badge
+                    variant={
+                      d.status === "Signed" || d.status === "Issued"
+                        ? "success"
+                        : d.status === "Current"
+                          ? "warning"
+                          : "secondary"
+                    }
+                  >
+                    {d.status}
+                  </Badge>
+                </TableCell>
+                <TableCell className="font-mono text-xs text-muted-foreground">
+                  {d.fingerprint.slice(0, 14)}
+                </TableCell>
+                <TableCell className="text-right">
+                  {d.download && (
+                    <Button variant="ghost" size="sm" onClick={d.download}>
+                      <Download /> Download
                     </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {rows.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
-                    No documents found.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+            {rows.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                  No documents yet.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </Card>
-    </div>
+    </>
   );
 }

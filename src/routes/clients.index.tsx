@@ -1,17 +1,28 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Search } from "lucide-react";
-import { useMemo, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { QRCodeSVG } from "qrcode.react";
+import { Plus, Search } from "lucide-react";
+import { useState } from "react";
 
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { useOrigin } from "@/components/case/onboarding-tab";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Field,
+  PageHeader,
+  RequireRole,
+  StageBadge,
+  StageDots,
+  toastResult,
+} from "@/components/common";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -20,135 +31,208 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { clients, compactCurrency, type Client } from "@/lib/wealth-data";
+import { getStage, isComplete } from "@/lib/domain/gates";
+import { nextAction } from "@/lib/domain/next-action";
+import { actions, useAppState } from "@/lib/domain/store";
+import { fmtDate } from "@/lib/fmt";
 
 export const Route = createFileRoute("/clients/")({
-  head: () => ({
-    meta: [
-      { title: "Clients — indio Wealth Management" },
-      {
-        name: "description",
-        content: "Search and filter the client book by segment, adviser, value and status.",
-      },
-      { property: "og:title", content: "Clients — indio Wealth Management" },
-      {
-        property: "og:description",
-        content: "Search and filter the client book by segment, adviser, value and status.",
-      },
-    ],
-  }),
-  component: ClientsPage,
+  head: () => ({ meta: [{ title: "Clients | indigro" }] }),
+  component: () => (
+    <RequireRole roles={["advisor", "fsp"]}>
+      <Clients />
+    </RequireRole>
+  ),
 });
 
-const statusTone: Record<Client["status"], string> = {
-  Active: "bg-brand-soft text-brand-foreground",
-  Onboarding: "bg-secondary text-secondary-foreground",
-  "Review due": "bg-destructive/10 text-destructive",
-  Dormant: "bg-muted text-muted-foreground",
-};
+function InviteDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+}) {
+  const s = useAppState();
+  const navigate = useNavigate();
+  const origin = useOrigin();
+  const [form, setForm] = useState({ name: "", email: "", phone: "" });
+  const [created, setCreated] = useState<{ id: string; code: string } | null>(null);
+  const link = created ? `${origin}/onboard/${created.code}` : "";
 
-function ClientsPage() {
-  const [query, setQuery] = useState("");
-  const [segment, setSegment] = useState("all");
-
-  const rows = useMemo(
-    () =>
-      clients.filter((c) => {
-        const matchesQuery = `${c.name} ${c.adviser} ${c.location}`
-          .toLowerCase()
-          .includes(query.toLowerCase());
-        const matchesSegment = segment === "all" || c.segment === segment;
-        return matchesQuery && matchesSegment;
-      }),
-    [query, segment],
-  );
+  const create = () => {
+    const r = actions.createCase({ ...form, advisorId: s.advisors[0]!.id });
+    if (toastResult(r, "Invitation created") && r.ok && "caseId" in r)
+      setCreated({ id: r.caseId, code: r.code });
+  };
+  const close = (o: boolean) => {
+    if (!o) {
+      setCreated(null);
+      setForm({ name: "", email: "", phone: "" });
+    }
+    onOpenChange(o);
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h2 className="wordmark text-2xl text-foreground">client book</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {rows.length} of {clients.length} relationships
-          </p>
-        </div>
-        <div className="flex w-full flex-wrap gap-3 sm:w-auto">
-          <div className="relative min-w-[220px] flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search name, adviser, city"
-              className="pl-9"
-            />
+    <Dialog open={open} onOpenChange={close}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>{created ? "Share the client gateway" : "Invite a client"}</DialogTitle>
+          <DialogDescription>
+            {created
+              ? "The client scans the QR code or opens the secure link to verify their identity and sign their mandates."
+              : "Creates the client record and a unique onboarding link."}
+          </DialogDescription>
+        </DialogHeader>
+        {created ? (
+          <div className="flex flex-col items-center gap-3">
+            <div className="rounded-md border bg-white p-3">
+              <QRCodeSVG value={link} size={160} />
+            </div>
+            <code className="w-full truncate rounded-md border bg-background px-3 py-2 text-xs">
+              {link}
+            </code>
           </div>
-          <Select value={segment} onValueChange={setSegment}>
-            <SelectTrigger className="w-[170px]">
-              <SelectValue placeholder="Segment" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All segments</SelectItem>
-              <SelectItem value="Private Client">Private Client</SelectItem>
-              <SelectItem value="Family Office">Family Office</SelectItem>
-              <SelectItem value="Institutional">Institutional</SelectItem>
-              <SelectItem value="Retail">Retail</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+        ) : (
+          <div className="space-y-3">
+            <Field label="Full name">
+              <Input
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder="As on their ID"
+              />
+            </Field>
+            <Field label="Email">
+              <Input
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+              />
+            </Field>
+            <Field label="Mobile">
+              <Input
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              />
+            </Field>
+          </div>
+        )}
+        <DialogFooter>
+          {created ? (
+            <Button
+              onClick={() => {
+                close(false);
+                void navigate({ to: "/clients/$clientId", params: { clientId: created.id } });
+              }}
+            >
+              Open client workspace
+            </Button>
+          ) : (
+            <Button onClick={create} disabled={form.name.trim().length < 3}>
+              Create invitation
+            </Button>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
+function Clients() {
+  const s = useAppState();
+  const [q, setQ] = useState("");
+  const [invite, setInvite] = useState(false);
+  const isAdvisor = s.session.role === "advisor";
+  const me = s.advisors[0]!;
+  const rows = s.cases
+    .filter((c) => (isAdvisor ? c.advisorId === me.id : true))
+    .filter((c) => c.clientName.toLowerCase().includes(q.toLowerCase()));
+
+  return (
+    <>
+      <PageHeader
+        title={isAdvisor ? "Clients" : "Client pipeline"}
+        description={
+          isAdvisor
+            ? "Every client moves through the same six regulated stages."
+            : `All advisors at ${s.fsp.name}`
+        }
+        actions={
+          isAdvisor && (
+            <Button onClick={() => setInvite(true)}>
+              <Plus /> Invite client
+            </Button>
+          )
+        }
+      />
+      <div className="relative mb-4 max-w-sm">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          className="pl-9"
+          placeholder="Search clients"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          aria-label="Search clients"
+        />
+      </div>
       <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                <TableHead>Client</TableHead>
-                <TableHead>Segment</TableHead>
-                <TableHead className="text-right">Portfolio value</TableHead>
-                <TableHead>Adviser</TableHead>
-                <TableHead>Last review</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((c) => (
-                <TableRow key={c.id} className="cursor-pointer">
-                  <TableCell className="font-medium">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Client</TableHead>
+              {!isAdvisor && <TableHead>Advisor</TableHead>}
+              <TableHead>Stage</TableHead>
+              <TableHead>Progress</TableHead>
+              <TableHead>Next step</TableHead>
+              <TableHead>Invited</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.map((c) => {
+              const na = nextAction(c);
+              return (
+                <TableRow key={c.id}>
+                  <TableCell>
                     <Link
                       to="/clients/$clientId"
                       params={{ clientId: c.id }}
-                      className="block hover:text-brand-foreground"
+                      className="font-medium text-primary hover:underline"
                     >
-                      {c.name}
-                      <span className="block text-xs font-normal text-muted-foreground">
-                        {c.location}
-                      </span>
+                      {c.clientName}
                     </Link>
+                    <p className="text-xs text-muted-foreground">{c.email}</p>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{c.segment}</TableCell>
-                  <TableCell className="text-right font-semibold">
-                    {compactCurrency(c.value)}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">{c.adviser}</TableCell>
-                  <TableCell className="text-muted-foreground">{c.lastReview}</TableCell>
+                  {!isAdvisor && (
+                    <TableCell>{s.advisors.find((a) => a.id === c.advisorId)?.name}</TableCell>
+                  )}
                   <TableCell>
-                    <Badge className={`${statusTone[c.status]} border-0 font-medium`}>
-                      {c.status}
-                    </Badge>
+                    <StageBadge c={c} />
                   </TableCell>
-                </TableRow>
-              ))}
-              {rows.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
-                    No clients match that search.
+                  <TableCell>
+                    <StageDots stage={getStage(c)} complete={isComplete(c)} />
                   </TableCell>
+                  <TableCell className="max-w-64 text-sm">
+                    {na.text}
+                    {na.owner !== "none" && (
+                      <span className="block text-xs capitalize text-muted-foreground">
+                        {na.owner === "fsp" ? "Key Individual" : na.owner}
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">{fmtDate(c.createdAt)}</TableCell>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
+              );
+            })}
+            {rows.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                  No clients match.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </Card>
-    </div>
+      <InviteDialog open={invite} onOpenChange={setInvite} />
+    </>
   );
 }

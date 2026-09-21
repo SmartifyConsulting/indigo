@@ -10,14 +10,52 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ActionsRouteImport } from './routes/actions'
+import { Route as ApplicationsRouteImport } from './routes/applications'
+import { Route as BillingRouteImport } from './routes/billing'
+import { Route as ComplianceRouteImport } from './routes/compliance'
+import { Route as IntegrationsRouteImport } from './routes/integrations'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as PortfoliosRouteImport } from './routes/portfolios'
 import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ClientsIndexRouteImport } from './routes/clients.index'
 import { Route as ClientsClientIdRouteImport } from './routes/clients.$clientId'
+import { Route as OnboardCodeRouteImport } from './routes/onboard.$code'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ActionsRoute = ActionsRouteImport.update({
+  id: '/actions',
+  path: '/actions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApplicationsRoute = ApplicationsRouteImport.update({
+  id: '/applications',
+  path: '/applications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BillingRoute = BillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ComplianceRoute = ComplianceRouteImport.update({
+  id: '/compliance',
+  path: '/compliance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IntegrationsRoute = IntegrationsRouteImport.update({
+  id: '/integrations',
+  path: '/integrations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PortfoliosRoute = PortfoliosRouteImport.update({
@@ -30,6 +68,11 @@ const ReportsRoute = ReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ClientsIndexRoute = ClientsIndexRouteImport.update({
   id: '/clients/',
   path: '/clients/',
@@ -40,49 +83,119 @@ const ClientsClientIdRoute = ClientsClientIdRouteImport.update({
   path: '/clients/$clientId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OnboardCodeRoute = OnboardCodeRouteImport.update({
+  id: '/onboard/$code',
+  path: '/onboard/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/actions': typeof ActionsRoute
+  '/applications': typeof ApplicationsRoute
+  '/billing': typeof BillingRoute
+  '/compliance': typeof ComplianceRoute
+  '/integrations': typeof IntegrationsRoute
+  '/login': typeof LoginRoute
   '/portfolios': typeof PortfoliosRoute
   '/reports': typeof ReportsRoute
+  '/signup': typeof SignupRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
+  '/onboard/$code': typeof OnboardCodeRoute
   '/clients/': typeof ClientsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/actions': typeof ActionsRoute
+  '/applications': typeof ApplicationsRoute
+  '/billing': typeof BillingRoute
+  '/compliance': typeof ComplianceRoute
+  '/integrations': typeof IntegrationsRoute
+  '/login': typeof LoginRoute
   '/portfolios': typeof PortfoliosRoute
   '/reports': typeof ReportsRoute
+  '/signup': typeof SignupRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
+  '/onboard/$code': typeof OnboardCodeRoute
   '/clients': typeof ClientsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/actions': typeof ActionsRoute
+  '/applications': typeof ApplicationsRoute
+  '/billing': typeof BillingRoute
+  '/compliance': typeof ComplianceRoute
+  '/integrations': typeof IntegrationsRoute
+  '/login': typeof LoginRoute
   '/portfolios': typeof PortfoliosRoute
   '/reports': typeof ReportsRoute
+  '/signup': typeof SignupRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
+  '/onboard/$code': typeof OnboardCodeRoute
   '/clients/': typeof ClientsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/portfolios' | '/reports' | '/clients/$clientId' | '/clients/'
+    | '/'
+    | '/actions'
+    | '/applications'
+    | '/billing'
+    | '/compliance'
+    | '/integrations'
+    | '/login'
+    | '/portfolios'
+    | '/reports'
+    | '/signup'
+    | '/clients/$clientId'
+    | '/onboard/$code'
+    | '/clients/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/portfolios' | '/reports' | '/clients/$clientId' | '/clients'
+  to:
+    | '/'
+    | '/actions'
+    | '/applications'
+    | '/billing'
+    | '/compliance'
+    | '/integrations'
+    | '/login'
+    | '/portfolios'
+    | '/reports'
+    | '/signup'
+    | '/clients/$clientId'
+    | '/onboard/$code'
+    | '/clients'
   id:
     | '__root__'
     | '/'
+    | '/actions'
+    | '/applications'
+    | '/billing'
+    | '/compliance'
+    | '/integrations'
+    | '/login'
     | '/portfolios'
     | '/reports'
+    | '/signup'
     | '/clients/$clientId'
+    | '/onboard/$code'
     | '/clients/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ActionsRoute: typeof ActionsRoute
+  ApplicationsRoute: typeof ApplicationsRoute
+  BillingRoute: typeof BillingRoute
+  ComplianceRoute: typeof ComplianceRoute
+  IntegrationsRoute: typeof IntegrationsRoute
+  LoginRoute: typeof LoginRoute
   PortfoliosRoute: typeof PortfoliosRoute
   ReportsRoute: typeof ReportsRoute
+  SignupRoute: typeof SignupRoute
   ClientsClientIdRoute: typeof ClientsClientIdRoute
+  OnboardCodeRoute: typeof OnboardCodeRoute
   ClientsIndexRoute: typeof ClientsIndexRoute
 }
 
@@ -93,6 +206,48 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/actions': {
+      id: '/actions'
+      path: '/actions'
+      fullPath: '/actions'
+      preLoaderRoute: typeof ActionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/applications': {
+      id: '/applications'
+      path: '/applications'
+      fullPath: '/applications'
+      preLoaderRoute: typeof ApplicationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/billing': {
+      id: '/billing'
+      path: '/billing'
+      fullPath: '/billing'
+      preLoaderRoute: typeof BillingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compliance': {
+      id: '/compliance'
+      path: '/compliance'
+      fullPath: '/compliance'
+      preLoaderRoute: typeof ComplianceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/integrations': {
+      id: '/integrations'
+      path: '/integrations'
+      fullPath: '/integrations'
+      preLoaderRoute: typeof IntegrationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/portfolios': {
@@ -109,6 +264,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReportsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/clients/': {
       id: '/clients/'
       path: '/clients'
@@ -123,14 +285,29 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClientsClientIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/onboard/$code': {
+      id: '/onboard/$code'
+      path: '/onboard/$code'
+      fullPath: '/onboard/$code'
+      preLoaderRoute: typeof OnboardCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ActionsRoute: ActionsRoute,
+  ApplicationsRoute: ApplicationsRoute,
+  BillingRoute: BillingRoute,
+  ComplianceRoute: ComplianceRoute,
+  IntegrationsRoute: IntegrationsRoute,
+  LoginRoute: LoginRoute,
   PortfoliosRoute: PortfoliosRoute,
   ReportsRoute: ReportsRoute,
+  SignupRoute: SignupRoute,
   ClientsClientIdRoute: ClientsClientIdRoute,
+  OnboardCodeRoute: OnboardCodeRoute,
   ClientsIndexRoute: ClientsIndexRoute,
 }
 export const routeTree = rootRouteImport

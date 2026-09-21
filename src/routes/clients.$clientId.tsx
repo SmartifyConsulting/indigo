@@ -1,217 +1,164 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { ArrowLeft, Mail, MapPin, Phone } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Check } from "lucide-react";
+import { useState } from "react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { FnaTab } from "@/components/case/fna-tab";
+import { IssuanceTab } from "@/components/case/issuance-tab";
+import { OnboardingTab } from "@/components/case/onboarding-tab";
+import { PortfolioTab } from "@/components/case/portfolio-tab";
+import { PresentTab } from "@/components/case/present-tab";
+import { QuotesTab } from "@/components/case/quotes-tab";
+import { EmptyState, PageHeader, RequireRole, StageBadge } from "@/components/common";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { compactCurrency, currency, getClient, getPortfoliosForClient, portfolios } from "@/lib/wealth-data";
+import { STAGES, getStage, isComplete } from "@/lib/domain/gates";
+import { nextAction } from "@/lib/domain/next-action";
+import { useAppState } from "@/lib/domain/store";
+import { fmtDate } from "@/lib/fmt";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/clients/$clientId")({
-  loader: ({ params }) => {
-    const client = getClient(params.clientId);
-    if (!client) throw notFound();
-    return { client };
-  },
-  head: ({ loaderData }) => {
-    if (!loaderData) {
-      return {
-        meta: [{ title: "Client not found — indio" }, { name: "robots", content: "noindex" }],
-      };
-    }
-    const title = `${loaderData.client.name} — indio Wealth Management`;
-    const description = `${loaderData.client.segment} relationship managed by ${loaderData.client.adviser}.`;
-    return {
-      meta: [
-        { title },
-        { name: "description", content: description },
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
-      ],
-    };
-  },
-  component: ClientDetail,
+  head: () => ({ meta: [{ title: "Client workspace | indigro" }] }),
+  component: CaseWorkspace,
 });
 
-const timeline = [
-  { id: "t1", date: "19 Sep 2026", text: "Annual review completed — mandate unchanged." },
-  { id: "t2", date: "02 Aug 2026", text: "Offshore allocation increased by 4%." },
-  { id: "t3", date: "14 May 2026", text: "Beneficiary details updated on the trust." },
-  { id: "t4", date: "11 Feb 2026", text: "Contribution of R 12m received." },
-];
+function CaseWorkspace() {
+  return (
+    <RequireRole roles={["advisor", "fsp"]}>
+      <Workspace />
+    </RequireRole>
+  );
+}
 
-function ClientDetail() {
-  const { client } = Route.useLoaderData();
-  const owned = getPortfoliosForClient(client.id);
-  const shown = owned.length > 0 ? owned : portfolios.slice(0, 1);
-  const initials = client.name
-    .split(" ")
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join("");
+function Workspace() {
+  const { clientId } = Route.useParams();
+  const s = useAppState();
+  const c = s.cases.find((x) => x.id === clientId);
+  const stage = c ? getStage(c) : 1;
+  // Open on the current stage once, then stay put as the case advances so results stay visible.
+  const [initialStage] = useState(stage);
+  const [tab, setTab] = useState<string | null>(null);
+
+  if (!c) {
+    return (
+      <EmptyState title="Client not found">
+        <Link to="/clients" className="text-primary hover:underline">
+          Back to clients
+        </Link>
+      </EmptyState>
+    );
+  }
+
+  const active = tab ?? `s${initialStage}`;
+  const advisor = s.advisors.find((a) => a.id === c.advisorId);
+  const next = nextAction(c);
+  const readOnly = s.session.role === "fsp";
+  const complete = isComplete(c);
 
   return (
-    <div className="space-y-6">
-      <Link
-        to="/clients"
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" /> Back to clients
-      </Link>
+    <>
+      <PageHeader
+        back={{ to: "/clients", label: "All clients" }}
+        title={c.clientName}
+        description={
+          <>
+            {advisor?.name} · Invited {fmtDate(c.createdAt)} · Ref {c.code}
+          </>
+        }
+        actions={<StageBadge c={c} />}
+      />
 
-      <Card>
-        <CardContent className="flex flex-wrap items-center gap-6 p-6">
-          <Avatar className="h-16 w-16">
-            <AvatarFallback className="bg-primary text-lg font-semibold text-primary-foreground">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-          <div className="min-w-[220px] flex-1">
-            <h2 className="wordmark text-2xl text-foreground">{client.name}</h2>
-            <div className="mt-2 flex flex-wrap gap-2">
-              <Badge className="border-0 bg-brand-soft font-medium text-brand-foreground">
-                {client.segment}
-              </Badge>
-              <Badge variant="secondary">{client.risk} risk</Badge>
-              <Badge variant="outline">Client since {client.since}</Badge>
-            </div>
-          </div>
-          <div className="space-y-1.5 text-sm text-muted-foreground">
-            <p className="flex items-center gap-2">
-              <Mail className="h-4 w-4" /> {client.email}
-            </p>
-            <p className="flex items-center gap-2">
-              <Phone className="h-4 w-4" /> {client.phone}
-            </p>
-            <p className="flex items-center gap-2">
-              <MapPin className="h-4 w-4" /> {client.location}
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
-              Total value
-            </p>
-            <p className="wordmark text-3xl text-foreground">{compactCurrency(client.value)}</p>
-            <Button className="mt-3 bg-brand text-brand-foreground hover:bg-brand/90">
-              Schedule review
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Tabs defaultValue="holdings">
-        <TabsList>
-          <TabsTrigger value="holdings">Holdings</TabsTrigger>
-          <TabsTrigger value="accounts">Accounts</TabsTrigger>
-          <TabsTrigger value="notes">Notes & activity</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="holdings" className="mt-4">
-          <Card>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow className="hover:bg-transparent">
-                    <TableHead>Instrument</TableHead>
-                    <TableHead className="text-right">Units</TableHead>
-                    <TableHead className="text-right">Price</TableHead>
-                    <TableHead className="text-right">Value</TableHead>
-                    <TableHead className="text-right">Weight</TableHead>
-                    <TableHead className="text-right">Gain</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {shown[0]!.holdings.map((h) => (
-                    <TableRow key={h.ticker}>
-                      <TableCell className="font-medium">
-                        {h.instrument}
-                        <span className="block text-xs font-normal text-muted-foreground">
-                          {h.ticker}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right text-muted-foreground">
-                        {h.units.toLocaleString("en-ZA")}
-                      </TableCell>
-                      <TableCell className="text-right text-muted-foreground">
-                        {currency(h.price, 2)}
-                      </TableCell>
-                      <TableCell className="text-right font-semibold">
-                        {compactCurrency(h.value)}
-                      </TableCell>
-                      <TableCell className="text-right text-muted-foreground">{h.weight}%</TableCell>
-                      <TableCell
-                        className={`text-right font-medium ${h.gain >= 0 ? "text-positive" : "text-negative"}`}
+      <div className="mb-6 rounded-lg border bg-card p-4">
+        <ol className="grid grid-cols-3 gap-2 md:grid-cols-6">
+          {STAGES.map((st) => {
+            const done = complete || st.no < stage;
+            const current = !complete && st.no === stage;
+            return (
+              <li key={st.no}>
+                <button
+                  onClick={() => setTab(`s${st.no}`)}
+                  className={cn(
+                    "flex w-full flex-col gap-1.5 text-left",
+                    active === `s${st.no}` && "opacity-100",
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "h-1 rounded-sm",
+                      done ? "bg-positive" : current ? "bg-primary" : "bg-border",
+                    )}
+                  />
+                  <span className="flex items-center gap-1.5 text-xs font-medium">
+                    {done ? (
+                      <Check className="h-3.5 w-3.5 text-positive" />
+                    ) : (
+                      <span
+                        className={cn(
+                          "flex h-4 w-4 items-center justify-center rounded-full text-[10px]",
+                          current
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-secondary text-muted-foreground",
+                        )}
                       >
-                        {h.gain >= 0 ? "+" : ""}
-                        {h.gain}%
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                        {st.no}
+                      </span>
+                    )}
+                    <span className={current ? "text-foreground" : "text-muted-foreground"}>
+                      {st.short}
+                    </span>
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ol>
+        <p className="mt-3 border-t pt-3 text-sm">
+          <span className="text-muted-foreground">Next: </span>
+          <span className="font-medium">{next.text}</span>
+          {next.owner !== "none" && (
+            <span className="text-muted-foreground">
+              {" "}
+              ({next.owner === "fsp" ? "Key Individual" : next.owner})
+            </span>
+          )}
+        </p>
+      </div>
 
-        <TabsContent value="accounts" className="mt-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            {shown.map((p) => (
-              <Card key={p.id}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base font-semibold">{p.name}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 pt-2 text-sm">
-                  <p className="text-muted-foreground">{p.mandate}</p>
-                  <Separator />
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Value</span>
-                    <span className="font-semibold">{compactCurrency(p.value)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Return YTD</span>
-                    <span className="font-semibold text-positive">+{p.ytd}%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Cash weight</span>
-                    <span className="font-semibold">{p.cash}%</span>
-                  </div>
-                </CardContent>
-              </Card>
+      {readOnly && (
+        <div className="mb-6 rounded-lg border bg-primary-soft p-3 text-sm text-primary">
+          Supervision view: you can inspect everything here. Actions are performed by the advisor
+          and the client.
+        </div>
+      )}
+
+      <fieldset disabled={readOnly} className="m-0 min-w-0 border-0 p-0">
+        <Tabs value={active} onValueChange={setTab}>
+          <TabsList>
+            {STAGES.map((st) => (
+              <TabsTrigger key={st.no} value={`s${st.no}`}>
+                {st.no}. {st.short}
+              </TabsTrigger>
             ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="notes" className="mt-4">
-          <Card>
-            <CardContent className="p-6">
-              <ul className="space-y-5">
-                {timeline.map((t) => (
-                  <li key={t.id} className="flex gap-4">
-                    <div className="flex flex-col items-center">
-                      <span className="h-2.5 w-2.5 rounded-full bg-brand" />
-                      <span className="mt-1 w-px flex-1 bg-border" />
-                    </div>
-                    <div className="pb-1">
-                      <p className="text-sm font-medium text-foreground">{t.text}</p>
-                      <p className="text-xs text-muted-foreground">{t.date}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+          </TabsList>
+          <TabsContent value="s1">
+            <OnboardingTab c={c} />
+          </TabsContent>
+          <TabsContent value="s2">
+            <PortfolioTab c={c} />
+          </TabsContent>
+          <TabsContent value="s3">
+            <FnaTab c={c} />
+          </TabsContent>
+          <TabsContent value="s4">
+            <QuotesTab c={c} />
+          </TabsContent>
+          <TabsContent value="s5">
+            <PresentTab c={c} />
+          </TabsContent>
+          <TabsContent value="s6">
+            <IssuanceTab c={c} />
+          </TabsContent>
+        </Tabs>
+      </fieldset>
+    </>
   );
 }
