@@ -54,26 +54,26 @@ interface NavItem {
 
 const NAV: Record<Role, NavItem[]> = {
   advisor: [
-    { to: "/", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { to: "/clients", label: "Clients", icon: Users },
     { to: "/reports", label: "Documents & ROAs", icon: FileText },
     { to: "/integrations", label: "Integrations", icon: Plug },
   ],
   client: [
-    { to: "/", label: "Overview", icon: LayoutDashboard },
+    { to: "/dashboard", label: "Overview", icon: LayoutDashboard },
     { to: "/portfolios", label: "My wealth & protection", icon: Wallet },
     { to: "/actions", label: "Actions & signatures", icon: ClipboardCheck },
     { to: "/reports", label: "My documents", icon: FileText },
   ],
   fsp: [
-    { to: "/", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { to: "/compliance", label: "Compliance & audit", icon: ShieldCheck },
     { to: "/clients", label: "Client pipeline", icon: Users },
     { to: "/integrations", label: "Integrations", icon: Plug },
     { to: "/billing", label: "Billing", icon: CreditCard },
   ],
   insurer: [
-    { to: "/", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { to: "/applications", label: "Applications", icon: Inbox },
   ],
 };
@@ -91,7 +91,7 @@ function NavLink({ to, label, icon: Icon, onNavigate }: NavItem & { onNavigate?:
     <Link
       to={to}
       onClick={onNavigate}
-      activeOptions={{ exact: to === "/" }}
+      activeOptions={{ exact: to === "/dashboard" }}
       className="flex h-10 items-center gap-3 border-l-2 border-transparent px-4 text-sm font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
       activeProps={{
         className: "border-primary bg-sidebar-accent text-sidebar-accent-foreground",
@@ -178,7 +178,7 @@ function RoleSwitcher() {
       value={s.session.role}
       onValueChange={(v) => {
         actions.setRole(v as Role);
-        void navigate({ to: "/" });
+        void navigate({ to: "/dashboard" });
       }}
     >
       <SelectTrigger
@@ -250,7 +250,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </SheetContent>
         </Sheet>
 
-        <Link to="/" aria-label="Home">
+        <Link to="/dashboard" aria-label="Home">
           <Logo onDark />
         </Link>
 

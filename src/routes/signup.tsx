@@ -1,24 +1,31 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Eye, EyeOff, MailCheck } from "lucide-react";
-import { useState } from "react";
+import { Check, Eye, EyeOff, X } from "lucide-react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { AuthLayout } from "@/components/auth-layout";
 import { Field } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/brand";
-import { mapAuthError } from "@/lib/use-auth";
+import { mapAuthError, passwordChecks, SIGNUP_ROLES, type SignupRole } from "@/lib/use-auth";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({
     meta: [
-      { title: `Set up your agency | ${BRAND.name}` },
-      { name: "description", content: `Create an FSP workspace on ${BRAND.name}.` },
-      { property: "og:title", content: `Set up your agency | ${BRAND.name}` },
-      { property: "og:description", content: `Create an FSP workspace on ${BRAND.name}.` },
+      { title: `Create your account | ${BRAND.name}` },
+      { name: "description", content: `Join the ${BRAND.name} advice workspace.` },
+      { property: "og:title", content: `Create your account | ${BRAND.name}` },
+      { property: "og:description", content: `Join the ${BRAND.name} advice workspace.` },
     ],
   }),
   component: Signup,
@@ -26,24 +33,34 @@ export const Route = createFileRoute("/signup")({
 
 function Signup() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: "", email: "", password: "", fsp: "", fspNumber: "" });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    fsp: "",
+    fspNumber: "",
+    role: "advisor" as SignupRole,
+  });
   const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [sent, setSent] = useState(false);
+  const passwordRef = useRef<HTMLInputElement>(null);
 
-  const strongPassword =
-    form.password.length >= 8 && /[A-Za-z]/.test(form.password) && /\d/.test(form.password);
-  const valid =
-    form.name.trim().length > 2 &&
-    /\S+@\S+\.\S+/.test(form.email) &&
-    form.fsp.trim().length > 2 &&
-    strongPassword;
+  const checks = passwordChecks(form.password, form.email);
+  const strong = checks.every((c) => c.ok);
+  const roleMeta = SIGNUP_ROLES.find((r) => r.value === form.role)!;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!valid) {
-      setError("Check your details: a password needs 8+ characters with a letter and a number.");
+    if (!strong) {
+      const msg = "Your password does not meet the rules below yet.";
+      setError(msg);
+      toast.error(msg);
+      passwordRef.current?.focus();
+      return;
+    }
+    if (form.name.trim().length < 3 || !/\S+@\S+\.\S+/.test(form.email)) {
+      setError("Enter your full name and a valid work email address.");
       return;
     }
     setBusy(true);
@@ -53,7 +70,12 @@ function Signup() {
       password: form.password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { full_name: form.name, fsp_name: form.fsp, fsp_number: form.fspNumber },
+        data: {
+          full_name: form.name,
+          fsp_name: form.fsp,
+          fsp_number: form.fspNumber,
+          requested_role: form.role,
+        },
       },
     });
     setBusy(false);
@@ -63,44 +85,27 @@ function Signup() {
       toast.error(msg);
       return;
     }
-    if (data.session) void navigate({ to: "/" });
-    else setSent(true);
+    if (!roleMeta.instant) {
+      toast.success(
+        `Account created. Your request to join as ${roleMeta.label.toLowerCase()} is waiting for an administrator to approve it.`,
+      );
+    }
+    if (data.session) void navigate({ to: "/dashboard" });
+    else void navigate({ to: "/login" });
   }
 
   async function google() {
     const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin,
     });
-    if (result.error) {
-      toast.error("Google sign-in could not be started.");
-      return;
-    }
-    if (result.redirected) return;
-    void navigate({ to: "/" });
-  }
-
-  if (sent) {
-    return (
-      <AuthLayout title="Confirm your email">
-        <div className="flex flex-col items-center gap-4 text-center text-sm">
-          <MailCheck className="h-8 w-8 text-primary" />
-          <p>
-            We sent a confirmation link to <strong>{form.email}</strong>. Click it to finish setting
-            up {form.fsp}.
-          </p>
-          <Link to="/login" className="text-primary hover:underline">
-            Back to sign in
-          </Link>
-        </div>
-      </AuthLayout>
-    );
+    if (result.error) toast.error("Google sign-in could not be started.");
   }
 
   return (
     <AuthLayout
       wide
-      title={`Set up your agency on ${BRAND.name}`}
-      subtitle="For FSP owners and Key Individuals. Advisors are invited afterwards."
+      title={`Create your ${BRAND.name} account`}
+      subtitle="Tell us who you are joining as, and you are straight in."
     >
       <form className="space-y-4" onSubmit={submit}>
         <Field label="Your full name">
@@ -118,9 +123,36 @@ function Signup() {
             autoComplete="email"
           />
         </Field>
-        <Field label="Password" hint="At least 8 characters, including a letter and a number.">
+
+        <Field
+          label="I am signing up as"
+          hint={
+            roleMeta.instant
+              ? "You get this access immediately."
+              : "This access is requested: an administrator approves it before it takes effect."
+          }
+        >
+          <Select
+            value={form.role}
+            onValueChange={(v) => setForm({ ...form, role: v as SignupRole })}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {SIGNUP_ROLES.map((r) => (
+                <SelectItem key={r.value} value={r.value}>
+                  {r.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+
+        <Field label="Password">
           <div className="relative">
             <Input
+              ref={passwordRef}
               type={show ? "text" : "password"}
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
@@ -138,7 +170,19 @@ function Signup() {
             </button>
           </div>
         </Field>
-        <Field label="Financial services provider (FSP) name">
+        <ul className="space-y-1 text-xs" aria-live="polite">
+          {checks.map((c) => (
+            <li
+              key={c.id}
+              className={c.ok ? "flex items-center gap-2 text-positive" : "flex items-center gap-2 text-muted-foreground"}
+            >
+              {c.ok ? <Check className="h-3.5 w-3.5" /> : <X className="h-3.5 w-3.5" />}
+              {c.label}
+            </li>
+          ))}
+        </ul>
+
+        <Field label="Financial services provider (FSP) name" hint="Optional for clients.">
           <Input value={form.fsp} onChange={(e) => setForm({ ...form, fsp: e.target.value })} />
         </Field>
         <Field
@@ -151,6 +195,7 @@ function Signup() {
             placeholder="FSP 12345"
           />
         </Field>
+
         {error && (
           <p aria-live="polite" className="text-sm text-negative">
             {error}
@@ -169,7 +214,7 @@ function Signup() {
       </Button>
 
       <p className="mt-5 text-center text-sm">
-        Already have an agency?{" "}
+        Already have an account?{" "}
         <Link to="/login" className="text-primary hover:underline">
           Log in
         </Link>
