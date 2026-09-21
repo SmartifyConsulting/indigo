@@ -241,17 +241,26 @@ function ThemeItem() {
   );
 }
 
-/** `navyMain` overrides the default (navy behind the Live Workspace screen only), e.g. for previews. */
+type ShellBackground = "navy" | "white" | "default";
+
+/** Page background behind each screen's content. Everything else keeps the default light grey. */
+const SCREEN_BACKGROUND: Record<string, ShellBackground> = {
+  "/": "white",
+  "/workspace": "navy",
+};
+
+/** `background` overrides the per-screen default, e.g. for previews. */
 export function AppShell({
   children,
-  navyMain,
+  background,
 }: {
   children: ReactNode;
-  navyMain?: boolean | undefined;
+  background?: ShellBackground | undefined;
 }) {
   const s = useAppState();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (r) => r.location.pathname });
+  const tone = background ?? SCREEN_BACKGROUND[pathname] ?? "default";
   const id = useIdentity();
   const { signOut } = useAuth();
   const role = s.session.role;
@@ -322,7 +331,8 @@ export function AppShell({
         key={role + pathname.split("/")[1]}
         className={cn(
           "min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8",
-          (navyMain ?? pathname === "/workspace") && "bg-navy",
+          tone === "navy" && "bg-navy",
+          tone === "white" && "bg-card",
         )}
       >
         <div className="mx-auto max-w-6xl">{children}</div>
