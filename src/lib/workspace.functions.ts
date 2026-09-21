@@ -153,7 +153,7 @@ export const saveWorkspace = createServerFn({ method: "POST" })
           client_name: c.clientName,
           email: c.email,
           phone: c.phone,
-          data: c as unknown as Record<string, unknown>,
+          data: JSON.parse(JSON.stringify(c)) as never,
           created_at: c.createdAt,
           updated_at: new Date().toISOString(),
         })),
