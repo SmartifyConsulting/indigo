@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { STAGES, getStage, isComplete, roaSigned } from "@/lib/domain/gates";
-import { verifyLedger } from "@/lib/domain/ledger";
 import { nextAction } from "@/lib/domain/next-action";
 import { useAppState } from "@/lib/domain/store";
 import { PROVIDERS, providerName, type AppState, type CaseRecord } from "@/lib/domain/types";
@@ -99,10 +98,6 @@ export function AdvisorDashboard() {
     .filter((c) => !isComplete(c))
     .map((c) => ({ c, n: nextAction(c) }))
     .filter((x) => x.n.owner === "advisor" || x.n.owner === "fsp");
-  const waiting = mine.filter((c) => !isComplete(c) && nextAction(c).owner === "client").length;
-  const blocked = s.ledger.filter(
-    (e) => e.type === "GATE_BLOCKED" && e.caseId && ids.has(e.caseId),
-  ).length;
 
   return (
     <>
@@ -115,30 +110,6 @@ export function AdvisorDashboard() {
           </Button>
         }
       />
-      <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label="Active clients"
-          value={mine.filter((c) => !isComplete(c)).length}
-          hint={`${mine.length} in total`}
-        />
-        <StatCard
-          label="Needs your action"
-          value={attention.length}
-          tone={attention.length ? "warning" : undefined}
-          hint="Cases where you are next"
-        />
-        <StatCard
-          label="Waiting on clients"
-          value={waiting}
-          hint="Signatures, uploads, verification"
-        />
-        <StatCard
-          label="Blocked by rules"
-          value={blocked}
-          tone={blocked ? "danger" : "success"}
-          hint="Attempts refused and logged"
-        />
-      </div>
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
@@ -285,7 +256,6 @@ export function ClientDashboard() {
 
 export function FspDashboard() {
   const s = useAppState();
-  const chain = verifyLedger(s.ledger);
   const blocked = s.ledger.filter((e) => e.type === "GATE_BLOCKED");
   const escalations = s.cases.filter((c) => c.identity.sanctions === "hit");
   const alerts = s.cases.filter((c) => c.astute.alert && !c.astute.alert.resolvedAt);
@@ -302,31 +272,6 @@ export function FspDashboard() {
           </Button>
         }
       />
-      <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label="Audit ledger"
-          value={chain.ok ? "Intact" : "Broken"}
-          tone={chain.ok ? "success" : "danger"}
-          hint={`${s.ledger.length} entries verified`}
-        />
-        <StatCard
-          label="Escalations"
-          value={escalations.length}
-          tone={escalations.length ? "danger" : "success"}
-          hint="Sanctions / PEP matches"
-        />
-        <StatCard
-          label="Open Astute alerts"
-          value={alerts.length}
-          tone={alerts.length ? "warning" : "success"}
-          hint="Other brokerages querying clients"
-        />
-        <StatCard
-          label="Non-compliant steps stopped"
-          value={blocked.length}
-          hint="Refused by hard rules"
-        />
-      </div>
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
@@ -409,20 +354,6 @@ export function InsurerDashboard() {
           </Button>
         }
       />
-      <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label="Awaiting decision"
-          value={pending.length}
-          tone={pending.length ? "warning" : undefined}
-        />
-        <StatCard
-          label="Medical outstanding"
-          value={medical.length}
-          hint="Client has not completed disclosure"
-        />
-        <StatCard label="Policies issued" value={issued.length} tone="success" />
-        <StatCard label="Product line" value={line === "life" ? "Life & risk" : "Short-term"} />
-      </div>
       <Card>
         <CardHeader>
           <CardTitle>Compliance evidence on every file</CardTitle>

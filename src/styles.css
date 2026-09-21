@@ -233,20 +233,26 @@
   }
 }
 
-/* Lifecycle diagram: light travelling along a connector (one dash of 60px per 400px loop) */
-@keyframes flow-light {
-  to {
-    stroke-dashoffset: -400;
+/* The step the client is on: a border that gently pulses */
+@keyframes pulse-ring {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 0 color-mix(in oklab, var(--brand) 60%, transparent),
+      0 0 22px -6px var(--brand);
+  }
+  50% {
+    box-shadow:
+      0 0 0 7px color-mix(in oklab, var(--brand) 0%, transparent),
+      0 0 34px -2px var(--brand);
   }
 }
 
-@utility flow-light {
-  stroke-dasharray: 60 340;
-  animation: flow-light 4.5s linear infinite;
-  filter: drop-shadow(0 0 4px var(--brand));
+@utility pulse-border {
+  animation: pulse-ring 2.2s ease-in-out infinite;
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
-    opacity: 0;
+    box-shadow: 0 0 22px -6px var(--brand);
   }
 }

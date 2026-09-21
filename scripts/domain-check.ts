@@ -4,6 +4,7 @@ import { sha256, hashOf } from "../src/lib/domain/sha256";
 import { computeFna, defaultFnaInputs, estateDuty } from "../src/lib/domain/fna";
 import { buildSeedState } from "../src/lib/domain/seed";
 import { verifyLedger } from "../src/lib/domain/ledger";
+import { stageRowsDone } from "../src/lib/domain/lifecycle";
 import { getStage, isComplete, quoteGates, submissionGates } from "../src/lib/domain/gates";
 import {
   chooseRoute,
@@ -95,6 +96,57 @@ const marcus = s.cases.find((c) => c.clientName === "Marcus Jacobs")!;
 t("Marcus flagged PEP hit", marcus.identity.sanctions === "hit");
 const blocked = s.ledger.filter((e) => e.type === "GATE_BLOCKED").length;
 t("blocked attempts recorded in ledger", blocked >= 2, String(blocked));
+
+// 4b. Which line of its current step each seeded client is on (drives the pulsing sub-step)
+const rows = (n: string) => {
+  const c = s.cases.find((x) => x.clientName === n)!;
+  return stageRowsDone(c, getStage(c));
+};
+t(
+  "sub-step: Naledi just arrived, next is Liveness (line 2 of step 1)",
+  rows("Naledi Mokoena") === 1,
+  String(rows("Naledi Mokoena")),
+);
+t(
+  "sub-step: Hugh at step 2, mandate still locked (next is cross-alert check)",
+  rows("Hugh Carmichael") === 2,
+  String(rows("Hugh Carmichael")),
+);
+t(
+  "sub-step: Sasha at step 3, nothing captured yet (first line)",
+  rows("Sasha Weinberg") === 0,
+  String(rows("Sasha Weinberg")),
+);
+t(
+  "sub-step: Thabo at step 4, ROA unsigned (last line current)",
+  rows("Thabo Dlamini") === 3,
+  String(rows("Thabo Dlamini")),
+);
+t(
+  "sub-step: Lindiwe at step 5, next is FICA documents (line 3)",
+  rows("Lindiwe Xaba") === 2,
+  String(rows("Lindiwe Xaba")),
+);
+t(
+  "sub-step: Pieter at step 6, insurer decision outstanding (first line)",
+  rows("Pieter van Wyk") === 0,
+  String(rows("Pieter van Wyk")),
+);
+t(
+  "sub-step: Ayesha issued, next is client acknowledging renewal (last line)",
+  rows("Ayesha Patel") === 3,
+  String(rows("Ayesha Patel")),
+);
+
+// 4c. A database round trip rewrites timestamps (e.g. "+00:00" for "Z"); that must not read as tampering
+const roundTripped = structuredClone(s.ledger).map((e) => ({
+  ...e,
+  ts: e.ts.replace(".000Z", "+00:00"),
+}));
+t(
+  "ledger still verifies after timestamptz round trip",
+  roundTripped.some((e) => e.ts.endsWith("+00:00")) && verifyLedger(roundTripped).ok,
+);
 
 // 5. Tamper detection
 const tampered = structuredClone(s.ledger);

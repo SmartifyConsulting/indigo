@@ -10,11 +10,28 @@ import type { LedgerEvent } from "./types";
 
 export const GENESIS_HASH = "0".repeat(64);
 
+/**
+ * The moment an entry happened, as one canonical ISO string. A database can return the same
+ * instant as "…07:30:00+00:00" that was written as "…07:30:00.000Z"; hashing the raw text would
+ * make an intact ledger look tampered after a save and reload, so the hash uses this form.
+ */
+const canonicalTime = (ts: string) => {
+  const t = new Date(ts);
+  return Number.isNaN(t.getTime()) ? ts : t.toISOString();
+};
+
 export const hashEvent = (e: Omit<LedgerEvent, "hash">) =>
   sha256(
-    [e.prevHash, e.seq, e.ts, e.caseId ?? "-", e.actor.role, e.actor.name, e.type, e.summary].join(
-      "|",
-    ),
+    [
+      e.prevHash,
+      e.seq,
+      canonicalTime(e.ts),
+      e.caseId ?? "-",
+      e.actor.role,
+      e.actor.name,
+      e.type,
+      e.summary,
+    ].join("|"),
   );
 
 export function appendEvent(

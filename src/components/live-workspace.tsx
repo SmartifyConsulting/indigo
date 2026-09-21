@@ -3,8 +3,9 @@ import { ArrowRight } from "lucide-react";
 import { useState } from "react";
 
 import { ActivityList } from "@/components/dashboards";
-import { OnDarkContext, PageHeader, StageBadge } from "@/components/common";
+import { PageHeader, StageBadge } from "@/components/common";
 import { LifecycleFlow } from "@/components/lifecycle-diagram";
+import { LiveStats } from "@/components/live-stats";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { STAGES, getStage, isComplete, type StageNo } from "@/lib/domain/gates";
@@ -44,20 +45,10 @@ function ClientsView({
   const isAdvisor = s.session.role === "advisor";
   const mine = isAdvisor ? s.cases.filter((c) => c.advisorId === s.advisors[0]?.id) : s.cases;
   const ids = new Set(mine.map((c) => c.id));
-  const active = mine.filter((c) => !isComplete(c));
-  const owner = isAdvisor ? "advisor" : "fsp";
-  const needsYou = active.filter((c) => nextAction(c).owner === owner).length;
   const rows = mine.filter((c) => (selected ? inStage(c, selected) : true));
 
   return (
     <>
-      <p className="text-sm text-muted-foreground">
-        {active.length} active {active.length === 1 ? "client" : "clients"} ·{" "}
-        <span className={needsYou ? "font-medium text-warning" : undefined}>
-          {needsYou} {isAdvisor ? "need you" : "with the Key Individual"}
-        </span>
-      </p>
-
       <div className="mt-3 flex flex-wrap gap-1.5" role="group" aria-label="Filter by stage">
         {([null, ...STAGES.map((st) => st.no)] as (StageNo | null)[]).map((n) => {
           const count = n ? mine.filter((c) => inStage(c, n)).length : mine.length;
@@ -130,50 +121,6 @@ function ClientsView({
   );
 }
 
-/** Client view: their own step and what to do next. */
-function ClientView() {
-  const s = useAppState();
-  const c = s.cases.find((x) => x.id === s.session.clientCaseId) ?? s.cases[0];
-  if (!c) return <Empty>No client selected.</Empty>;
-  const na = nextAction(c);
-  const stage = getStage(c);
-  const complete = isComplete(c);
-
-  return (
-    <>
-      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-        Where you are
-      </p>
-      <p className="title-lg mt-1">
-        {complete ? "Your cover is in place" : `Step ${stage} of 6: ${STAGES[stage - 1]!.title}`}
-      </p>
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-md bg-background p-4">
-        <div>
-          <p className="text-xs text-muted-foreground">Next step</p>
-          <p className="text-sm font-medium">{na.text}</p>
-        </div>
-        {stage === 1 ? (
-          <Button asChild size="sm">
-            <Link to="/onboard/$code" params={{ code: c.code }}>
-              Continue onboarding
-            </Link>
-          </Button>
-        ) : na.owner === "client" ? (
-          <Button asChild size="sm">
-            <Link to="/actions">Go to actions</Link>
-          </Button>
-        ) : null}
-      </div>
-      <div className="mt-4 border-t pt-4">
-        <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          Recent activity
-        </p>
-        <ActivityList s={s} caseIds={new Set([c.id])} limit={5} />
-      </div>
-    </>
-  );
-}
-
 /** Insurer view: applications waiting for a decision. */
 function InsurerView() {
   const s = useAppState();
@@ -189,10 +136,6 @@ function InsurerView() {
 
   return (
     <>
-      <p className="text-sm text-muted-foreground">
-        {waiting.length} {waiting.length === 1 ? "application" : "applications"} awaiting{" "}
-        {providerName(me)}
-      </p>
       {waiting.length === 0 ? (
         <Empty>Nothing is waiting on you.</Empty>
       ) : (
@@ -238,9 +181,10 @@ export function LiveWorkspacePanel({
           <h3 className="title-lg">Live workspace</h3>
           <LiveDot />
         </div>
-        {session.role === "client" ? (
-          <ClientView />
-        ) : session.role === "insurer" ? (
+        <div className="mb-4">
+          <LiveStats />
+        </div>
+        {session.role === "insurer" ? (
           <InsurerView />
         ) : (
           <ClientsView selected={selected} onSelect={onSelect} />
@@ -250,9 +194,11 @@ export function LiveWorkspacePanel({
   );
 }
 
-function FrameLabel({ children }: { children: string }) {
+function FrameLabel({ children, onDark = false }: { children: string; onDark?: boolean }) {
   return (
-    <p className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-brand">
+    <p
+      className={`mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.2em] ${onDark ? "text-brand" : "text-brand-ink"}`}
+    >
       {children}
     </p>
   );
@@ -262,47 +208,63 @@ export function LiveWorkspaceScreen() {
   const state = useAppState();
   const view = lifecycleView(state);
   const [selected, setSelected] = useState<StageNo | null>(null);
-  // Clients pick stages to filter; insurers and clients see a fixed live view.
-  const filterable = state.session.role === "advisor" || state.session.role === "fsp";
+  const role = state.session.role;
+  // Clients only see their own place in the flow: the reported data is for staff and insurers.
+  const isClient = role === "client";
+  // Advisors and FSPs pick a stage to filter the live view.
+  const filterable = role === "advisor" || role === "fsp";
 
   return (
-    <OnDarkContext.Provider value>
+    <>
       <PageHeader
         title="Live Workspace"
-        description="Where every client is in the advice lifecycle, updated live."
+        description={
+          isClient
+            ? "Where you are in the advice lifecycle."
+            : "Where every client is in the advice lifecycle, updated live."
+        }
       />
       <section
         aria-label="Advice lifecycle"
-        className="rounded-lg border border-white/10 bg-navy p-4 text-navy-foreground sm:p-6"
+        className="rounded-lg border bg-card p-4 text-card-foreground sm:p-6"
       >
         <div className="mb-6">
-          <p className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-brand">
+          <p className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-brand-ink">
             The advice lifecycle
           </p>
           <h2 className="mt-1 text-xl font-medium leading-7 sm:text-2xl sm:leading-8">
             From first scan to annual review, in a fixed legal order.
           </h2>
-          <p className="mt-1 text-sm text-navy-foreground/65">
+          <p className="mt-1 text-sm text-muted-foreground">
             Every step is checked by the compliance engine. Out-of-order actions are refused and
             logged.
           </p>
         </div>
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:items-start">
-          <div className="rounded-lg border border-white/10 p-4 sm:p-5">
+        <div
+          className={
+            isClient
+              ? "mx-auto max-w-xl"
+              : "grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:items-start"
+          }
+        >
+          <div className="rounded-lg border bg-card p-4 text-card-foreground sm:p-5">
             <FrameLabel>Flow map</FrameLabel>
             <LifecycleFlow
               chips={view.chips}
               active={view.active}
+              rowsDone={view.activeRowsDone}
               selected={filterable ? selected : null}
               onSelect={filterable ? setSelected : undefined}
             />
           </div>
-          <div className="lg:sticky lg:top-32">
-            <FrameLabel>Live workspace</FrameLabel>
-            <LiveWorkspacePanel selected={selected} onSelect={setSelected} />
-          </div>
+          {!isClient && (
+            <div className="lg:sticky lg:top-32">
+              <FrameLabel>Live workspace</FrameLabel>
+              <LiveWorkspacePanel selected={selected} onSelect={setSelected} />
+            </div>
+          )}
         </div>
       </section>
-    </OnDarkContext.Provider>
+    </>
   );
 }

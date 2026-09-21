@@ -66,13 +66,16 @@ function Welcome() {
         <LanguageSelector />
       </header>
 
-      <main className="mx-auto grid max-w-6xl items-start gap-10 px-4 pb-16 pt-2 sm:px-8 lg:min-h-[calc(100vh-88px)] lg:grid-cols-[1.1fr_0.9fr] lg:content-center lg:gap-14 lg:pb-24 lg:pt-0">
-        <section>
+      <main className="mx-auto grid max-w-6xl items-start px-4 pb-16 pt-2 sm:px-8 lg:min-h-[calc(100vh-88px)] lg:grid-cols-[1.1fr_0.9fr] lg:content-center lg:gap-x-14 lg:pb-24 lg:pt-0">
+        <div className="lg:col-start-1 lg:row-start-1">
           <Logo size="hero" onDark className="mb-8 leading-none" />
-          <p className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-brand">
+          <p className="mb-4 font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-brand">
             {HERO.eyebrow}
           </p>
-          <h1 className="mt-3 text-4xl font-medium leading-tight sm:text-5xl sm:leading-[1.15]">
+        </div>
+
+        <section className="lg:col-start-1 lg:row-start-2 lg:self-center">
+          <h1 className="text-4xl font-medium leading-[1.1] sm:text-5xl sm:leading-[1.1]">
             {HERO.title}
           </h1>
           <p className="mt-4 max-w-xl text-base text-navy-foreground/70">{HERO.subtitle}</p>
@@ -99,7 +102,7 @@ function Welcome() {
         </section>
 
         <section
-          className={`w-full max-w-[520px] border bg-card p-6 text-card-foreground sm:p-8 lg:justify-self-end ${SOFT_FRAME}`}
+          className={`mt-10 w-full max-w-[520px] border bg-card p-6 text-card-foreground sm:p-8 lg:col-start-2 lg:row-start-2 lg:mt-0 lg:justify-self-end lg:self-center ${SOFT_FRAME}`}
         >
           {signedIn ? (
             <div className="space-y-4 text-center">

@@ -246,7 +246,7 @@ type ShellBackground = "navy" | "white" | "default";
 /** Page background behind each screen's content. Everything else keeps the default light grey. */
 const SCREEN_BACKGROUND: Record<string, ShellBackground> = {
   "/": "white",
-  "/workspace": "navy",
+  "/workspace": "white",
 };
 
 /** `background` overrides the per-screen default, e.g. for previews. */
