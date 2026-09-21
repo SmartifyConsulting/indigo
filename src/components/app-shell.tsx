@@ -73,10 +73,22 @@ const NAV: Record<Role, NavItem[]> = {
   ],
 };
 
+const ADMIN_NAV: NavItem[] = [{ to: "/admin/integrations", label: "APIs", icon: KeyRound }];
+
+function useIsAdmin() {
+  const check = useServerFn(isAdminFn);
+  const { data } = useQuery({ queryKey: ["is-admin"], queryFn: () => check() });
+  return data?.admin === true;
+}
+
 function NavLinks({ role, onNavigate }: { role: Role; onNavigate?: (() => void) | undefined }) {
+  const admin = useIsAdmin();
   return (
     <nav className="flex flex-col gap-0.5">
-      {NAV[role].map(({ to, label, icon: Icon }) => (
+      {[
+        ...NAV[role],
+        ...(admin ? ADMIN_NAV : []),
+      ].map(({ to, label, icon: Icon }) => (
         <Link
           key={to}
           to={to}
