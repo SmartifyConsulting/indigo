@@ -17,7 +17,14 @@ import { mapAuthError } from "@/lib/use-auth";
 export function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () => void }) {
   const navigate = useNavigate();
   const { t } = useI18n();
-  const [form, setForm] = useState({ name: "", email: "", password: "", fsp: "", fspNumber: "" });
+  const [form, setForm] = useState({
+    first: "",
+    last: "",
+    email: "",
+    password: "",
+    fsp: "",
+    fspNumber: "",
+  });
   const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -26,7 +33,8 @@ export function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () => void 
   const strongPassword =
     form.password.length >= 8 && /[A-Za-z]/.test(form.password) && /\d/.test(form.password);
   const valid =
-    form.name.trim().length > 2 &&
+    form.first.trim().length > 0 &&
+    form.last.trim().length > 0 &&
     /\S+@\S+\.\S+/.test(form.email) &&
     form.fsp.trim().length > 2 &&
     strongPassword;
@@ -44,7 +52,13 @@ export function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () => void 
       password: form.password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { full_name: form.name, fsp_name: form.fsp, fsp_number: form.fspNumber },
+        data: {
+          full_name: `${form.first.trim()} ${form.last.trim()}`,
+          first_name: form.first.trim(),
+          last_name: form.last.trim(),
+          fsp_name: form.fsp,
+          fsp_number: form.fspNumber,
+        },
       },
     });
     setBusy(false);
@@ -93,13 +107,22 @@ export function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () => void 
   return (
     <>
       <form className="space-y-4" onSubmit={submit}>
-        <Field label="Your full name">
-          <Input
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            autoComplete="name"
-          />
-        </Field>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="First name">
+            <Input
+              value={form.first}
+              onChange={(e) => setForm({ ...form, first: e.target.value })}
+              autoComplete="given-name"
+            />
+          </Field>
+          <Field label="Last name">
+            <Input
+              value={form.last}
+              onChange={(e) => setForm({ ...form, last: e.target.value })}
+              autoComplete="family-name"
+            />
+          </Field>
+        </div>
         <Field label={t("auth.email")}>
           <Input
             type="email"

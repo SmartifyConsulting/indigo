@@ -33,7 +33,7 @@ export function LanguageSelector({ className }: { className?: string }) {
         <SelectTrigger
           aria-label={t("language.choose")}
           className={cn(
-            "size-9 justify-center gap-0 rounded-full border-transparent bg-primary p-0 text-primary-foreground hover:bg-primary/90",
+            "size-9 justify-center gap-0 rounded-full border-transparent bg-brand p-0 text-white hover:bg-brand/85",
             "[&>svg:last-child]:hidden",
           )}
         >

@@ -8,6 +8,10 @@ import { cn } from "@/lib/utils";
 
 export type AuthTab = "signin" | "signup";
 
+/** Soft, rounded frame (24px) with 14px controls inside, matching tag-tech.co.za. */
+export const SOFT_FRAME =
+  "rounded-[24px] [&_input]:rounded-[14px] [&_button:not([aria-pressed])]:rounded-[14px]";
+
 const TABS = [
   { id: "signin", key: "auth.signin" },
   { id: "signup", key: "auth.signup" },
@@ -23,7 +27,10 @@ export function AuthTabs({
 }) {
   const { t } = useI18n();
   return (
-    <nav className="mb-6 grid grid-cols-2 gap-1 rounded-md bg-secondary p-1" aria-label="Account">
+    <nav
+      className="mb-6 grid grid-cols-2 gap-1 rounded-[14px] bg-secondary p-1"
+      aria-label="Account"
+    >
       {TABS.map((tab) => (
         <button
           key={tab.id}
@@ -31,7 +38,7 @@ export function AuthTabs({
           onClick={() => onChange(tab.id)}
           aria-pressed={active === tab.id}
           className={cn(
-            "rounded-md py-2 text-center text-sm font-medium transition-colors",
+            "rounded-[10px] py-2 text-center text-sm font-medium transition-colors",
             active === tab.id
               ? "border border-border bg-card text-foreground"
               : "text-muted-foreground hover:text-foreground",
@@ -63,7 +70,7 @@ export function AuthLayout({
         <Logo size="lg" onDark />
       </Link>
       <div
-        className={`w-full rounded-lg border bg-card px-6 py-10 sm:py-12 ${wide ? "max-w-[560px] sm:px-12" : "max-w-[494px] sm:px-24"}`}
+        className={`w-full border bg-card px-6 py-10 sm:py-12 ${SOFT_FRAME} ${wide ? "max-w-[560px] sm:px-12" : "max-w-[494px] sm:px-24"}`}
       >
         <h1 className="title-lg mb-3 text-center">{title}</h1>
         {subtitle && <p className="mb-6 text-center text-sm">{subtitle}</p>}

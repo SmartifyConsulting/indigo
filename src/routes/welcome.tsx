@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check } from "lucide-react";
 import { useState } from "react";
 
-import { AuthTabs, type AuthTab } from "@/components/auth-layout";
+import { AuthTabs, SOFT_FRAME, type AuthTab } from "@/components/auth-layout";
 import { SignInForm } from "@/components/auth/sign-in-form";
 import { SignUpForm } from "@/components/auth/sign-up-form";
 import { Logo } from "@/components/brand/logo";
@@ -67,7 +67,7 @@ function Welcome() {
         <LanguageSelector />
       </header>
 
-      <main className="mx-auto grid max-w-6xl items-start gap-10 px-4 pb-16 pt-6 sm:px-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14 lg:pt-14">
+      <main className="mx-auto grid max-w-6xl items-center gap-10 px-4 pb-16 pt-6 sm:px-8 lg:min-h-[calc(100vh-88px)] lg:grid-cols-[1.1fr_0.9fr] lg:gap-14 lg:pb-24 lg:pt-0">
         <section>
           <p className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-brand">
             {HERO.eyebrow}
@@ -98,7 +98,9 @@ function Welcome() {
           <p className="mt-8 max-w-xl text-xs leading-5 text-navy-foreground/55">{HERO.footnote}</p>
         </section>
 
-        <section className="w-full max-w-[520px] rounded-lg border bg-card p-6 text-card-foreground sm:p-8 lg:justify-self-end">
+        <section
+          className={`w-full max-w-[520px] border bg-card p-6 text-card-foreground sm:p-8 lg:justify-self-end ${SOFT_FRAME}`}
+        >
           {signedIn ? (
             <div className="space-y-4 text-center">
               <h2 className="title-lg">Welcome back</h2>
