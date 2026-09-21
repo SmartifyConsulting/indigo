@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { mapAuthError } from "@/lib/use-auth";
 
-/** The sign-in form, shared by the /login page and the home page. */
+/** The sign-in form on the home page. */
 export function SignInForm() {
   const navigate = useNavigate();
   const { t } = useI18n();

@@ -326,9 +326,9 @@ function Onboard() {
     }
   }, [id]);
 
-  // An unknown or expired code has no page of its own: send the visitor to sign in.
+  // An unknown or expired code has no page of its own: send the visitor to the home page.
   useEffect(() => {
-    if (!c) void navigate({ to: "/login", replace: true });
+    if (!c) void navigate({ to: "/welcome", replace: true });
   }, [c, navigate]);
 
   if (!c) return null;

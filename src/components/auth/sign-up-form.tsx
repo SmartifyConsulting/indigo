@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { Eye, EyeOff, MailCheck } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -12,10 +12,9 @@ import { useI18n } from "@/lib/i18n";
 import { mapAuthError } from "@/lib/use-auth";
 
 /**
- * The create-account form, shared by the /signup page and the home page.
- * `onSwitchToSignIn` swaps to the sign-in tab in place; without it the links go to /login.
+ * The create-account form. `onSwitchToSignIn` swaps to the sign-in tab in place.
  */
-export function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn?: (() => void) | undefined }) {
+export function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () => void }) {
   const navigate = useNavigate();
   const { t } = useI18n();
   const [form, setForm] = useState({ name: "", email: "", password: "", fsp: "", fspNumber: "" });
@@ -71,16 +70,11 @@ export function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn?: (() => voi
     void navigate({ to: "/" });
   }
 
-  const backToSignIn = (label: string) =>
-    onSwitchToSignIn ? (
-      <button type="button" onClick={onSwitchToSignIn} className="text-primary hover:underline">
-        {label}
-      </button>
-    ) : (
-      <Link to="/login" className="text-primary hover:underline">
-        {label}
-      </Link>
-    );
+  const backToSignIn = (label: string) => (
+    <button type="button" onClick={onSwitchToSignIn} className="text-primary hover:underline">
+      {label}
+    </button>
+  );
 
   if (sent) {
     return (

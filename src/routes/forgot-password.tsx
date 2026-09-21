@@ -36,7 +36,7 @@ function ForgotPassword() {
           <p>
             If an account exists for <strong>{email}</strong>, a reset link is on its way.
           </p>
-          <Link to="/login" className="text-primary hover:underline">
+          <Link to="/welcome" className="text-primary hover:underline">
             Back to sign in
           </Link>
         </div>
@@ -76,7 +76,7 @@ function ForgotPassword() {
         </Button>
       </form>
       <p className="mt-5 text-center text-sm">
-        <Link to="/login" className="text-primary hover:underline">
+        <Link to="/welcome" className="text-primary hover:underline">
           Back to sign in
         </Link>
       </p>

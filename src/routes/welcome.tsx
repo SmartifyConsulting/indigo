@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { Check } from "lucide-react";
 import { useState } from "react";
 
 import { AuthTabs, type AuthTab } from "@/components/auth-layout";
@@ -14,19 +15,49 @@ import { useAuth } from "@/lib/use-auth";
 export const Route = createFileRoute("/welcome")({
   head: () => ({
     meta: [
-      { title: `${BRAND.name}: from first scan to annual review` },
-      { name: "description", content: BRAND.tagline },
-      { property: "og:title", content: `${BRAND.name}: from first scan to annual review` },
-      { property: "og:description", content: BRAND.tagline },
+      { title: `${BRAND.name}: ${HERO.title}` },
+      { name: "description", content: HERO.subtitle },
+      { property: "og:title", content: `${BRAND.name}: ${HERO.title}` },
+      { property: "og:description", content: HERO.subtitle },
     ],
   }),
+  validateSearch: (search: Record<string, unknown>): { tab?: "signup" | undefined } =>
+    search["tab"] === "signup" ? { tab: "signup" } : {},
   component: Welcome,
 });
+
+const HERO = {
+  eyebrow: "Life cover · Investments · Governance",
+  title: "Smart Governance for Portfolio Growth",
+  subtitle:
+    "For FSPs and their advisors: advise on life cover and investments, grow your clients' income, and show your Key Individual and the regulator that every step followed the rules.",
+  columns: [
+    {
+      heading: "For your clients",
+      points: [
+        "Life cover sized to what their family would really need",
+        "Investments to grow their income, chosen around their goals",
+        "One clear plan, signed digitally and reviewed every year",
+      ],
+    },
+    {
+      heading: "For your FSP",
+      points: [
+        "Compliance checks that stop out-of-order steps before they happen",
+        "A tamper-evident record of every disclosure, signature and piece of advice",
+        "Live oversight of every advisor for your Key Individual",
+      ],
+    },
+  ],
+  footnote:
+    "Life policies and investments carry risk and returns are not guaranteed. indigro supports, and does not replace, your FSP's own compliance responsibilities. Advice is provided by licensed financial services providers.",
+} as const;
 
 function Welcome() {
   const { session } = useAuth();
   const { t } = useI18n();
-  const [tab, setTab] = useState<AuthTab>("signin");
+  const { tab: startTab } = Route.useSearch();
+  const [tab, setTab] = useState<AuthTab>(startTab === "signup" ? "signup" : "signin");
   const signedIn = !!session;
 
   return (
@@ -36,18 +67,35 @@ function Welcome() {
         <LanguageSelector />
       </header>
 
-      <main className="mx-auto grid max-w-6xl items-center gap-10 px-4 pb-16 pt-6 sm:px-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14 lg:pt-14">
+      <main className="mx-auto grid max-w-6xl items-start gap-10 px-4 pb-16 pt-6 sm:px-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14 lg:pt-14">
         <section>
           <p className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-brand">
-            The advice lifecycle
+            {HERO.eyebrow}
           </p>
           <h1 className="mt-3 text-4xl font-medium leading-tight sm:text-5xl sm:leading-[1.15]">
-            From first scan to annual review, in a fixed legal order.
+            {HERO.title}
           </h1>
-          <p className="mt-4 max-w-xl text-base text-navy-foreground/70">
-            Every step is checked by the compliance engine. Out-of-order actions are refused and
-            logged.
-          </p>
+          <p className="mt-4 max-w-xl text-base text-navy-foreground/70">{HERO.subtitle}</p>
+
+          <div className="mt-8 grid gap-6 sm:grid-cols-2">
+            {HERO.columns.map((col) => (
+              <div key={col.heading}>
+                <p className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-brand">
+                  {col.heading}
+                </p>
+                <ul className="mt-3 space-y-2.5">
+                  {col.points.map((p) => (
+                    <li key={p} className="flex gap-2 text-sm text-navy-foreground/85">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden />
+                      {p}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+
+          <p className="mt-8 max-w-xl text-xs leading-5 text-navy-foreground/55">{HERO.footnote}</p>
         </section>
 
         <section className="w-full max-w-[520px] rounded-lg border bg-card p-6 text-card-foreground sm:p-8 lg:justify-self-end">
