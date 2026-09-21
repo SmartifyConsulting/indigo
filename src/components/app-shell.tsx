@@ -39,7 +39,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { isAdmin as isAdminFn } from "@/lib/admin.functions";
 import { actions, resetDemo, useAppState } from "@/lib/domain/store";
+import { useAuth } from "@/lib/use-auth";
 import { PROVIDERS, ROLE_LABEL, type Role } from "@/lib/domain/types";
 import { initials } from "@/lib/fmt";
 import { cn } from "@/lib/utils";
