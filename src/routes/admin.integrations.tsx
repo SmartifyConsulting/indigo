@@ -55,6 +55,10 @@ import { BRAND } from "@/lib/brand";
 import { fmtDateTime } from "@/lib/fmt";
 import { CATEGORY_LABEL, providerById } from "@/lib/integrations.catalog";
 import {
+  decideRoleRequest,
+  listRoleRequests,
+} from "@/lib/roles.functions";
+import {
   integrationCostReport,
   listIntegrations,
   revealIntegrationSecrets,
@@ -133,9 +137,13 @@ function AdminIntegrations() {
         <TabsList>
           <TabsTrigger value="services">Integrations</TabsTrigger>
           <TabsTrigger value="report">Integration report</TabsTrigger>
+          {admin && <TabsTrigger value="access">Access requests</TabsTrigger>}
         </TabsList>
         <TabsContent value="services" className="mt-6">
           <ServicesTab admin={admin} />
+        </TabsContent>
+        <TabsContent value="access" className="mt-6">
+          <AccessTab />
         </TabsContent>
         <TabsContent value="report" className="mt-6">
           {admin ? (
@@ -148,6 +156,90 @@ function AdminIntegrations() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+function AccessTab() {
+  const qc = useQueryClient();
+  const load = useServerFn(listRoleRequests);
+  const decide = useServerFn(decideRoleRequest);
+  const { data, isLoading } = useQuery({ queryKey: ["role-requests"], queryFn: () => load(), retry: false });
+  const decideM = useMutation({
+    mutationFn: (v: { requestId: string; approve: boolean }) => decide({ data: v }),
+    onSuccess: () => {
+      toast.success("Access request updated");
+      void qc.invalidateQueries({ queryKey: ["role-requests"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
+  const rows = data?.requests ?? [];
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">People asking for elevated access</CardTitle>
+      </CardHeader>
+      <CardContent className="p-0">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Person</TableHead>
+              <TableHead>Requested</TableHead>
+              <TableHead>Asked on</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Decision</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.map((r) => (
+              <TableRow key={r.id}>
+                <TableCell>
+                  <p className="font-medium">{r.fullName || "—"}</p>
+                  <p className="text-xs text-muted-foreground">{r.email}</p>
+                </TableCell>
+                <TableCell className="capitalize">{r.role}</TableCell>
+                <TableCell className="whitespace-nowrap">{fmtDateTime(r.createdAt)}</TableCell>
+                <TableCell>
+                  <Badge variant={r.status === "pending" ? "outline" : "secondary"}>{r.status}</Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  {r.status === "pending" ? (
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        size="sm"
+                        disabled={decideM.isPending}
+                        onClick={() => decideM.mutate({ requestId: r.id, approve: true })}
+                      >
+                        Approve
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        disabled={decideM.isPending}
+                        onClick={() => decideM.mutate({ requestId: r.id, approve: false })}
+                      >
+                        Decline
+                      </Button>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">Done</span>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+            {rows.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={5} className="text-sm text-muted-foreground">
+                  No access requests waiting.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
   );
 }
 
