@@ -12,7 +12,9 @@ import type { AppState, FnaInputs, NeedId, ProviderId, Role, SignatureKind } fro
  */
 
 const KEY = "indigro-state-v1";
-let state: AppState = buildSeedState();
+/** Immutable seed handed to React for server rendering and hydration; live state is never assigned here. */
+const SERVER_SNAPSHOT: AppState = buildSeedState();
+let state: AppState = SERVER_SNAPSHOT;
 let hydrated = false;
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
@@ -45,11 +47,7 @@ export function subscribe(l: () => void) {
 }
 
 export function useAppState(): AppState {
-  return useSyncExternalStore(
-    subscribe,
-    () => state,
-    () => state,
-  );
+  return useSyncExternalStore(subscribe, () => state, () => SERVER_SNAPSHOT);
 }
 
 /** Mount once at the root. */
