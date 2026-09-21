@@ -14,16 +14,383 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      advisors: {
+        Row: {
+          active: boolean
+          fs_number: string
+          id: string
+          name: string
+          onboarded_at: string
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          active?: boolean
+          fs_number?: string
+          id: string
+          name: string
+          onboarded_at?: string
+          title?: string
+          user_id?: string | null
+        }
+        Update: {
+          active?: boolean
+          fs_number?: string
+          id?: string
+          name?: string
+          onboarded_at?: string
+          title?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      api_call_log: {
+        Row: {
+          detail: string
+          endpoint: string
+          id: string
+          integration_id: string
+          latency_ms: number
+          outcome: string
+          ts: string
+        }
+        Insert: {
+          detail?: string
+          endpoint?: string
+          id?: string
+          integration_id: string
+          latency_ms?: number
+          outcome: string
+          ts?: string
+        }
+        Update: {
+          detail?: string
+          endpoint?: string
+          id?: string
+          integration_id?: string
+          latency_ms?: number
+          outcome?: string
+          ts?: string
+        }
+        Relationships: []
+      }
+      api_credentials: {
+        Row: {
+          integration_id: string
+          rotated_at: string
+          rotated_by: string | null
+          secret_value: string
+        }
+        Insert: {
+          integration_id: string
+          rotated_at?: string
+          rotated_by?: string | null
+          secret_value: string
+        }
+        Update: {
+          integration_id?: string
+          rotated_at?: string
+          rotated_by?: string | null
+          secret_value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_credentials_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: true
+            referencedRelation: "api_integrations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      api_integrations: {
+        Row: {
+          base_url: string
+          category: string
+          description: string
+          environment: string
+          id: string
+          key_hint: string | null
+          last_checked_at: string | null
+          last_rotated_at: string | null
+          name: string
+          status: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          base_url?: string
+          category: string
+          description?: string
+          environment?: string
+          id: string
+          key_hint?: string | null
+          last_checked_at?: string | null
+          last_rotated_at?: string | null
+          name: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          base_url?: string
+          category?: string
+          description?: string
+          environment?: string
+          id?: string
+          key_hint?: string | null
+          last_checked_at?: string | null
+          last_rotated_at?: string | null
+          name?: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      cases: {
+        Row: {
+          advisor_id: string
+          client_name: string
+          code: string
+          created_at: string
+          data: Json
+          email: string
+          id: string
+          phone: string
+          updated_at: string
+        }
+        Insert: {
+          advisor_id: string
+          client_name: string
+          code: string
+          created_at?: string
+          data: Json
+          email?: string
+          id: string
+          phone?: string
+          updated_at?: string
+        }
+        Update: {
+          advisor_id?: string
+          client_name?: string
+          code?: string
+          created_at?: string
+          data?: Json
+          email?: string
+          id?: string
+          phone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      crm_connections: {
+        Row: {
+          connected: boolean
+          detail: string
+          id: string
+          last_sync_at: string | null
+          name: string
+        }
+        Insert: {
+          connected?: boolean
+          detail?: string
+          id: string
+          last_sync_at?: string | null
+          name: string
+        }
+        Update: {
+          connected?: boolean
+          detail?: string
+          id?: string
+          last_sync_at?: string | null
+          name?: string
+        }
+        Relationships: []
+      }
+      crm_log: {
+        Row: {
+          action: string
+          case_id: string
+          client_name: string
+          crm: string
+          id: string
+          object: string
+          ts: string
+        }
+        Insert: {
+          action: string
+          case_id: string
+          client_name: string
+          crm: string
+          id: string
+          object: string
+          ts: string
+        }
+        Update: {
+          action?: string
+          case_id?: string
+          client_name?: string
+          crm?: string
+          id?: string
+          object?: string
+          ts?: string
+        }
+        Relationships: []
+      }
+      fsp_settings: {
+        Row: {
+          fsp_number: string
+          id: boolean
+          key_individual: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          fsp_number?: string
+          id?: boolean
+          key_individual?: string
+          name?: string
+          updated_at?: string
+        }
+        Update: {
+          fsp_number?: string
+          id?: boolean
+          key_individual?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      integration_queue: {
+        Row: {
+          action: string
+          attempts: number
+          case_id: string
+          client_name: string
+          id: string
+          last_error: string | null
+          status: string
+          target: string
+          ts: string
+        }
+        Insert: {
+          action: string
+          attempts?: number
+          case_id?: string
+          client_name?: string
+          id: string
+          last_error?: string | null
+          status: string
+          target: string
+          ts: string
+        }
+        Update: {
+          action?: string
+          attempts?: number
+          case_id?: string
+          client_name?: string
+          id?: string
+          last_error?: string | null
+          status?: string
+          target?: string
+          ts?: string
+        }
+        Relationships: []
+      }
+      ledger_events: {
+        Row: {
+          actor_name: string
+          actor_role: string
+          case_id: string | null
+          hash: string
+          prev_hash: string
+          seq: number
+          summary: string
+          ts: string
+          type: string
+        }
+        Insert: {
+          actor_name: string
+          actor_role: string
+          case_id?: string | null
+          hash: string
+          prev_hash: string
+          seq: number
+          summary: string
+          ts: string
+          type: string
+        }
+        Update: {
+          actor_name?: string
+          actor_role?: string
+          case_id?: string | null
+          hash?: string
+          prev_hash?: string
+          seq?: number
+          summary?: string
+          ts?: string
+          type?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id: string
+          title?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "advisor" | "compliance" | "client"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +517,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "advisor", "compliance", "client"],
+    },
   },
 } as const
