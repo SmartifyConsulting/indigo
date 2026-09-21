@@ -21,6 +21,7 @@ import { Route as PortfoliosRouteImport } from './routes/portfolios'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as AdminIntegrationsRouteImport } from './routes/admin.integrations'
 import { Route as ClientsIndexRouteImport } from './routes/clients.index'
 import { Route as ClientsClientIdRouteImport } from './routes/clients.$clientId'
 import { Route as OnboardCodeRouteImport } from './routes/onboard.$code'
@@ -85,6 +86,11 @@ const SignupRoute = SignupRouteImport.update({
   path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIntegrationsRoute = AdminIntegrationsRouteImport.update({
+  id: '/admin/integrations',
+  path: '/admin/integrations',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ClientsIndexRoute = ClientsIndexRouteImport.update({
   id: '/clients/',
   path: '/clients/',
@@ -114,6 +120,7 @@ export interface FileRoutesByFullPath {
   '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/admin/integrations': typeof AdminIntegrationsRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
   '/onboard/$code': typeof OnboardCodeRoute
   '/clients/': typeof ClientsIndexRoute
@@ -131,6 +138,7 @@ export interface FileRoutesByTo {
   '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/admin/integrations': typeof AdminIntegrationsRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
   '/onboard/$code': typeof OnboardCodeRoute
   '/clients': typeof ClientsIndexRoute
@@ -149,6 +157,7 @@ export interface FileRoutesById {
   '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/admin/integrations': typeof AdminIntegrationsRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
   '/onboard/$code': typeof OnboardCodeRoute
   '/clients/': typeof ClientsIndexRoute
@@ -168,6 +177,7 @@ export interface FileRouteTypes {
     | '/reports'
     | '/reset-password'
     | '/signup'
+    | '/admin/integrations'
     | '/clients/$clientId'
     | '/onboard/$code'
     | '/clients/'
@@ -185,6 +195,7 @@ export interface FileRouteTypes {
     | '/reports'
     | '/reset-password'
     | '/signup'
+    | '/admin/integrations'
     | '/clients/$clientId'
     | '/onboard/$code'
     | '/clients'
@@ -202,6 +213,7 @@ export interface FileRouteTypes {
     | '/reports'
     | '/reset-password'
     | '/signup'
+    | '/admin/integrations'
     | '/clients/$clientId'
     | '/onboard/$code'
     | '/clients/'
@@ -220,6 +232,7 @@ export interface RootRouteChildren {
   ReportsRoute: typeof ReportsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
+  AdminIntegrationsRoute: typeof AdminIntegrationsRoute
   ClientsClientIdRoute: typeof ClientsClientIdRoute
   OnboardCodeRoute: typeof OnboardCodeRoute
   ClientsIndexRoute: typeof ClientsIndexRoute
@@ -311,6 +324,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/integrations': {
+      id: '/admin/integrations'
+      path: '/admin/integrations'
+      fullPath: '/admin/integrations'
+      preLoaderRoute: typeof AdminIntegrationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/clients/': {
       id: '/clients/'
       path: '/clients'
@@ -348,6 +368,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReportsRoute: ReportsRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
+  AdminIntegrationsRoute: AdminIntegrationsRoute,
   ClientsClientIdRoute: ClientsClientIdRoute,
   OnboardCodeRoute: OnboardCodeRoute,
   ClientsIndexRoute: ClientsIndexRoute,
