@@ -28,7 +28,7 @@ export const listRoleRequests = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data } = await supabaseAdmin
       .from("role_requests")
-      .select("id, user_id, role, status, created_at")
+      .select("id, user_id, requested_role, status, created_at")
       .order("created_at", { ascending: false })
       .limit(100);
     const rows = data ?? [];
@@ -41,7 +41,7 @@ export const listRoleRequests = createServerFn({ method: "GET" })
       requests: rows.map((r) => ({
         id: r.id as string,
         userId: r.user_id as string,
-        role: r.role as string,
+        role: r.requested_role as string,
         status: r.status as string,
         createdAt: r.created_at as string,
         fullName: byId.get(r.user_id as string)?.full_name ?? "",
@@ -58,14 +58,14 @@ export const decideRoleRequest = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: req } = await supabaseAdmin
       .from("role_requests")
-      .select("id, user_id, role, status")
+      .select("id, user_id, requested_role, status")
       .eq("id", data.requestId)
       .maybeSingle();
     if (!req) throw new Error("That request no longer exists.");
     if (data.approve) {
       await supabaseAdmin
         .from("user_roles")
-        .upsert({ user_id: req.user_id, role: req.role }, { onConflict: "user_id,role" });
+        .upsert({ user_id: req.user_id, role: req.requested_role }, { onConflict: "user_id,role" });
     }
     await supabaseAdmin
       .from("role_requests")
