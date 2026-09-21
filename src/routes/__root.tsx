@@ -15,6 +15,7 @@ import { AppShell } from "@/components/app-shell";
 import { Toaster } from "@/components/ui/sonner";
 import { BRAND } from "@/lib/brand";
 import { useStoreHydration } from "@/lib/domain/store";
+import { I18nProvider } from "@/lib/i18n";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import { useAuth } from "@/lib/use-auth";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -155,6 +156,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <I18nProvider>
       {bare ? (
         <Outlet />
       ) : loading || !signedIn ? (
@@ -168,6 +170,7 @@ function RootComponent() {
         </AppShell>
       )}
       <Toaster richColors position="top-right" />
+    </I18nProvider>
     </QueryClientProvider>
   );
 }

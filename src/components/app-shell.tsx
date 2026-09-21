@@ -11,7 +11,6 @@ import {
   LayoutDashboard,
   Workflow,
   LogOut,
-  Menu,
   Moon,
   Plug,
   RotateCcw,
@@ -41,7 +40,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { isAdmin as isAdminFn } from "@/lib/admin.functions";
 import { Switch } from "@/components/ui/switch";
 import { actions, resetDemo, useAppState } from "@/lib/domain/store";
@@ -95,16 +93,13 @@ function useIsAdmin() {
   return data?.admin === true;
 }
 
-function NavLink({ to, label, icon: Icon, onNavigate }: NavItem & { onNavigate?: (() => void) | undefined }) {
+function NavLink({ to, label, icon: Icon }: NavItem) {
   return (
     <Link
       to={to}
-      onClick={onNavigate}
       activeOptions={{ exact: to === "/" }}
-      className="flex h-10 items-center gap-3 border-l-2 border-transparent px-4 text-sm font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-      activeProps={{
-        className: "border-primary bg-sidebar-accent text-sidebar-accent-foreground",
-      }}
+      className="flex h-11 items-center gap-2 whitespace-nowrap border-b-2 border-transparent px-3 text-sm font-medium text-navy-foreground/70 transition-colors hover:text-navy-foreground"
+      activeProps={{ className: "border-brand text-navy-foreground" }}
     >
       <Icon className="h-4 w-4" />
       {label}
@@ -112,23 +107,28 @@ function NavLink({ to, label, icon: Icon, onNavigate }: NavItem & { onNavigate?:
   );
 }
 
-function NavLinks({ role, onNavigate }: { role: Role; onNavigate?: (() => void) | undefined }) {
+/** Main menu, a horizontal row under the header. Scrolls sideways on narrow screens. */
+function NavLinks({ role }: { role: Role }) {
   const admin = useIsAdmin();
   return (
-    <nav className="flex flex-col gap-0.5">
-      {NAV[role].map((item) => (
-        <NavLink key={item.to} {...item} onNavigate={onNavigate} />
-      ))}
-      {admin && (
-        <>
-          <p className="mt-4 px-4 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Admin · Integrations
-          </p>
-          {ADMIN_NAV.map((item) => (
-            <NavLink key={item.to} {...item} onNavigate={onNavigate} />
-          ))}
-        </>
-      )}
+    <nav aria-label="Main" className="border-t border-white/10 px-2 sm:px-4">
+      <ul className="flex items-center gap-1 overflow-x-auto">
+        {NAV[role].map((item) => (
+          <li key={item.to} className="shrink-0">
+            <NavLink {...item} />
+          </li>
+        ))}
+        {admin && (
+          <>
+            <li aria-hidden className="mx-2 h-5 w-px shrink-0 bg-white/20" />
+            {ADMIN_NAV.map((item) => (
+              <li key={item.to} className="shrink-0">
+                <NavLink {...item} />
+              </li>
+            ))}
+          </>
+        )}
+      </ul>
     </nav>
   );
 }
@@ -250,7 +250,6 @@ export function AppShell({
   navyMain?: boolean | undefined;
 }) {
   const s = useAppState();
-  const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const id = useIdentity();
@@ -259,98 +258,75 @@ export function AppShell({
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-30 flex h-14 items-center gap-3 bg-navy px-4 text-navy-foreground">
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-navy-foreground hover:bg-navy-muted hover:text-navy-foreground lg:hidden"
-              aria-label="Open menu"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-64 p-0">
-            <SheetTitle className="sr-only">Navigation</SheetTitle>
-            <div className="bg-navy px-4 py-4">
-              <Logo onDark />
-            </div>
-            <div className="py-3">
-              <NavLinks role={role} onNavigate={() => setOpen(false)} />
-            </div>
-          </SheetContent>
-        </Sheet>
+      <div className="sticky top-0 z-30 bg-navy text-navy-foreground">
+        <header className="flex h-14 items-center gap-3 px-4">
+          <Link to="/" aria-label="Home">
+            <Logo onDark />
+          </Link>
 
-        <Link to="/" aria-label="Home">
-          <Logo onDark />
-        </Link>
-
-        <div className="ml-auto flex items-center gap-2">
-          <div className="hidden items-center gap-2 md:flex">
-            <ContextPicker />
-            <RoleSwitcher />
-          </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                className="flex items-center gap-2 rounded-md px-1 py-1 text-left hover:bg-navy-muted"
-                aria-label="Account menu"
-              >
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-brand text-xs font-semibold text-brand-foreground">
-                    {initials(id.name)}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="hidden min-w-0 sm:block">
-                  <span className="block truncate text-sm font-medium leading-4">{id.name}</span>
-                  <span className="block truncate text-xs leading-4 text-navy-foreground/70">
-                    {id.sub}
+          <div className="ml-auto flex items-center gap-2">
+            <div className="hidden items-center gap-2 md:flex">
+              <ContextPicker />
+              <RoleSwitcher />
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="flex items-center gap-2 rounded-md px-1 py-1 text-left hover:bg-navy-muted"
+                  aria-label="Account menu"
+                >
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="bg-brand text-xs font-semibold text-brand-foreground">
+                      {initials(id.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="hidden min-w-0 sm:block">
+                    <span className="block truncate text-sm font-medium leading-4">{id.name}</span>
+                    <span className="block truncate text-xs leading-4 text-navy-foreground/70">
+                      {id.sub}
+                    </span>
                   </span>
-                </span>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64">
-              <DropdownMenuLabel className="flex items-center gap-2 font-normal">
-                <Building2 className="h-4 w-4 text-muted-foreground" />
-                <span className="truncate text-xs text-muted-foreground">{s.fsp.name}</span>
-              </DropdownMenuLabel>
-              <div className="px-2 pb-2 md:hidden">
-                <div className="flex flex-col gap-2 [&_button]:w-full">
-                  <RoleSwitcher />
-                  <ContextPicker />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64">
+                <DropdownMenuLabel className="flex items-center gap-2 font-normal">
+                  <Building2 className="h-4 w-4 text-muted-foreground" />
+                  <span className="truncate text-xs text-muted-foreground">{s.fsp.name}</span>
+                </DropdownMenuLabel>
+                <div className="px-2 pb-2 md:hidden">
+                  <div className="flex flex-col gap-2 [&_button]:w-full">
+                    <RoleSwitcher />
+                    <ContextPicker />
+                  </div>
                 </div>
-              </div>
-              <DropdownMenuSeparator />
-              <ThemeItem />
-              <DropdownMenuItem onSelect={() => resetDemo()}>
-                <RotateCcw className="h-4 w-4" /> Reset demo data
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onSelect={() => {
-                  void signOut().then(() => navigate({ to: "/login" }));
-                }}
-              >
-                <LogOut className="h-4 w-4" /> Sign out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </header>
-
-      <div className="flex flex-1">
-        <aside className="hidden w-60 shrink-0 border-r bg-sidebar lg:block">
-          <div className="sticky top-14 py-4">
-            <NavLinks role={role} />
+                <DropdownMenuSeparator />
+                <ThemeItem />
+                <DropdownMenuItem onSelect={() => resetDemo()}>
+                  <RotateCcw className="h-4 w-4" /> Reset demo data
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={() => {
+                    void signOut().then(() => navigate({ to: "/login" }));
+                  }}
+                >
+                  <LogOut className="h-4 w-4" /> Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-        </aside>
-        <main
-          key={role + pathname.split("/")[1]}
-          className={cn("min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8", (navyMain ?? pathname === "/workspace") && "bg-navy")}
-        >
-          <div className="mx-auto max-w-6xl">{children}</div>
-        </main>
+        </header>
+        <NavLinks role={role} />
       </div>
+
+      <main
+        key={role + pathname.split("/")[1]}
+        className={cn(
+          "min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8",
+          (navyMain ?? pathname === "/workspace") && "bg-navy",
+        )}
+      >
+        <div className="mx-auto max-w-6xl">{children}</div>
+      </main>
     </div>
   );
 }

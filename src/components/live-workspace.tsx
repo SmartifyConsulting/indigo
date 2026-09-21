@@ -297,7 +297,7 @@ export function LiveWorkspaceScreen() {
               onSelect={filterable ? setSelected : undefined}
             />
           </div>
-          <div className="lg:sticky lg:top-20">
+          <div className="lg:sticky lg:top-32">
             <FrameLabel>Live workspace</FrameLabel>
             <LiveWorkspacePanel selected={selected} onSelect={setSelected} />
           </div>
