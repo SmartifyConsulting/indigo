@@ -1,9 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { OnDarkContext, PageHeader } from "@/components/common";
-import { LifecycleDiagram } from "@/components/lifecycle-diagram";
-import { lifecycleView } from "@/lib/domain/lifecycle";
-import { useAppState } from "@/lib/domain/store";
+import { LiveWorkspaceScreen } from "@/components/live-workspace";
 
 export const Route = createFileRoute("/workspace")({
   head: () => ({
@@ -15,19 +12,5 @@ export const Route = createFileRoute("/workspace")({
       },
     ],
   }),
-  component: LiveWorkspace,
+  component: LiveWorkspaceScreen,
 });
-
-function LiveWorkspace() {
-  const state = useAppState();
-  const view = lifecycleView(state);
-  return (
-    <OnDarkContext.Provider value>
-      <PageHeader
-        title="Live Workspace"
-        description="Where every client is in the advice lifecycle, updated live."
-      />
-      <LifecycleDiagram chips={view.chips} active={view.active} heading={false} />
-    </OnDarkContext.Provider>
-  );
-}

@@ -3,8 +3,6 @@ import {
   Calculator,
   Check,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   Database,
   FileText,
   Lock,
@@ -13,7 +11,6 @@ import {
   ScanFace,
   type LucideIcon,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
 
 import { LogoMark } from "@/components/brand/logo";
 import type { StageNo } from "@/lib/domain/gates";
@@ -121,39 +118,43 @@ const ENGINE_POINTS = [
   "Key Individual oversight",
 ];
 
-/* Desktop geometry (px). Cards sit in a 3 x 3 grid; the hub is the middle row. */
-const ROW = 252;
-const MID = 170;
-const H = ROW * 2 + MID;
-const Y_TOP = ROW / 2;
-const Y_MID = ROW + MID / 2;
-const Y_BOT = H - ROW / 2;
-
-export interface LifecycleDiagramProps {
-  /** Small label shown on a stage card, e.g. "2 clients here". */
-  chips?: Partial<Record<StageNo, string>>;
-  /** Stage to highlight as "you are here". */
-  active?: StageNo | undefined;
-  /** Show the built-in eyebrow, headline and subtitle. Pages with their own heading turn this off. */
-  heading?: boolean;
-}
-
 function StageCard({
   def,
   chip,
   active,
+  selected = false,
+  onSelect,
 }: {
   def: StageDef;
   chip: string | undefined;
   active: boolean;
+  /** Marks this stage as the one the live view is filtered to. */
+  selected?: boolean;
+  onSelect?: (() => void) | undefined;
 }) {
   const Icon = def.icon;
   const FooterIcon = def.footerIcon;
   return (
     <div
+      {...(onSelect
+        ? {
+            role: "button",
+            tabIndex: 0,
+            "aria-pressed": selected,
+            onClick: onSelect,
+            onKeyDown: (e: React.KeyboardEvent) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onSelect();
+              }
+            },
+          }
+        : {})}
       className={cn(
         "flex h-full flex-col rounded-lg border bg-navy-card text-navy-foreground",
-        active ? "border-brand shadow-[0_0_28px_-6px_var(--brand)]" : "border-white/10",
+        active || selected ? "border-brand shadow-[0_0_28px_-6px_var(--brand)]" : "border-white/10",
+        onSelect &&
+          "cursor-pointer transition-colors hover:border-brand/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
       )}
     >
       <div className="flex items-center gap-2 border-b border-white/10 px-3 py-2.5">
@@ -220,161 +221,50 @@ function Hub() {
   );
 }
 
-function ArrowDot({ icon: Icon, style }: { icon: LucideIcon; style: React.CSSProperties }) {
+/** The lifecycle as a single top-to-bottom flow. Used on phones and in the Live Workspace flow-map frame. */
+export function LifecycleFlow({
+  chips = {},
+  active,
+  selected = null,
+  onSelect,
+}: {
+  chips?: Partial<Record<StageNo, string>>;
+  active?: StageNo | undefined;
+  selected?: StageNo | null;
+  /** Makes each card clickable, e.g. to filter a live view to that stage. */
+  onSelect?: ((n: StageNo | null) => void) | undefined;
+}) {
   return (
-    <span
-      className="absolute z-10 flex h-6 w-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-navy text-brand"
-      style={style}
-      aria-hidden
-    >
-      <Icon className="h-3.5 w-3.5" />
-    </span>
-  );
-}
-
-/** Connector geometry in pixels for a container of width `w`. */
-function paths(w: number) {
-  const cx = [w / 6, w / 2, (5 * w) / 6] as const;
-  return {
-    flow: `M ${cx[0]} ${Y_TOP} H ${cx[2]} V ${Y_BOT} H ${cx[0]}`,
-    loop: `M ${cx[0]} ${Y_BOT} V ${Y_TOP}`,
-    hubUp: `M ${cx[1]} ${Y_MID} V ${Y_TOP}`,
-    hubDown: `M ${cx[1]} ${Y_MID} V ${Y_BOT}`,
-    hubLeft: `M ${cx[1]} ${Y_MID} H ${cx[0]}`,
-    hubRight: `M ${cx[1]} ${Y_MID} H ${cx[2]}`,
-    cx,
-  };
-}
-
-export function LifecycleDiagram({ chips = {}, active, heading = true }: LifecycleDiagramProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [w, setW] = useState(1152);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const ro = new ResizeObserver(([e]) => e && setW(Math.round(e.contentRect.width)));
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
-  const p = paths(w);
-  const pct = (x: number) => `${(x / w) * 100}%`;
-  const at = (n: StageNo) => STAGES.find((s) => s.no === n)!;
-
-  return (
-    <section
-      className="mb-8 overflow-hidden rounded-lg border border-white/10 bg-navy px-4 py-8 text-navy-foreground sm:px-8"
-      aria-label="The advice lifecycle"
-    >
-      {heading && (
-        <div className="mx-auto mb-8 max-w-2xl text-center">
-          <p className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-brand">
-            The advice lifecycle
-          </p>
-          <h2 className="mt-2 text-2xl font-medium leading-8 sm:text-3xl sm:leading-10">
-            From first scan to annual review, in a fixed legal order.
-          </h2>
-          <p className="mt-2 text-sm text-navy-foreground/65">
-            Every step is checked by the compliance engine. Out-of-order actions are refused and
-            logged.
-          </p>
-        </div>
-      )}
-
-      {/* Desktop: snaking flow around the hub */}
-      <div ref={ref} className="relative mx-auto hidden max-w-6xl lg:block" style={{ height: H }}>
-        <svg
-          className="absolute inset-0"
-          width={w}
-          height={H}
-          viewBox={`0 0 ${w} ${H}`}
-          aria-hidden
-        >
-          <g fill="none" strokeLinejoin="round" strokeLinecap="round">
-            <path d={p.flow} stroke="white" strokeOpacity={0.16} strokeWidth={1} />
-            <path
-              d={p.loop}
-              stroke="white"
-              strokeOpacity={0.16}
-              strokeWidth={1}
-              strokeDasharray="4 4"
-            />
-            {[p.hubUp, p.hubDown, p.hubLeft, p.hubRight].map((d) => (
-              <path
-                key={d}
-                d={d}
-                stroke="white"
-                strokeOpacity={0.08}
-                strokeWidth={1}
-                strokeDasharray="3 5"
-              />
-            ))}
-            <path d={p.flow} stroke="var(--brand)" strokeWidth={2} className="flow-light" />
-            <path
-              d={p.loop}
-              stroke="var(--brand)"
-              strokeWidth={2}
-              className="flow-light"
-              style={{ animationDelay: "-2s" }}
-            />
-          </g>
-        </svg>
-
-        <div
-          className="absolute inset-0 grid grid-cols-3"
-          style={{ gridTemplateRows: `${ROW}px ${MID}px ${ROW}px` }}
-        >
-          {([1, 2, 3] as const).map((n) => (
-            <div key={n} className="px-6 py-2">
-              <StageCard def={at(n)} chip={chips[n]} active={active === n} />
-            </div>
-          ))}
-          <div className="col-span-3 flex items-center justify-center">
-            <Hub />
-          </div>
-          {([6, 5, 4] as const).map((n) => (
-            <div key={n} className="px-6 py-2">
-              <StageCard def={at(n)} chip={chips[n]} active={active === n} />
-            </div>
-          ))}
-        </div>
-
-        <ArrowDot icon={ChevronRight} style={{ left: pct(w / 3), top: Y_TOP }} />
-        <ArrowDot icon={ChevronRight} style={{ left: pct((2 * w) / 3), top: Y_TOP }} />
-        <ArrowDot icon={ChevronDown} style={{ left: pct(p.cx[2]), top: Y_MID }} />
-        <ArrowDot icon={ChevronLeft} style={{ left: pct((2 * w) / 3), top: Y_BOT }} />
-        <ArrowDot icon={ChevronLeft} style={{ left: pct(w / 3), top: Y_BOT }} />
-        <span
-          className="absolute z-10 flex -translate-x-1/2 -translate-y-1/2 items-center gap-1.5 rounded-full border border-white/15 bg-navy px-2.5 py-1 font-mono text-[10px] uppercase tracking-wide text-navy-foreground/70"
-          style={{ left: pct(p.cx[0]), top: Y_MID }}
-        >
-          <Repeat className="h-3 w-3 text-brand" /> Annual review cycle
-        </span>
+    <div className="relative">
+      <div className="absolute bottom-4 left-3 top-4 w-px overflow-hidden bg-white/15" aria-hidden>
+        <span className="flow-light-v absolute left-0 h-16 w-px bg-gradient-to-b from-transparent via-brand to-transparent" />
       </div>
-
-      {/* Below lg: a single vertical flow */}
-      <div className="relative mx-auto max-w-md lg:hidden">
-        <div className="absolute bottom-4 left-3 top-4 w-px bg-white/15" aria-hidden />
-        <ol className="space-y-5">
-          {STAGES.map((s) => (
-            <li key={s.no} className="relative pl-9">
-              <span
-                className="absolute left-0 top-4 flex h-6 w-6 items-center justify-center rounded-full border border-white/15 bg-navy text-brand"
-                aria-hidden
-              >
-                <ChevronDown className="h-3.5 w-3.5" />
-              </span>
-              <StageCard def={s} chip={chips[s.no]} active={active === s.no} />
-            </li>
-          ))}
-        </ol>
-        <div className="mt-6 flex justify-center">
-          <Hub />
-        </div>
-        <p className="mt-2 text-center font-mono text-[10px] uppercase tracking-wide text-navy-foreground/60">
-          <Repeat className="mr-1 inline h-3 w-3 text-brand" /> Repeats every 12 months
-        </p>
+      <ol className="space-y-5">
+        {STAGES.map((s) => (
+          <li key={s.no} className="relative pl-9">
+            <span
+              className="absolute left-0 top-4 flex h-6 w-6 items-center justify-center rounded-full border border-white/15 bg-navy text-brand"
+              aria-hidden
+            >
+              <ChevronDown className="h-3.5 w-3.5" />
+            </span>
+            <StageCard
+              def={s}
+              chip={chips[s.no]}
+              active={active === s.no}
+              selected={selected === s.no}
+              onSelect={onSelect ? () => onSelect(selected === s.no ? null : s.no) : undefined}
+            />
+          </li>
+        ))}
+      </ol>
+      <div className="mt-6 flex justify-center">
+        <Hub />
       </div>
-    </section>
+      <p className="mt-2 text-center font-mono text-[10px] uppercase tracking-wide text-navy-foreground/60">
+        <Repeat className="mr-1 inline h-3 w-3 text-brand" /> Annual review cycle: repeats every 12
+        months
+      </p>
+    </div>
   );
 }

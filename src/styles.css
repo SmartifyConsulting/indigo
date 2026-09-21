@@ -211,6 +211,25 @@
   font-weight: 500;
 }
 
+/* Lifecycle flow (stacked): light travelling down the connector */
+@keyframes flow-down {
+  from {
+    top: -4rem;
+  }
+  to {
+    top: 100%;
+  }
+}
+
+@utility flow-light-v {
+  animation: flow-down 4s linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    opacity: 0;
+  }
+}
+
 /* Lifecycle diagram: light travelling along a connector (one dash of 60px per 400px loop) */
 @keyframes flow-light {
   to {

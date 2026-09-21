@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { Logo } from "@/components/brand/logo";
-import { LifecycleDiagram } from "@/components/lifecycle-diagram";
 import { Button } from "@/components/ui/button";
 import { BRAND } from "@/lib/brand";
 import { useAuth } from "@/lib/use-auth";
@@ -82,8 +81,6 @@ function Welcome() {
             )}
           </div>
         </section>
-
-        <LifecycleDiagram heading={false} />
       </main>
     </div>
   );

@@ -6,8 +6,6 @@ import {
   FspDashboard,
   InsurerDashboard,
 } from "@/components/dashboards";
-import { LifecycleDiagram } from "@/components/lifecycle-diagram";
-import { lifecycleView } from "@/lib/domain/lifecycle";
 import { useAppState } from "@/lib/domain/store";
 
 export const Route = createFileRoute("/")({
@@ -23,26 +21,16 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-function RoleDashboard({ role }: { role: string }) {
-  switch (role) {
+function Home() {
+  const { session } = useAppState();
+  switch (session.role) {
+    case "advisor":
+      return <AdvisorDashboard />;
     case "client":
       return <ClientDashboard />;
     case "fsp":
       return <FspDashboard />;
     case "insurer":
       return <InsurerDashboard />;
-    default:
-      return <AdvisorDashboard />;
   }
-}
-
-function Home() {
-  const state = useAppState();
-  const view = lifecycleView(state);
-  return (
-    <>
-      <LifecycleDiagram chips={view.chips} active={view.active} />
-      <RoleDashboard role={state.session.role} />
-    </>
-  );
 }

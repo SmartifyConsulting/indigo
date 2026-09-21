@@ -56,7 +56,7 @@ function StageChart({ cases }: { cases: CaseRecord[] }) {
   );
 }
 
-function ActivityList({
+export function ActivityList({
   s,
   caseIds,
   limit = 6,
