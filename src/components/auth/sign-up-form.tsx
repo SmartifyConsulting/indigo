@@ -32,17 +32,25 @@ export function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () => void 
 
   const strongPassword =
     form.password.length >= 8 && /[A-Za-z]/.test(form.password) && /\d/.test(form.password);
-  const valid =
-    form.first.trim().length > 0 &&
-    form.last.trim().length > 0 &&
-    /\S+@\S+\.\S+/.test(form.email) &&
-    form.fsp.trim().length > 2 &&
-    strongPassword;
+
+  /** Every problem with the form, named by field, so the message never blames the wrong one. */
+  function problems(): string[] {
+    const out: string[] = [];
+    if (form.first.trim().length === 0) out.push("Enter your first name.");
+    if (form.last.trim().length === 0) out.push("Enter your last name.");
+    if (!/\S+@\S+\.\S+/.test(form.email)) out.push("Enter a valid work email address.");
+    if (!strongPassword) {
+      out.push("Choose a password with 8+ characters, including a letter and a number.");
+    }
+    if (form.fsp.trim().length < 3) out.push("Enter your FSP's name (at least 3 characters).");
+    return out;
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!valid) {
-      setError("Check your details: a password needs 8+ characters with a letter and a number.");
+    const found = problems();
+    if (found.length > 0) {
+      setError(found.join(" "));
       return;
     }
     setBusy(true);
@@ -108,14 +116,14 @@ export function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () => void 
     <>
       <form className="space-y-4" onSubmit={submit}>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="First name">
+          <Field label="First name *">
             <Input
               value={form.first}
               onChange={(e) => setForm({ ...form, first: e.target.value })}
               autoComplete="given-name"
             />
           </Field>
-          <Field label="Last name">
+          <Field label="Last name *">
             <Input
               value={form.last}
               onChange={(e) => setForm({ ...form, last: e.target.value })}
@@ -123,7 +131,7 @@ export function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () => void 
             />
           </Field>
         </div>
-        <Field label={t("auth.email")}>
+        <Field label={`${t("auth.email")} *`}>
           <Input
             type="email"
             value={form.email}
@@ -132,7 +140,7 @@ export function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () => void 
           />
         </Field>
         <Field
-          label={t("auth.password")}
+          label={`${t("auth.password")} *`}
           hint="At least 8 characters, including a letter and a number."
         >
           <div className="relative">
@@ -154,7 +162,7 @@ export function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () => void 
             </button>
           </div>
         </Field>
-        <Field label="Financial services provider (FSP) name">
+        <Field label="Financial services provider (FSP) name *">
           <Input value={form.fsp} onChange={(e) => setForm({ ...form, fsp: e.target.value })} />
         </Field>
         <Field
