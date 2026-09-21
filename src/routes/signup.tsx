@@ -99,6 +99,7 @@ function Signup() {
   return (
     <AuthLayout
       wide
+      tab="signup"
       title={`Set up your agency on ${BRAND.name}`}
       subtitle="For FSP owners and Key Individuals. Advisors are invited afterwards."
     >

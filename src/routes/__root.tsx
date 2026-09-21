@@ -15,6 +15,7 @@ import { AppShell } from "@/components/app-shell";
 import { Toaster } from "@/components/ui/sonner";
 import { BRAND } from "@/lib/brand";
 import { useStoreHydration } from "@/lib/domain/store";
+import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import { useAuth } from "@/lib/use-auth";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
@@ -91,6 +92,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    scripts: [{ children: THEME_INIT_SCRIPT }],
     links: [
       {
         rel: "stylesheet",
@@ -113,7 +115,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>

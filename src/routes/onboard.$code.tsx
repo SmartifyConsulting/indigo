@@ -314,6 +314,7 @@ function Wizard({ c }: { c: CaseRecord }) {
 function Onboard() {
   const { code } = Route.useParams();
   const s = useAppState();
+  const navigate = useNavigate();
   const c = s.cases.find((x) => x.code === code);
   const id = c?.id;
 
@@ -325,14 +326,11 @@ function Onboard() {
     }
   }, [id]);
 
-  if (!c) {
-    return (
-      <AuthLayout title="This link isn't valid">
-        <p className="text-center text-sm text-muted-foreground">
-          Ask your advisor to send you a new invitation.
-        </p>
-      </AuthLayout>
-    );
-  }
+  // An unknown or expired code has no page of its own: send the visitor to sign in.
+  useEffect(() => {
+    if (!c) void navigate({ to: "/login", replace: true });
+  }, [c, navigate]);
+
+  if (!c) return null;
   return <Wizard c={c} />;
 }

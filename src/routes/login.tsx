@@ -60,7 +60,7 @@ function Login() {
   }
 
   return (
-    <AuthLayout title="Sign in" subtitle={`Your ${BRAND.name} advice workspace.`}>
+    <AuthLayout wide tab="signin" title="Sign in" subtitle={`Your ${BRAND.name} advice workspace.`}>
       <form className="space-y-4" onSubmit={signIn}>
         <Field label="Work email">
           <Input
@@ -112,9 +112,6 @@ function Login() {
       <div className="mt-6 flex flex-col items-center gap-2 text-sm">
         <Link to="/forgot-password" tabIndex={-1} className="text-primary hover:underline">
           Forgot password?
-        </Link>
-        <Link to="/signup" className="text-primary hover:underline">
-          Set up a new agency
         </Link>
       </div>
     </AuthLayout>

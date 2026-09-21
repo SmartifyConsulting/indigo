@@ -11,8 +11,10 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  Moon,
   Plug,
   RotateCcw,
+  Sun,
   ShieldCheck,
   Users,
   Wallet,
@@ -40,7 +42,9 @@ import {
 } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { isAdmin as isAdminFn } from "@/lib/admin.functions";
+import { Switch } from "@/components/ui/switch";
 import { actions, resetDemo, useAppState } from "@/lib/domain/store";
+import { useTheme } from "@/lib/theme";
 import { useAuth } from "@/lib/use-auth";
 import { PROVIDERS, ROLE_LABEL, type Role } from "@/lib/domain/types";
 import { initials } from "@/lib/fmt";
@@ -216,6 +220,22 @@ function useIdentity() {
   }
 }
 
+function ThemeItem() {
+  const { dark, toggle } = useTheme();
+  return (
+    <DropdownMenuItem
+      onSelect={(e) => {
+        e.preventDefault();
+        toggle();
+      }}
+    >
+      {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      Dark mode
+      <Switch checked={dark} className="pointer-events-none ml-auto" tabIndex={-1} aria-hidden />
+    </DropdownMenuItem>
+  );
+}
+
 /** `navyMain` overrides the default (navy behind the home page only), e.g. for previews. */
 export function AppShell({
   children,
@@ -297,6 +317,7 @@ export function AppShell({
                 </div>
               </div>
               <DropdownMenuSeparator />
+              <ThemeItem />
               <DropdownMenuItem onSelect={() => resetDemo()}>
                 <RotateCcw className="h-4 w-4" /> Reset demo data
               </DropdownMenuItem>

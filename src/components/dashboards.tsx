@@ -41,7 +41,13 @@ function StageChart({ cases }: { cases: CaseRecord[] }) {
         />
         <Tooltip
           cursor={{ fill: "var(--color-accent)" }}
-          contentStyle={{ borderRadius: 6, border: "1px solid var(--color-border)", fontSize: 12 }}
+          contentStyle={{
+            borderRadius: 6,
+            border: "1px solid var(--color-border)",
+            background: "var(--color-card)",
+            color: "var(--color-foreground)",
+            fontSize: 12,
+          }}
           labelFormatter={(_, p) => (p?.[0]?.payload as { full?: string } | undefined)?.full ?? ""}
         />
         <Bar dataKey="clients" fill="var(--color-primary)" radius={[3, 3, 0, 0]} />
