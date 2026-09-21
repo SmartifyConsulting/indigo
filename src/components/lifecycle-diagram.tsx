@@ -198,7 +198,7 @@ function StageCard({
 
 function Hub() {
   return (
-    <div className="flex w-56 flex-col items-center rounded-lg bg-navy-deep px-3 py-1 text-center">
+    <div className="flex w-56 flex-col items-center rounded-lg bg-navy px-3 py-1 text-center">
       <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white shadow-[0_0_48px_-2px_var(--brand)]">
         <LogoMark className="h-8 w-8" />
       </span>
@@ -221,7 +221,7 @@ function Hub() {
 function ArrowDot({ icon: Icon, style }: { icon: LucideIcon; style: React.CSSProperties }) {
   return (
     <span
-      className="absolute z-10 flex h-6 w-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-navy-deep text-brand"
+      className="absolute z-10 flex h-6 w-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-navy text-brand"
       style={style}
       aria-hidden
     >
@@ -261,7 +261,7 @@ export function LifecycleDiagram({ chips = {}, active }: LifecycleDiagramProps) 
 
   return (
     <section
-      className="mb-8 overflow-hidden rounded-lg bg-navy-deep px-4 py-8 text-navy-foreground sm:px-8"
+      className="mb-8 overflow-hidden rounded-lg border border-white/10 bg-navy px-4 py-8 text-navy-foreground sm:px-8"
       aria-label="The advice lifecycle"
     >
       <div className="mx-auto mb-8 max-w-2xl text-center">
@@ -341,7 +341,7 @@ export function LifecycleDiagram({ chips = {}, active }: LifecycleDiagramProps) 
         <ArrowDot icon={ChevronLeft} style={{ left: pct((2 * w) / 3), top: Y_BOT }} />
         <ArrowDot icon={ChevronLeft} style={{ left: pct(w / 3), top: Y_BOT }} />
         <span
-          className="absolute z-10 flex -translate-x-1/2 -translate-y-1/2 items-center gap-1.5 rounded-full border border-white/15 bg-navy-deep px-2.5 py-1 font-mono text-[10px] uppercase tracking-wide text-navy-foreground/70"
+          className="absolute z-10 flex -translate-x-1/2 -translate-y-1/2 items-center gap-1.5 rounded-full border border-white/15 bg-navy px-2.5 py-1 font-mono text-[10px] uppercase tracking-wide text-navy-foreground/70"
           style={{ left: pct(p.cx[0]), top: Y_MID }}
         >
           <Repeat className="h-3 w-3 text-brand" /> Annual review cycle
@@ -355,7 +355,7 @@ export function LifecycleDiagram({ chips = {}, active }: LifecycleDiagramProps) 
           {STAGES.map((s) => (
             <li key={s.no} className="relative pl-9">
               <span
-                className="absolute left-0 top-4 flex h-6 w-6 items-center justify-center rounded-full border border-white/15 bg-navy-deep text-brand"
+                className="absolute left-0 top-4 flex h-6 w-6 items-center justify-center rounded-full border border-white/15 bg-navy text-brand"
                 aria-hidden
               >
                 <ChevronDown className="h-3.5 w-3.5" />

@@ -267,7 +267,7 @@ export function ClientDashboard() {
           hint="Scheduled after issue"
         />
       </div>
-      <p className="mt-6 text-xs text-muted-foreground">
+      <p className="mt-6 text-xs text-navy-foreground/60">
         Everything you sign is time-stamped and locked in an audit record that cannot be edited.{" "}
         {roaSigned(c) ? "Your Record of Advice is signed." : ""}
       </p>

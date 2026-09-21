@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Check, Lock, X } from "lucide-react";
-import type { ReactNode } from "react";
+import { createContext, useContext, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,9 @@ import { useAppState } from "@/lib/domain/store";
 import type { CaseRecord, Role } from "@/lib/domain/types";
 import { ROLE_LABEL } from "@/lib/domain/types";
 import { cn } from "@/lib/utils";
+
+/** True where a page sits directly on the navy background (the home dashboard). */
+export const OnDarkContext = createContext(false);
 
 export function PageHeader({
   title,
@@ -22,17 +25,35 @@ export function PageHeader({
   actions?: ReactNode;
   back?: { to: string; label: string };
 }) {
+  const onDark = useContext(OnDarkContext);
   return (
     <div className="mb-6">
       {back && (
-        <Link to={back.to} className="mb-2 inline-block text-sm text-primary hover:underline">
+        <Link
+          to={back.to}
+          className={cn(
+            "mb-2 inline-block text-sm hover:underline",
+            onDark ? "text-brand" : "text-primary",
+          )}
+        >
           ← {back.label}
         </Link>
       )}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="title-lg text-foreground">{title}</h1>
-          {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
+          <h1 className={cn("title-lg", onDark ? "text-navy-foreground" : "text-foreground")}>
+            {title}
+          </h1>
+          {description && (
+            <p
+              className={cn(
+                "mt-1 text-sm",
+                onDark ? "text-navy-foreground/70" : "text-muted-foreground",
+              )}
+            >
+              {description}
+            </p>
+          )}
         </div>
         {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
       </div>

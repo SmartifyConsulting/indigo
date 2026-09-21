@@ -216,7 +216,14 @@ function useIdentity() {
   }
 }
 
-export function AppShell({ children }: { children: ReactNode }) {
+/** `navyMain` overrides the default (navy behind the home page only), e.g. for previews. */
+export function AppShell({
+  children,
+  navyMain,
+}: {
+  children: ReactNode;
+  navyMain?: boolean | undefined;
+}) {
   const s = useAppState();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
@@ -313,7 +320,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </aside>
         <main
           key={role + pathname.split("/")[1]}
-          className={cn("min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8")}
+          className={cn("min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8", (navyMain ?? pathname === "/") && "bg-navy")}
         >
           <div className="mx-auto max-w-6xl">{children}</div>
         </main>

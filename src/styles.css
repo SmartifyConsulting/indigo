@@ -30,7 +30,6 @@
   --color-navy: var(--navy);
   --color-navy-foreground: var(--navy-foreground);
   --color-navy-muted: var(--navy-muted);
-  --color-navy-deep: var(--navy-deep);
   --color-navy-card: var(--navy-card);
   --color-primary-soft: var(--primary-soft);
   --color-positive: var(--positive);
@@ -89,7 +88,6 @@
   --navy: oklch(0.356 0.039 249);
   --navy-foreground: oklch(0.985 0.004 250);
   --navy-muted: oklch(0.466 0.045 248.8);
-  --navy-deep: oklch(0.2 0.03 250);
   --navy-card: oklch(0.265 0.035 250);
   --brand: oklch(0.778 0.123 187);
   --brand-foreground: oklch(0.27 0.025 268.3);
