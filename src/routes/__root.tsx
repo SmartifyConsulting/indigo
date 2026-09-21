@@ -15,6 +15,7 @@ import { AppShell } from "@/components/app-shell";
 import { Toaster } from "@/components/ui/sonner";
 import { BRAND } from "@/lib/brand";
 import { useStoreHydration } from "@/lib/domain/store";
+import { useAuth } from "@/lib/use-auth";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
@@ -139,15 +140,15 @@ function RootComponent() {
   const bare = BARE_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"));
   const { session, loading } = useAuth();
   const signedIn = !!session;
+  const router = useRouter();
   useStoreHydration(signedIn && !bare);
 
   useEffect(() => {
     if (!bare && !loading && !signedIn) {
       void router.navigate({ to: "/login" });
     }
-  }, [bare, loading, signedIn]);
+  }, [bare, loading, signedIn, router]);
 
-  const router = useRouter();
 
   return (
     <QueryClientProvider client={queryClient}>
