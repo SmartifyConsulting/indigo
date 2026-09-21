@@ -66,7 +66,11 @@ export function subscribe(l: () => void) {
 }
 
 export function useAppState(): AppState {
-  return useSyncExternalStore(subscribe, () => state, () => SERVER_SNAPSHOT);
+  return useSyncExternalStore(
+    subscribe,
+    () => state,
+    () => SERVER_SNAPSHOT,
+  );
 }
 
 /** Mount once at the root, after a session exists. Loads the workspace, seeding it on first run. */
@@ -140,6 +144,10 @@ export const actions = {
   updateProfile: (id: string, patch: Parameters<typeof engine.updateProfile>[2]) =>
     act((d) => engine.updateProfile(d, id, patch)),
   verifyIdentity: (id: string) => act((d, now) => engine.verifyIdentity(d, now, id)),
+  recordIdentityCheck: (id: string, input: Parameters<typeof engine.recordIdentityCheck>[3]) =>
+    act((d, now) => engine.recordIdentityCheck(d, now, id, input)),
+  recordIdentityFailure: (id: string, reason: string) =>
+    act((d, now) => engine.recordIdentityFailure(d, now, id, reason)),
   sign: (id: string, kind: SignatureKind, name: string) =>
     act((d, now) => engine.signDocument(d, now, id, kind, name)),
   chooseRoute: (

@@ -5,11 +5,20 @@ import { computeFna, defaultFnaInputs, estateDuty } from "../src/lib/domain/fna"
 import { buildSeedState } from "../src/lib/domain/seed";
 import { verifyLedger } from "../src/lib/domain/ledger";
 import { stageRowsDone } from "../src/lib/domain/lifecycle";
+import {
+  isValidSaId,
+  maskId,
+  sameIdNumber,
+  summariseIdResponse,
+  summariseLivenessResponse,
+} from "../src/lib/didit";
 import { getStage, isComplete, quoteGates, submissionGates } from "../src/lib/domain/gates";
 import {
   chooseRoute,
   commitCommentary,
   createCase,
+  recordIdentityCheck,
+  recordIdentityFailure,
   requestQuotes,
   runAstutePull,
   saveFna,
@@ -147,6 +156,132 @@ t(
   "ledger still verifies after timestamptz round trip",
   roundTripped.some((e) => e.ts.endsWith("+00:00")) && verifyLedger(roundTripped).ok,
 );
+
+// 4d. DIDIT identity: South African ID rules, response parsing, and recording a check
+t("SA ID: a valid number passes", isValidSaId("8001015009087"));
+t("SA ID: wrong check digit fails", !isValidSaId("8001015009088"));
+t("SA ID: impossible month fails", !isValidSaId("8013015009087"));
+t("SA ID: too short / letters fail", !isValidSaId("80010150090") && !isValidSaId("80010150090ab"));
+t(
+  "ID numbers compare ignoring spaces and dashes",
+  sameIdNumber("800101 5009 087", "8001015009087"),
+);
+t("ID number is masked to the last four", maskId("8001015009087") === "•••• 9087");
+
+const approvedId = summariseIdResponse({
+  request_id: "3f6c1e2a-9b4d-4d11-8a0e-1f2b3c4d5e6f",
+  id_verification: {
+    status: "Approved",
+    document_number: "X123",
+    personal_number: "8001015009087",
+    first_name: "Naledi",
+    last_name: "Mokoena",
+    date_of_birth: "1980-01-01",
+    issuing_state: "ZAF",
+    warnings: [{ risk: "LOW_QUALITY", log_type: "information", short_description: "Slight glare" }],
+  },
+});
+t(
+  "DIDIT ID response: approved, number read, information notes dropped",
+  approvedId.status === "approved" &&
+    approvedId.documentNumber === "8001015009087" &&
+    approvedId.fullName === "Naledi Mokoena" &&
+    approvedId.problems.length === 0,
+);
+const declinedId = summariseIdResponse({
+  request_id: "abc",
+  id_verification: {
+    status: "Declined",
+    warnings: [
+      { risk: "DOCUMENT_EXPIRED", log_type: "error", short_description: "Document expired" },
+    ],
+  },
+});
+t(
+  "DIDIT ID response: declined with the reason",
+  declinedId.status === "declined" && declinedId.problems[0] === "Document expired",
+);
+t(
+  "DIDIT ID response: garbage is declined, not approved",
+  summariseIdResponse(null).status === "declined",
+);
+const okLive = summariseLivenessResponse({
+  request_id: "r1",
+  liveness: { status: "Approved", method: "PASSIVE", score: 91.5, warnings: [] },
+});
+t(
+  "DIDIT liveness response: approved with score",
+  okLive.status === "approved" && okLive.score === 91.5 && okLive.requestId === "r1",
+);
+t(
+  "DIDIT liveness response: missing block is declined",
+  summariseLivenessResponse({}).status === "declined",
+);
+
+{
+  const sc = structuredClone(s);
+  const now = "2026-09-21T10:00:00.000Z";
+  const naledi = sc.cases.find((x) => x.clientName === "Naledi Mokoena")!;
+  sc.session.role = "client";
+  const before = sc.ledger.length;
+  const bad = recordIdentityCheck(sc, now, naledi.id, {
+    documentNumber: "1234567890123",
+    idRequestId: null,
+    livenessRequestId: null,
+    demo: false,
+  });
+  t(
+    "recording rejects an ID number that is not a valid SA ID (and logs it)",
+    !bad.ok && sc.ledger.length === before + 1 && !naledi.identity.livenessVerified,
+  );
+  naledi.idNumber = "9203125087083";
+  const mismatch = recordIdentityCheck(sc, now, naledi.id, {
+    documentNumber: "8001015009087",
+    idRequestId: "id-1",
+    livenessRequestId: "lv-1",
+    demo: false,
+  });
+  t(
+    "recording rejects a document that does not match the number on file",
+    !mismatch.ok && !naledi.identity.livenessVerified,
+  );
+  naledi.idNumber = "8001015009087";
+  const ok = recordIdentityCheck(sc, now, naledi.id, {
+    documentNumber: "8001015009087",
+    idRequestId: "id-1",
+    livenessRequestId: "0a1b2c3d-4e5f",
+    demo: false,
+  });
+  t(
+    "recording a passed check verifies identity, references DIDIT and screens sanctions",
+    ok.ok &&
+      naledi.identity.livenessVerified &&
+      naledi.identity.livenessRef === "DIDIT-0A1B2C3D" &&
+      naledi.identity.sanctions === "clear" &&
+      naledi.identity.demo === false,
+  );
+  t("the audit ledger stays valid after identity events", verifyLedger(sc.ledger).ok);
+  const demo = sc.cases.find((x) => x.clientName === "Marcus Jacobs")!;
+  demo.idNumber = "";
+  const dOk = recordIdentityCheck(sc, now, demo.id, {
+    documentNumber: "8001015009087",
+    idRequestId: null,
+    livenessRequestId: null,
+    demo: true,
+  });
+  t(
+    "a demo check is labelled as a demo in the ledger",
+    dOk.ok &&
+      demo.identity.livenessRef?.startsWith("DEMO-") === true &&
+      sc.ledger.some((e) => e.summary.startsWith("DEMO:")),
+  );
+  const fail = recordIdentityFailure(sc, now, naledi.id, "Liveness declined: no face");
+  t(
+    "a declined check is written to the ledger",
+    !fail.ok && sc.ledger[sc.ledger.length - 1]!.type === "GATE_BLOCKED",
+  );
+  sc.session.role = "advisor";
+}
 
 // 5. Tamper detection
 const tampered = structuredClone(s.ledger);

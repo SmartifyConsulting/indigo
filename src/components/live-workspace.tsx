@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { ActivityList } from "@/components/dashboards";
 import { PageHeader, StageBadge } from "@/components/common";
+import { ClientPanel } from "@/components/client-panel";
 import { LifecycleFlow } from "@/components/lifecycle-diagram";
 import { LiveStats } from "@/components/live-stats";
 import { Button } from "@/components/ui/button";
@@ -209,7 +210,7 @@ export function LiveWorkspaceScreen() {
   const view = lifecycleView(state);
   const [selected, setSelected] = useState<StageNo | null>(null);
   const role = state.session.role;
-  // Clients only see their own place in the flow: the reported data is for staff and insurers.
+  // Clients see their own next step, not the reporting that staff and insurers get.
   const isClient = role === "client";
   // Advisors and FSPs pick a stage to filter the live view.
   const filterable = role === "advisor" || role === "fsp";
@@ -240,29 +241,26 @@ export function LiveWorkspaceScreen() {
             logged.
           </p>
         </div>
-        <div
-          className={
-            isClient
-              ? "mx-auto max-w-xl"
-              : "grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:items-start"
-          }
-        >
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:items-start">
           <div className="rounded-lg border bg-card p-4 text-card-foreground sm:p-5">
             <FrameLabel>Flow map</FrameLabel>
             <LifecycleFlow
               chips={view.chips}
               active={view.active}
               rowsDone={view.activeRowsDone}
+              complete={view.complete}
               selected={filterable ? selected : null}
               onSelect={filterable ? setSelected : undefined}
             />
           </div>
-          {!isClient && (
-            <div className="lg:sticky lg:top-32">
-              <FrameLabel>Live workspace</FrameLabel>
+          <div className="lg:sticky lg:top-32">
+            <FrameLabel>{isClient ? "Your next step" : "Live workspace"}</FrameLabel>
+            {isClient ? (
+              <ClientPanel />
+            ) : (
               <LiveWorkspacePanel selected={selected} onSelect={setSelected} />
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </section>
     </>

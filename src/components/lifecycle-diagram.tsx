@@ -107,10 +107,10 @@ const STAGES: StageDef[] = [
 ];
 
 const ACTOR_STYLE: Record<Actor, string> = {
-  CLIENT: "bg-brand/15 text-brand",
-  ADVISOR: "bg-chart-4/15 text-chart-4",
-  SYSTEM: "bg-white/10 text-navy-foreground/70",
-  INSURER: "bg-warning/20 text-warning",
+  CLIENT: "bg-brand-soft text-brand-ink",
+  ADVISOR: "bg-primary-soft text-primary",
+  SYSTEM: "bg-secondary text-muted-foreground",
+  INSURER: "bg-warning-soft text-warning",
 };
 
 const ENGINE_POINTS = [
@@ -119,11 +119,14 @@ const ENGINE_POINTS = [
   "Key Individual oversight",
 ];
 
+type StageState = "done" | "current" | "todo";
+
 function StageCard({
   def,
   chip,
   active,
   selected = false,
+  state,
   expanded,
   onToggle,
   onSelect,
@@ -134,6 +137,8 @@ function StageCard({
   active: boolean;
   /** Marks this stage as the one the live view is filtered to. */
   selected?: boolean;
+  /** Done is green, current is teal, still to come is grey. */
+  state: StageState;
   expanded: boolean;
   onToggle: () => void;
   /** When set, the title selects this stage (e.g. to filter the live view); otherwise it toggles. */
@@ -148,34 +153,45 @@ function StageCard({
   return (
     <div
       className={cn(
-        "flex h-full flex-col rounded-lg border bg-navy-card text-navy-foreground",
+        "flex h-full flex-col overflow-hidden rounded-lg border bg-card text-card-foreground",
         active
           ? "pulse-border border-brand"
           : selected
             ? "border-brand shadow-[0_0_28px_-6px_var(--brand)]"
-            : "border-white/10",
+            : "border-border",
       )}
     >
       <div
+        aria-hidden
         className={cn(
-          "flex items-center gap-2 px-3 py-2.5",
-          expanded && "border-b border-white/10",
+          "h-1",
+          state === "done" ? "bg-positive" : state === "current" ? "bg-brand" : "bg-border",
         )}
-      >
+      />
+      <div className={cn("flex items-center gap-2 px-3 py-2.5", expanded && "border-b")}>
         <button
           type="button"
           onClick={onSelect ?? onToggle}
           aria-pressed={onSelect ? selected : undefined}
           className={cn("flex min-w-0 flex-1 items-center gap-2 text-left hover:opacity-90", focus)}
         >
-          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand text-[11px] font-semibold text-brand-foreground">
-            {def.no}
+          <span
+            className={cn(
+              "flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold",
+              state === "done"
+                ? "bg-positive text-white"
+                : state === "current"
+                  ? "bg-brand text-brand-foreground"
+                  : "bg-secondary text-muted-foreground",
+            )}
+          >
+            {state === "done" ? <Check className="h-3 w-3" /> : def.no}
           </span>
-          <Icon className="h-3.5 w-3.5 shrink-0 text-navy-foreground/60" />
+          <Icon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
           <span className="truncate text-[13px] font-medium">{def.title}</span>
         </button>
         {chip && !expanded && (
-          <span className="shrink-0 rounded bg-brand/15 px-1.5 py-0.5 text-[11px] font-medium text-brand">
+          <span className="shrink-0 rounded bg-brand-soft px-1.5 py-0.5 text-[11px] font-medium text-brand-ink">
             {chip}
           </span>
         )}
@@ -189,14 +205,14 @@ function StageCard({
           onClick={onToggle}
           aria-expanded={expanded}
           aria-label={`${expanded ? "Collapse" : "Expand"} ${def.title}`}
-          className={cn("shrink-0 p-0.5 text-navy-foreground/60 hover:text-navy-foreground", focus)}
+          className={cn("shrink-0 p-0.5 text-muted-foreground hover:text-foreground", focus)}
         >
           <ChevronDown className={cn("h-4 w-4 transition-transform", !expanded && "-rotate-90")} />
         </button>
       </div>
       {expanded && (
         <>
-          <ul className="flex-1 divide-y divide-white/5">
+          <ul className="flex-1 divide-y divide-border">
             {def.rows.map((r, i) => {
               const tracked = active && rowsDone !== undefined;
               const done = tracked && i < rowsDone;
@@ -208,7 +224,7 @@ function StageCard({
                   className={cn(
                     "flex items-center gap-2 px-3 py-1.5",
                     current &&
-                      "pulse-border mx-1.5 my-1 rounded-md border border-brand bg-brand/10",
+                      "pulse-border mx-1.5 my-1 rounded-md border border-brand bg-brand-soft",
                   )}
                 >
                   {tracked && (
@@ -221,7 +237,7 @@ function StageCard({
                           <span className="relative inline-flex h-2 w-2 rounded-full bg-brand" />
                         </span>
                       ) : (
-                        <span className="h-1.5 w-1.5 rounded-full bg-white/20" />
+                        <span className="h-1.5 w-1.5 rounded-full bg-border" />
                       )}
                     </span>
                   )}
@@ -236,14 +252,14 @@ function StageCard({
                   <span
                     className={cn(
                       "text-xs leading-4",
-                      done ? "text-navy-foreground/50" : "text-navy-foreground/85",
-                      current && "font-medium text-navy-foreground",
+                      done ? "text-muted-foreground" : "text-foreground/85",
+                      current && "font-medium text-foreground",
                     )}
                   >
                     {r.text}
                   </span>
                   {current && (
-                    <span className="ml-auto shrink-0 text-[10px] font-medium text-brand">
+                    <span className="ml-auto shrink-0 text-[10px] font-medium text-brand-ink">
                       Next
                     </span>
                   )}
@@ -251,13 +267,13 @@ function StageCard({
               );
             })}
           </ul>
-          <div className="flex items-center justify-between gap-2 border-t border-white/10 px-3 py-2 text-[11px] leading-3.5 text-navy-foreground/55">
+          <div className="flex items-center justify-between gap-2 border-t px-3 py-2 text-[11px] leading-3.5 text-muted-foreground">
             <span className="flex items-center gap-1.5">
               {FooterIcon && <FooterIcon className="h-3 w-3 shrink-0" />}
               {def.footer}
             </span>
             {chip && (
-              <span className="shrink-0 rounded bg-brand/15 px-1.5 py-0.5 font-medium text-brand">
+              <span className="shrink-0 rounded bg-brand-soft px-1.5 py-0.5 font-medium text-brand-ink">
                 {chip}
               </span>
             )}
@@ -300,6 +316,7 @@ export function LifecycleFlow({
   selected = null,
   onSelect,
   rowsDone,
+  complete = false,
 }: {
   chips?: Partial<Record<StageNo, string>>;
   active?: StageNo | undefined;
@@ -308,7 +325,13 @@ export function LifecycleFlow({
   onSelect?: ((n: StageNo | null) => void) | undefined;
   /** How many lines of the client's current step are done (marks the next line). */
   rowsDone?: number | undefined;
+  /** The client's whole journey is done, so every step shows as done. */
+  complete?: boolean;
 }) {
+  const stateOf = (n: StageNo): StageState => {
+    if (active) return complete || n < active ? "done" : n === active ? "current" : "todo";
+    return selected === n ? "current" : "todo";
+  };
   // Step 1 starts open. A client's own current step also opens, so the line they are on is visible.
   const [open, setOpen] = useState<Set<StageNo>>(
     () => new Set<StageNo>(active ? [1, active] : [1]),
@@ -346,6 +369,7 @@ export function LifecycleFlow({
               chip={chips[s.no]}
               active={active === s.no}
               selected={selected === s.no}
+              state={stateOf(s.no)}
               expanded={open.has(s.no)}
               onToggle={() => toggle(s.no)}
               rowsDone={active === s.no ? rowsDone : undefined}

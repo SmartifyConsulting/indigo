@@ -228,6 +228,10 @@ export interface CaseRecord {
     livenessVerified: boolean;
     livenessRef?: string | undefined;
     livenessAt?: string | undefined;
+    /** DIDIT request id of the ID document check, or a DEMO reference when it was simulated. */
+    idCheckRef?: string | undefined;
+    /** True when the check was a demonstration with no live DIDIT call. */
+    demo?: boolean | undefined;
     sanctions: "pending" | "clear" | "hit";
   };
   fica: {

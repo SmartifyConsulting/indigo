@@ -1,3 +1,4 @@
+import { isValidSaId, sameIdNumber } from "../didit";
 import { computeFna } from "./fna";
 import {
   adviceGates,
@@ -236,6 +237,12 @@ export function verifyIdentity(s: AppState, now: string, caseId: string): Result
     `Liveness passed and ID matched to Home Affairs register (${ref})`,
     true,
   );
+  runScreening(s, now, c);
+  return OK;
+}
+
+/** L0 sanctions and PEP screen (simulated: a name containing "PEP" returns a match). */
+function runScreening(s: AppState, now: string, c: CaseRecord) {
   const hit = /\b(pep|sanction)/i.test(c.clientName);
   c.identity.sanctions = hit ? "hit" : "clear";
   log(
@@ -248,7 +255,72 @@ export function verifyIdentity(s: AppState, now: string, caseId: string): Result
       : "L0 sanctions and PEP screening clear (no matches in UN, OFAC, local PEP lists)",
     true,
   );
+}
+
+/**
+ * Record a completed identity check from the client's own wizard: the ID document was read and
+ * the selfie passed liveness (both with DIDIT, or simulated when `demo`). No images are kept.
+ * The ID number read from the document must be a valid South African ID and match the one on file.
+ */
+export function recordIdentityCheck(
+  s: AppState,
+  now: string,
+  caseId: string,
+  input: {
+    documentNumber: string | null;
+    idRequestId: string | null;
+    livenessRequestId: string | null;
+    demo: boolean;
+  },
+): Result {
+  const c = findCase(s, caseId);
+  if (!c) return fail("Case not found");
+  const number = input.documentNumber ?? "";
+  if (!isValidSaId(number.replace(/\D/g, ""))) {
+    return block(s, now, c, "verify identity", [
+      "The ID number on the document is not a valid South African ID number",
+    ]);
+  }
+  const digits = number.replace(/\D/g, "");
+  if (c.idNumber && !sameIdNumber(c.idNumber, digits)) {
+    return block(s, now, c, "verify identity", [
+      "The ID document does not match the ID number on file",
+    ]);
+  }
+  c.idNumber = digits;
+  const ref = input.demo
+    ? `DEMO-${uid("liveness", c.id, now).toUpperCase().slice(0, 8)}`
+    : `DIDIT-${(input.livenessRequestId ?? uid("liveness", c.id, now)).replace(/-/g, "").toUpperCase().slice(0, 8)}`;
+  c.identity.livenessVerified = true;
+  c.identity.livenessRef = ref;
+  c.identity.livenessAt = now;
+  c.identity.idCheckRef = input.idRequestId ?? undefined;
+  c.identity.demo = input.demo;
+  enqueue(s, now, c, "didit", "ID document and liveness verification");
+  log(
+    s,
+    now,
+    c,
+    "IDENTITY_VERIFIED",
+    input.demo
+      ? `DEMO: ID and liveness simulated, no live DIDIT check was made (${ref})`
+      : `ID document verified and liveness passed with DIDIT (${ref})`,
+    true,
+  );
+  runScreening(s, now, c);
   return OK;
+}
+
+/** Record that the identity service declined a check, so the reason is on the audit trail. */
+export function recordIdentityFailure(
+  s: AppState,
+  now: string,
+  caseId: string,
+  reason: string,
+): Result {
+  const c = findCase(s, caseId);
+  if (!c) return fail("Case not found");
+  return block(s, now, c, "verify identity", [reason]);
 }
 
 const SIG_NEEDS_IDENTITY: SignatureKind[] = ["disclosure", "loa"];

@@ -17,6 +17,8 @@ export interface LifecycleView {
   active: StageNo | undefined;
   /** For the client's current step: how many of its lines are already done, so the next one can be marked. */
   activeRowsDone: number | undefined;
+  /** The client's whole journey is complete, so every step is shown as done. */
+  complete: boolean;
 }
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
@@ -95,6 +97,7 @@ export function lifecycleView(s: AppState): LifecycleView {
       chips: {},
       active,
       activeRowsDone: c && active ? stageRowsDone(c, active) : undefined,
+      complete: !!c && isComplete(c),
     };
   }
 
@@ -109,6 +112,7 @@ export function lifecycleView(s: AppState): LifecycleView {
       chips: pending ? { 6: `${pending} awaiting you` } : {},
       active: undefined,
       activeRowsDone: undefined,
+      complete: false,
     };
   }
 
@@ -119,5 +123,5 @@ export function lifecycleView(s: AppState): LifecycleView {
     const n = mine.filter((c) => getStage(c) === st.no && (st.no === 6 || !isComplete(c))).length;
     if (n > 0) chips[st.no] = plural(n, "client here", "clients here");
   }
-  return { chips, active: undefined, activeRowsDone: undefined };
+  return { chips, active: undefined, activeRowsDone: undefined, complete: false };
 }
