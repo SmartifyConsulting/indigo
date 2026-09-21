@@ -113,7 +113,7 @@ function Welcome() {
             <>
               <AuthTabs active={tab} onChange={setTab} />
               <h2 className="title-lg mb-5 text-center">
-                {tab === "signin" ? t("auth.signin") : `Set up your agency on ${BRAND.name}`}
+                {tab === "signin" ? t("auth.signin") : `Create your ${BRAND.name} account`}
               </h2>
               {tab === "signin" ? (
                 <SignInForm />

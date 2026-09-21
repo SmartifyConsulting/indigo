@@ -9,7 +9,29 @@ import { Input } from "@/components/ui/input";
 import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 import { mapAuthError } from "@/lib/use-auth";
+
+/**
+ * What someone says they are signing up as. This is only a *request*, saved with the account
+ * for an administrator to approve. It never grants a permission on its own.
+ */
+export const SIGNUP_ROLES = [
+  {
+    id: "fsp",
+    label: "FSP owner / Key Individual",
+    hint: "Runs the firm and oversees compliance",
+  },
+  {
+    id: "advisor",
+    label: "Wealth manager / Financial advisor",
+    hint: "Advises clients and submits applications",
+  },
+  { id: "client", label: "Client", hint: "Views my cover, signs and uploads documents" },
+  { id: "insurer", label: "Insurer (risk bearer)", hint: "Reviews and issues applications" },
+] as const;
+
+export type SignupRole = (typeof SIGNUP_ROLES)[number]["id"];
 
 /**
  * The create-account form. `onSwitchToSignIn` swaps to the sign-in tab in place.
@@ -22,9 +44,11 @@ export function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () => void 
     last: "",
     email: "",
     password: "",
-    fsp: "",
-    fspNumber: "",
+    org: "",
+    orgNumber: "",
+    advisorRef: "",
   });
+  const [role, setRole] = useState<SignupRole | null>(null);
   const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -32,6 +56,8 @@ export function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () => void 
 
   const strongPassword =
     form.password.length >= 8 && /[A-Za-z]/.test(form.password) && /\d/.test(form.password);
+  const needsOrg = role === "fsp" || role === "advisor" || role === "insurer";
+  const orgLabel = role === "insurer" ? "Insurance company" : "Financial services provider (FSP)";
 
   /** Every problem with the form, named by field, so the message never blames the wrong one. */
   function problems(): string[] {
@@ -41,8 +67,12 @@ export function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () => void 
     if (!/\S+@\S+\.\S+/.test(form.email)) out.push("Enter a valid work email address.");
     if (!strongPassword) {
       out.push("Choose a password with 8+ characters, including a letter and a number.");
+    } else if (!role) {
+      out.push("Choose what you are signing up as.");
     }
-    if (form.fsp.trim().length < 3) out.push("Enter your FSP's name (at least 3 characters).");
+    if (needsOrg && form.org.trim().length < 3) {
+      out.push(`Enter the name of your ${orgLabel.toLowerCase()} (at least 3 characters).`);
+    }
     return out;
   }
 
@@ -64,8 +94,15 @@ export function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () => void 
           full_name: `${form.first.trim()} ${form.last.trim()}`,
           first_name: form.first.trim(),
           last_name: form.last.trim(),
-          fsp_name: form.fsp,
-          fsp_number: form.fspNumber,
+          // A request only: nothing here grants access, an administrator approves the role.
+          requested_role: role,
+          ...(role === "fsp" || role === "advisor"
+            ? { fsp_name: form.org.trim(), fsp_number: form.orgNumber.trim() }
+            : {}),
+          ...(role === "insurer"
+            ? { org_name: form.org.trim(), org_number: form.orgNumber.trim() }
+            : {}),
+          ...(role === "client" ? { advisor_ref: form.advisorRef.trim() } : {}),
         },
       },
     });
@@ -105,7 +142,10 @@ export function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () => void 
         <p className="font-medium">Confirm your email</p>
         <p>
           We sent a confirmation link to <strong>{form.email}</strong>. Click it to finish setting
-          up {form.fsp}.
+          up your account{needsOrg && form.org ? ` for ${form.org}` : ""}.
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Your access is set up by an administrator based on what you signed up as.
         </p>
         {backToSignIn("Back to sign in")}
       </div>
@@ -162,19 +202,81 @@ export function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () => void 
             </button>
           </div>
         </Field>
-        <Field label="Financial services provider (FSP) name *">
-          <Input value={form.fsp} onChange={(e) => setForm({ ...form, fsp: e.target.value })} />
-        </Field>
-        <Field
-          label="FSP licence number"
-          hint="Optional now; verified against the FSCA register later."
-        >
-          <Input
-            value={form.fspNumber}
-            onChange={(e) => setForm({ ...form, fspNumber: e.target.value })}
-            placeholder="FSP 12345"
-          />
-        </Field>
+
+        {strongPassword && (
+          <fieldset className="space-y-2 border-t pt-4">
+            <legend className="mb-1 text-xs font-medium text-muted-foreground">
+              I&apos;m signing up as *
+            </legend>
+            <div role="radiogroup" aria-label="Sign up as" className="space-y-2">
+              {SIGNUP_ROLES.map((r) => {
+                const on = role === r.id;
+                return (
+                  <button
+                    key={r.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={on}
+                    onClick={() => setRole(r.id)}
+                    className={cn(
+                      "flex w-full items-start gap-3 border p-3 text-left transition-colors",
+                      on
+                        ? "border-primary bg-primary-soft"
+                        : "border-border bg-card hover:border-primary/60",
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border",
+                        on ? "border-primary" : "border-input",
+                      )}
+                      aria-hidden
+                    >
+                      {on && <span className="h-2 w-2 rounded-full bg-primary" />}
+                    </span>
+                    <span>
+                      <span className="block text-sm font-medium">{r.label}</span>
+                      <span className="block text-xs text-muted-foreground">{r.hint}</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              This is a request. An administrator confirms your access after you sign up.
+            </p>
+          </fieldset>
+        )}
+
+        {needsOrg && (
+          <>
+            <Field label={`${orgLabel} name *`}>
+              <Input value={form.org} onChange={(e) => setForm({ ...form, org: e.target.value })} />
+            </Field>
+            <Field
+              label={role === "insurer" ? "Licence or registration number" : "FSP licence number"}
+              hint="Optional now; verified against the FSCA register later."
+            >
+              <Input
+                value={form.orgNumber}
+                onChange={(e) => setForm({ ...form, orgNumber: e.target.value })}
+                placeholder="FSP 12345"
+              />
+            </Field>
+          </>
+        )}
+        {role === "client" && (
+          <Field
+            label="Your advisor's name or invitation code"
+            hint="Optional. Most clients join through the link or QR code their advisor sends."
+          >
+            <Input
+              value={form.advisorRef}
+              onChange={(e) => setForm({ ...form, advisorRef: e.target.value })}
+            />
+          </Field>
+        )}
+
         {error && (
           <p aria-live="polite" className="text-sm text-negative">
             {error}
@@ -193,7 +295,7 @@ export function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () => void 
         {t("auth.google")}
       </Button>
 
-      <p className="mt-5 text-center text-sm">Already have an agency? {backToSignIn("Log in")}</p>
+      <p className="mt-5 text-center text-sm">Already have an account? {backToSignIn("Log in")}</p>
     </>
   );
 }
