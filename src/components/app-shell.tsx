@@ -1,10 +1,13 @@
+import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import {
   Building2,
   ClipboardCheck,
   CreditCard,
   FileText,
   Inbox,
+  KeyRound,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -36,7 +39,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { isAdmin as isAdminFn } from "@/lib/admin.functions";
 import { actions, resetDemo, useAppState } from "@/lib/domain/store";
+import { useAuth } from "@/lib/use-auth";
 import { PROVIDERS, ROLE_LABEL, type Role } from "@/lib/domain/types";
 import { initials } from "@/lib/fmt";
 import { cn } from "@/lib/utils";
@@ -73,24 +78,48 @@ const NAV: Record<Role, NavItem[]> = {
   ],
 };
 
+const ADMIN_NAV: NavItem[] = [{ to: "/admin/integrations", label: "APIs", icon: KeyRound }];
+
+function useIsAdmin() {
+  const check = useServerFn(isAdminFn);
+  const { data } = useQuery({ queryKey: ["is-admin"], queryFn: () => check() });
+  return data?.admin === true;
+}
+
+function NavLink({ to, label, icon: Icon, onNavigate }: NavItem & { onNavigate?: (() => void) | undefined }) {
+  return (
+    <Link
+      to={to}
+      onClick={onNavigate}
+      activeOptions={{ exact: to === "/" }}
+      className="flex h-10 items-center gap-3 border-l-2 border-transparent px-4 text-sm font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+      activeProps={{
+        className: "border-primary bg-sidebar-accent text-sidebar-accent-foreground",
+      }}
+    >
+      <Icon className="h-4 w-4" />
+      {label}
+    </Link>
+  );
+}
+
 function NavLinks({ role, onNavigate }: { role: Role; onNavigate?: (() => void) | undefined }) {
+  const admin = useIsAdmin();
   return (
     <nav className="flex flex-col gap-0.5">
-      {NAV[role].map(({ to, label, icon: Icon }) => (
-        <Link
-          key={to}
-          to={to}
-          onClick={onNavigate}
-          activeOptions={{ exact: to === "/" }}
-          className="flex h-10 items-center gap-3 border-l-2 border-transparent px-4 text-sm font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-          activeProps={{
-            className: "border-primary bg-sidebar-accent text-sidebar-accent-foreground",
-          }}
-        >
-          <Icon className="h-4 w-4" />
-          {label}
-        </Link>
+      {NAV[role].map((item) => (
+        <NavLink key={item.to} {...item} onNavigate={onNavigate} />
       ))}
+      {admin && (
+        <>
+          <p className="mt-4 px-4 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Admin · Integrations
+          </p>
+          {ADMIN_NAV.map((item) => (
+            <NavLink key={item.to} {...item} onNavigate={onNavigate} />
+          ))}
+        </>
+      )}
     </nav>
   );
 }
@@ -193,6 +222,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const id = useIdentity();
+  const { signOut } = useAuth();
   const role = s.session.role;
 
   return (
@@ -263,7 +293,11 @@ export function AppShell({ children }: { children: ReactNode }) {
               <DropdownMenuItem onSelect={() => resetDemo()}>
                 <RotateCcw className="h-4 w-4" /> Reset demo data
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => void navigate({ to: "/login" })}>
+              <DropdownMenuItem
+                onSelect={() => {
+                  void signOut().then(() => navigate({ to: "/login" }));
+                }}
+              >
                 <LogOut className="h-4 w-4" /> Sign out
               </DropdownMenuItem>
             </DropdownMenuContent>

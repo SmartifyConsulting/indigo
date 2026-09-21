@@ -15,6 +15,7 @@ import { AppShell } from "@/components/app-shell";
 import { Toaster } from "@/components/ui/sonner";
 import { BRAND } from "@/lib/brand";
 import { useStoreHydration } from "@/lib/domain/store";
+import { useAuth } from "@/lib/use-auth";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
@@ -125,18 +126,38 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 /** Auth and client-gateway pages render full-screen, outside the workspace shell. */
-const BARE_PREFIXES = ["/login", "/signup", "/onboard"];
+const BARE_PREFIXES = [
+  "/login",
+  "/signup",
+  "/onboard",
+  "/forgot-password",
+  "/reset-password",
+];
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const bare = BARE_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"));
-  useStoreHydration();
+  const { session, loading } = useAuth();
+  const signedIn = !!session;
+  const router = useRouter();
+  useStoreHydration(signedIn && !bare);
+
+  useEffect(() => {
+    if (!bare && !loading && !signedIn) {
+      void router.navigate({ to: "/login" });
+    }
+  }, [bare, loading, signedIn, router]);
+
 
   return (
     <QueryClientProvider client={queryClient}>
       {bare ? (
         <Outlet />
+      ) : loading || !signedIn ? (
+        <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
+          Loading your workspace…
+        </div>
       ) : (
         <AppShell>
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}

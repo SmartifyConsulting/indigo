@@ -1,91 +1,118 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Building2, ShieldCheck, User, Users } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { AuthLayout } from "@/components/auth-layout";
+import { Field } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { lovable } from "@/integrations/lovable/index";
+import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/brand";
-import { actions } from "@/lib/domain/store";
-import { ROLE_LABEL, type Role } from "@/lib/domain/types";
+import { mapAuthError } from "@/lib/use-auth";
 
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: `Sign in | ${BRAND.name}` }] }),
+  head: () => ({
+    meta: [
+      { title: `Sign in | ${BRAND.name}` },
+      { name: "description", content: `Sign in to the ${BRAND.name} advice workspace.` },
+      { property: "og:title", content: `Sign in | ${BRAND.name}` },
+      { property: "og:description", content: `Sign in to the ${BRAND.name} advice workspace.` },
+    ],
+  }),
   component: Login,
 });
 
-const ROLES: { role: Role; icon: typeof User; hint: string }[] = [
-  { role: "advisor", icon: Users, hint: "Run needs analyses, quotes and ROAs" },
-  { role: "client", icon: User, hint: "View your cover, sign and upload" },
-  { role: "fsp", icon: ShieldCheck, hint: "Supervise advisors and audit records" },
-  { role: "insurer", icon: Building2, hint: "Review and issue applications" },
-];
-
 function Login() {
   const navigate = useNavigate();
-  const [step, setStep] = useState<"domain" | "role">("domain");
-  const [domain, setDomain] = useState<string>(BRAND.demoAgency);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [show, setShow] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
 
-  if (step === "role") {
-    return (
-      <AuthLayout title="Continue as" subtitle={`${domain}${BRAND.domainSuffix}`}>
-        <div className="space-y-2">
-          {ROLES.map(({ role, icon: Icon, hint }) => (
-            <button
-              key={role}
-              onClick={() => {
-                actions.setRole(role);
-                void navigate({ to: "/" });
-              }}
-              className="flex w-full items-center gap-3 rounded-md border px-4 py-3 text-left transition-colors hover:border-primary hover:bg-accent"
-            >
-              <Icon className="h-5 w-5 text-primary" />
-              <span>
-                <span className="block text-sm font-medium">{ROLE_LABEL[role]}</span>
-                <span className="block text-xs text-muted-foreground">{hint}</span>
-              </span>
-            </button>
-          ))}
-        </div>
-        <p className="mt-6 text-center text-xs text-muted-foreground">
-          Prototype: pick a role to explore. Real sign-in replaces this step.
-        </p>
-        <button
-          onClick={() => setStep("domain")}
-          className="mx-auto mt-3 block text-sm text-primary hover:underline"
-        >
-          Use a different domain
-        </button>
-      </AuthLayout>
-    );
+  async function signIn(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError("");
+    const { error: err } = await supabase.auth.signInWithPassword({ email, password });
+    setBusy(false);
+    if (err) {
+      const msg = mapAuthError(err.message);
+      setError(msg);
+      toast.error(msg);
+      return;
+    }
+    void navigate({ to: "/" });
+  }
+
+  async function google() {
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
+    });
+    if (result.error) {
+      toast.error("Google sign-in could not be started.");
+      return;
+    }
+    if (result.redirected) return;
+    void navigate({ to: "/" });
   }
 
   return (
-    <AuthLayout title="Log in to your portal" subtitle="Enter your agency's custom domain.">
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (domain.trim()) setStep("role");
-        }}
-      >
-        <div className="mb-4 flex items-center gap-2">
+    <AuthLayout title="Sign in" subtitle={`Your ${BRAND.name} advice workspace.`}>
+      <form className="space-y-4" onSubmit={signIn}>
+        <Field label="Work email">
           <Input
-            value={domain}
-            onChange={(e) => setDomain(e.target.value.trim().toLowerCase())}
-            placeholder="agency-domain"
-            className="min-w-0 flex-1 text-right"
-            aria-label="Agency domain"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+            required
           />
-          <span className="text-sm">{BRAND.domainSuffix}</span>
-        </div>
-        <Button type="submit" className="mb-4 w-full" disabled={!domain.trim()}>
-          Continue
+        </Field>
+        <Field label="Password">
+          <div className="relative">
+            <Input
+              type={show ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              className="pr-10"
+              required
+            />
+            <button
+              type="button"
+              tabIndex={-1}
+              onClick={() => setShow((v) => !v)}
+              aria-label={show ? "Hide password" : "Show password"}
+              className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-muted-foreground"
+            >
+              {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+        </Field>
+        {error && (
+          <p aria-live="polite" className="text-sm text-negative">
+            {error}
+          </p>
+        )}
+        <Button type="submit" className="w-full" disabled={busy}>
+          {busy ? "Signing in…" : "Sign in"}
         </Button>
       </form>
-      <div className="flex flex-col items-center gap-2 text-sm">
-        <a href="#" className="text-primary hover:underline" onClick={(e) => e.preventDefault()}>
-          Find your agency's domain
-        </a>
+
+      <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
+        <span className="h-px flex-1 bg-border" /> or <span className="h-px flex-1 bg-border" />
+      </div>
+      <Button variant="outline" className="w-full" onClick={() => void google()}>
+        Continue with Google
+      </Button>
+
+      <div className="mt-6 flex flex-col items-center gap-2 text-sm">
+        <Link to="/forgot-password" tabIndex={-1} className="text-primary hover:underline">
+          Forgot password?
+        </Link>
         <Link to="/signup" className="text-primary hover:underline">
           Set up a new agency
         </Link>

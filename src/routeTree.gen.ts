@@ -14,11 +14,14 @@ import { Route as ActionsRouteImport } from './routes/actions'
 import { Route as ApplicationsRouteImport } from './routes/applications'
 import { Route as BillingRouteImport } from './routes/billing'
 import { Route as ComplianceRouteImport } from './routes/compliance'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as IntegrationsRouteImport } from './routes/integrations'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PortfoliosRouteImport } from './routes/portfolios'
 import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as AdminIntegrationsRouteImport } from './routes/admin.integrations'
 import { Route as ClientsIndexRouteImport } from './routes/clients.index'
 import { Route as ClientsClientIdRouteImport } from './routes/clients.$clientId'
 import { Route as OnboardCodeRouteImport } from './routes/onboard.$code'
@@ -48,6 +51,11 @@ const ComplianceRoute = ComplianceRouteImport.update({
   path: '/compliance',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IntegrationsRoute = IntegrationsRouteImport.update({
   id: '/integrations',
   path: '/integrations',
@@ -68,9 +76,19 @@ const ReportsRoute = ReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIntegrationsRoute = AdminIntegrationsRouteImport.update({
+  id: '/admin/integrations',
+  path: '/admin/integrations',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClientsIndexRoute = ClientsIndexRouteImport.update({
@@ -95,11 +113,14 @@ export interface FileRoutesByFullPath {
   '/applications': typeof ApplicationsRoute
   '/billing': typeof BillingRoute
   '/compliance': typeof ComplianceRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/integrations': typeof IntegrationsRoute
   '/login': typeof LoginRoute
   '/portfolios': typeof PortfoliosRoute
   '/reports': typeof ReportsRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/admin/integrations': typeof AdminIntegrationsRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
   '/onboard/$code': typeof OnboardCodeRoute
   '/clients/': typeof ClientsIndexRoute
@@ -110,11 +131,14 @@ export interface FileRoutesByTo {
   '/applications': typeof ApplicationsRoute
   '/billing': typeof BillingRoute
   '/compliance': typeof ComplianceRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/integrations': typeof IntegrationsRoute
   '/login': typeof LoginRoute
   '/portfolios': typeof PortfoliosRoute
   '/reports': typeof ReportsRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/admin/integrations': typeof AdminIntegrationsRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
   '/onboard/$code': typeof OnboardCodeRoute
   '/clients': typeof ClientsIndexRoute
@@ -126,11 +150,14 @@ export interface FileRoutesById {
   '/applications': typeof ApplicationsRoute
   '/billing': typeof BillingRoute
   '/compliance': typeof ComplianceRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/integrations': typeof IntegrationsRoute
   '/login': typeof LoginRoute
   '/portfolios': typeof PortfoliosRoute
   '/reports': typeof ReportsRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/admin/integrations': typeof AdminIntegrationsRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
   '/onboard/$code': typeof OnboardCodeRoute
   '/clients/': typeof ClientsIndexRoute
@@ -143,11 +170,14 @@ export interface FileRouteTypes {
     | '/applications'
     | '/billing'
     | '/compliance'
+    | '/forgot-password'
     | '/integrations'
     | '/login'
     | '/portfolios'
     | '/reports'
+    | '/reset-password'
     | '/signup'
+    | '/admin/integrations'
     | '/clients/$clientId'
     | '/onboard/$code'
     | '/clients/'
@@ -158,11 +188,14 @@ export interface FileRouteTypes {
     | '/applications'
     | '/billing'
     | '/compliance'
+    | '/forgot-password'
     | '/integrations'
     | '/login'
     | '/portfolios'
     | '/reports'
+    | '/reset-password'
     | '/signup'
+    | '/admin/integrations'
     | '/clients/$clientId'
     | '/onboard/$code'
     | '/clients'
@@ -173,11 +206,14 @@ export interface FileRouteTypes {
     | '/applications'
     | '/billing'
     | '/compliance'
+    | '/forgot-password'
     | '/integrations'
     | '/login'
     | '/portfolios'
     | '/reports'
+    | '/reset-password'
     | '/signup'
+    | '/admin/integrations'
     | '/clients/$clientId'
     | '/onboard/$code'
     | '/clients/'
@@ -189,11 +225,14 @@ export interface RootRouteChildren {
   ApplicationsRoute: typeof ApplicationsRoute
   BillingRoute: typeof BillingRoute
   ComplianceRoute: typeof ComplianceRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   IntegrationsRoute: typeof IntegrationsRoute
   LoginRoute: typeof LoginRoute
   PortfoliosRoute: typeof PortfoliosRoute
   ReportsRoute: typeof ReportsRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
+  AdminIntegrationsRoute: typeof AdminIntegrationsRoute
   ClientsClientIdRoute: typeof ClientsClientIdRoute
   OnboardCodeRoute: typeof OnboardCodeRoute
   ClientsIndexRoute: typeof ClientsIndexRoute
@@ -236,6 +275,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ComplianceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/integrations': {
       id: '/integrations'
       path: '/integrations'
@@ -264,11 +310,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReportsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signup': {
       id: '/signup'
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/integrations': {
+      id: '/admin/integrations'
+      path: '/admin/integrations'
+      fullPath: '/admin/integrations'
+      preLoaderRoute: typeof AdminIntegrationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/clients/': {
@@ -301,11 +361,14 @@ const rootRouteChildren: RootRouteChildren = {
   ApplicationsRoute: ApplicationsRoute,
   BillingRoute: BillingRoute,
   ComplianceRoute: ComplianceRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   IntegrationsRoute: IntegrationsRoute,
   LoginRoute: LoginRoute,
   PortfoliosRoute: PortfoliosRoute,
   ReportsRoute: ReportsRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
+  AdminIntegrationsRoute: AdminIntegrationsRoute,
   ClientsClientIdRoute: ClientsClientIdRoute,
   OnboardCodeRoute: OnboardCodeRoute,
   ClientsIndexRoute: ClientsIndexRoute,
