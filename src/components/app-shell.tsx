@@ -225,6 +225,20 @@ function useIdentity() {
   }
 }
 
+function ThemeToggle() {
+  const { dark, toggle } = useTheme();
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
+      className="flex h-9 w-9 items-center justify-center rounded-full border border-navy-foreground/30 text-navy-foreground/80 transition-colors hover:text-brand"
+    >
+      {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+    </button>
+  );
+}
+
 function ThemeItem() {
   const { dark, toggle } = useTheme();
   return (
@@ -266,7 +280,7 @@ export function AppShell({
   const role = s.session.role;
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen flex-col overflow-x-hidden bg-background">
       <div className="sticky top-0 z-30 bg-navy text-navy-foreground">
         <header className="flex h-14 items-center gap-3 px-4">
           <Link to="/" aria-label="Home">
@@ -278,6 +292,7 @@ export function AppShell({
               <ContextPicker />
               <RoleSwitcher />
             </div>
+            <ThemeToggle />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
