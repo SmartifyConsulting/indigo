@@ -113,8 +113,6 @@ function Frame({
   dir: "row" | "col";
   className?: string;
 }) {
-  const done = stage > n;
-  const active = stage === n;
   // Client-side steps (disclosure, presentation) pulse as the responding party.
   const party = n === 5 ? "resp" : "init";
   return (
