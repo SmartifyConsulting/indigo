@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import {
-  AdminDashboard,
   AdvisorDashboard,
   ClientDashboard,
   FspDashboard,
@@ -33,7 +32,5 @@ function Home() {
       return <FspDashboard />;
     case "insurer":
       return <InsurerDashboard />;
-    case "admin":
-      return <AdminDashboard />;
   }
 }

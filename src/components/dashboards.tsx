@@ -7,14 +7,6 @@ import { PageHeader, StageBadge, StatCard } from "@/components/common";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { STAGES, getStage, isComplete, roaSigned } from "@/lib/domain/gates";
 import { nextAction } from "@/lib/domain/next-action";
 import { useAppState } from "@/lib/domain/store";
@@ -376,75 +368,6 @@ export function InsurerDashboard() {
           ].map((t) => (
             <p key={t}>✓ {t}</p>
           ))}
-        </CardContent>
-      </Card>
-    </>
-  );
-}
-
-interface AdminUserRow {
-  name: string;
-  email: string;
-  role: string;
-  tokens: number;
-  createdAt: string;
-  lastAccessedAt: string;
-}
-
-const ADMIN_USERS: AdminUserRow[] = [
-  {
-    name: "Georgia Adams",
-    email: "info@georgiaadams.co.za",
-    role: "Admin",
-    tokens: 500,
-    createdAt: "2026-09-24T19:56:00.000Z",
-    lastAccessedAt: "2026-09-26T16:09:00.000Z",
-  },
-];
-
-/** For the moment Georgia Adams is the only admin - users, tokens and reporting for the whole book. */
-export function AdminDashboard() {
-  return (
-    <>
-      <PageHeader title="Good morning, Georgia" description="Users, tokens and reporting for the whole book." />
-      <Card>
-        <CardHeader>
-          <CardTitle>Users</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>User</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead>Last accessed</TableHead>
-                <TableHead className="text-right">Access</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {ADMIN_USERS.map((u) => (
-                <TableRow key={u.email}>
-                  <TableCell>
-                    <p className="font-medium">
-                      {u.name} <Badge variant="secondary">{u.tokens} tokens</Badge>
-                    </p>
-                    <p className="text-xs text-muted-foreground">{u.email}</p>
-                  </TableCell>
-                  <TableCell>{u.role}</TableCell>
-                  <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
-                    {fmtDateTime(u.createdAt)}
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
-                    {fmtDateTime(u.lastAccessedAt)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Badge variant="success">Admin</Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
         </CardContent>
       </Card>
     </>

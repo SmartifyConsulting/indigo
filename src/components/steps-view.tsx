@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { CheckCircle2, Circle, CircleCheck, Lock } from "lucide-react";
+import { Check, ChevronDown, Lock } from "lucide-react";
 import { useState } from "react";
 
 import {
@@ -23,7 +23,7 @@ function gatesFor(c: CaseRecord, n: StageNo): Gate[] {
   return [];
 }
 
-/** Classic steps view: bracketed +/- step pills, group divider, wide rounded sub-step rows. */
+/** Steps view: one accordion per stage, fixed order, only the current stage unfolded. */
 export function StepsView({ c }: { c: CaseRecord }) {
   const current = getStage(c);
   const done = isComplete(c);
@@ -40,67 +40,65 @@ export function StepsView({ c }: { c: CaseRecord }) {
         const gates = gatesFor(c, st.no);
         const firstUnmet = gates.findIndex((g) => !g.met);
         return (
-          <li key={st.no}>
-            <div className="flex items-center gap-2">
-              <span aria-hidden className="font-display text-2xl leading-none text-muted-foreground/60">
-                {"{"}
-              </span>
-              <button
-                type="button"
-                disabled={locked}
-                aria-expanded={open}
-                onClick={() => !active && setPeek(peek === st.no ? null : st.no)}
-                className={cn(
-                  "label-caps rounded-lg border border-border px-3 py-1 text-[10px] font-bold",
-                  complete && "bg-warning text-foreground",
-                  !complete && "bg-foreground text-background",
-                  locked && "cursor-not-allowed opacity-80",
-                )}
-              >
-                {open ? "−" : "+"}Step {st.no} · <span className="ml-3">{st.short}</span>
-              </button>
-              <span className="flex-1" />
-              {complete && <CircleCheck className="h-4 w-4 text-warning" aria-label="Complete" />}
-              {locked && <Lock className="h-3.5 w-3.5 text-muted-foreground" aria-label="Locked" />}
-            </div>
+          <li key={st.no} className="overflow-hidden rounded-lg border">
+            <button
+              type="button"
+              disabled={locked}
+              aria-expanded={open}
+              onClick={() => !active && setPeek(peek === st.no ? null : st.no)}
+              className={cn(
+                "flex w-full items-center gap-3 px-3 py-2 text-left text-sm font-medium",
+                complete && "bg-warning/25 text-foreground",
+                active && "bg-muted",
+                locked && "cursor-not-allowed text-muted-foreground",
+              )}
+            >
+              <span className="font-mono text-xs">{String(st.no).padStart(2, "0")}</span>
+              <span className="flex-1">{st.title}</span>
+              {complete && <Check className="h-4 w-4" />}
+              {locked && <Lock className="h-3.5 w-3.5" />}
+              {!locked && (
+                <ChevronDown className={cn("h-4 w-4 transition-transform", open && "rotate-180")} />
+              )}
+            </button>
             {open && (
-              <div className="ml-12 mt-3 space-y-2 pb-2">
-                <div className="flex items-center gap-2">
-                  <span className="label-caps text-[10px] text-muted-foreground">−{st.title}</span>
-                  <span className="h-px flex-1 bg-border" />
-                </div>
+              <div className="space-y-1.5 border-t p-3">
                 {gates.length === 0 && (
-                  <p className="px-3 text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {complete ? "Stage complete." : na.text}
                   </p>
                 )}
                 {gates.map((g, i) => {
-                  const isCurrent = active && i === firstUnmet;
-                  const Icon = g.met ? CheckCircle2 : Circle;
+                  if (g.met)
+                    return (
+                      <p key={g.id} className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Check className="h-3.5 w-3.5 text-positive" /> {g.label}
+                      </p>
+                    );
+                  // Progressive unfolding: only the first open step is shown in full.
+                  if (active && i !== firstUnmet) return null;
                   return (
                     <div
                       key={g.id}
                       className={cn(
-                        "flex items-center gap-2.5 rounded-lg border px-4 py-2 text-sm",
-                        g.met && "border-success bg-success/10",
-                        isCurrent && "animate-throb-aqua border-success",
-                        !g.met && !isCurrent && "border-border bg-card text-muted-foreground",
+                        "rounded-md border p-2.5 text-xs",
+                        active && "animate-throb-aqua",
                       )}
                     >
-                      <Icon className="h-4 w-4 shrink-0" />
-                      <span className="flex-1">{g.label}</span>
-                      {isCurrent && (
-                        <Link
-                          to="/clients/$clientId"
-                          params={{ clientId: c.id }}
-                          className="text-xs font-medium text-primary hover:underline"
-                        >
-                          {na.text} →
-                        </Link>
-                      )}
+                      <p className="font-medium">{g.label}</p>
+                      {g.detail && <p className="mt-0.5 text-muted-foreground">{g.detail}</p>}
                     </div>
                   );
                 })}
+                {active && (
+                  <Link
+                    to="/clients/$clientId"
+                    params={{ clientId: c.id }}
+                    className="inline-block pt-1 text-xs font-medium text-primary hover:underline"
+                  >
+                    Next: {na.text} →
+                  </Link>
+                )}
               </div>
             )}
           </li>

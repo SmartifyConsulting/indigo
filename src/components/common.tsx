@@ -103,7 +103,7 @@ export function EmptyState({ title, children }: { title: string; children?: Reac
 
 export function RequireRole({ roles, children }: { roles: Role[]; children: ReactNode }) {
   const { session } = useAppState();
-  if (session.role === "admin" || roles.includes(session.role)) return <>{children}</>;
+  if (roles.includes(session.role)) return <>{children}</>;
   return (
     <EmptyState title="This page isn't part of your role">
       You are viewing as {ROLE_LABEL[session.role]}. Use the role switcher in the header to change

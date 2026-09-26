@@ -25,7 +25,6 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as WorkspaceRouteImport } from './routes/workspace'
-import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminIntegrationsRouteImport } from './routes/admin.integrations'
 import { Route as ClientsIndexRouteImport } from './routes/clients.index'
 import { Route as ClientsClientIdRouteImport } from './routes/clients.$clientId'
@@ -111,11 +110,6 @@ const WorkspaceRoute = WorkspaceRouteImport.update({
   path: '/workspace',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminIndexRoute = AdminIndexRouteImport.update({
-  id: '/admin/',
-  path: '/admin/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminIntegrationsRoute = AdminIntegrationsRouteImport.update({
   id: '/admin/integrations',
   path: '/admin/integrations',
@@ -157,7 +151,6 @@ export interface FileRoutesByFullPath {
   '/admin/integrations': typeof AdminIntegrationsRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
   '/onboard/$code': typeof OnboardCodeRoute
-  '/admin/': typeof AdminIndexRoute
   '/clients/': typeof ClientsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -180,7 +173,6 @@ export interface FileRoutesByTo {
   '/admin/integrations': typeof AdminIntegrationsRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
   '/onboard/$code': typeof OnboardCodeRoute
-  '/admin': typeof AdminIndexRoute
   '/clients': typeof ClientsIndexRoute
 }
 export interface FileRoutesById {
@@ -204,7 +196,6 @@ export interface FileRoutesById {
   '/admin/integrations': typeof AdminIntegrationsRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
   '/onboard/$code': typeof OnboardCodeRoute
-  '/admin/': typeof AdminIndexRoute
   '/clients/': typeof ClientsIndexRoute
 }
 export interface FileRouteTypes {
@@ -229,7 +220,6 @@ export interface FileRouteTypes {
     | '/admin/integrations'
     | '/clients/$clientId'
     | '/onboard/$code'
-    | '/admin/'
     | '/clients/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -252,7 +242,6 @@ export interface FileRouteTypes {
     | '/admin/integrations'
     | '/clients/$clientId'
     | '/onboard/$code'
-    | '/admin'
     | '/clients'
   id:
     | '__root__'
@@ -275,7 +264,6 @@ export interface FileRouteTypes {
     | '/admin/integrations'
     | '/clients/$clientId'
     | '/onboard/$code'
-    | '/admin/'
     | '/clients/'
   fileRoutesById: FileRoutesById
 }
@@ -299,7 +287,6 @@ export interface RootRouteChildren {
   AdminIntegrationsRoute: typeof AdminIntegrationsRoute
   ClientsClientIdRoute: typeof ClientsClientIdRoute
   OnboardCodeRoute: typeof OnboardCodeRoute
-  AdminIndexRoute: typeof AdminIndexRoute
   ClientsIndexRoute: typeof ClientsIndexRoute
 }
 
@@ -417,13 +404,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkspaceRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/': {
-      id: '/admin/'
-      path: '/admin'
-      fullPath: '/admin/'
-      preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin/integrations': {
       id: '/admin/integrations'
       path: '/admin/integrations'
@@ -475,7 +455,6 @@ const rootRouteChildren: RootRouteChildren = {
   AdminIntegrationsRoute: AdminIntegrationsRoute,
   ClientsClientIdRoute: ClientsClientIdRoute,
   OnboardCodeRoute: OnboardCodeRoute,
-  AdminIndexRoute: AdminIndexRoute,
   ClientsIndexRoute: ClientsIndexRoute,
 }
 export const routeTree = rootRouteImport

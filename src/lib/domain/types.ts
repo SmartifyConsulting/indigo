@@ -1,11 +1,10 @@
-export type Role = "client" | "advisor" | "fsp" | "insurer" | "admin";
+export type Role = "client" | "advisor" | "fsp" | "insurer";
 
 export const ROLE_LABEL: Record<Role, string> = {
   client: "Client",
   advisor: "Wealth Manager",
   fsp: "FSP / Key Individual",
-  insurer: "Insurer",
-  admin: "Admin",
+  insurer: "Risk Bearer (Insurer)",
 };
 
 export type NeedCategory = "life" | "short-term" | "investment";
