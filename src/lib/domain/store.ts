@@ -83,6 +83,9 @@ export function useStoreHydration(enabled: boolean) {
     try {
       const raw = localStorage.getItem(VIEW_KEY);
       if (raw) session = { ...session, ...(JSON.parse(raw) as AppState["session"]) };
+      if (!["client", "advisor", "fsp", "insurer"].includes(session.role)) {
+        session = { ...session, role: "advisor" };
+      }
     } catch {
       /* ignore corrupt preferences */
     }

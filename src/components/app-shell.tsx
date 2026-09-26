@@ -121,7 +121,7 @@ function NavLinks({ role }: { role: Role }) {
   return (
     <nav aria-label="Main" className="border-t border-white/10 px-2 sm:px-4">
       <ul className="flex items-center gap-1 overflow-x-auto">
-        {NAV[role].map((item) => (
+        {(NAV[role] ?? NAV.advisor).map((item) => (
           <li key={item.to} className="shrink-0">
             <NavLink {...item} />
           </li>
