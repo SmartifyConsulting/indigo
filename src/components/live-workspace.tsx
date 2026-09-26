@@ -3,12 +3,13 @@ import { ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { ActivityList } from "@/components/dashboards";
-import { PageHeader, StageBadge } from "@/components/common";
+import { StageBadge } from "@/components/common";
 import { ClientPanel } from "@/components/client-panel";
 import { LifecycleFlow } from "@/components/lifecycle-diagram";
 import { LiveStats } from "@/components/live-stats";
 import { StepsView } from "@/components/steps-view";
-import { FlowCanvas, GateTray } from "@/components/izenzo-canvas";
+import { GateTray } from "@/components/izenzo-canvas";
+import { FramedCanvas } from "@/components/izenzo-frames";
 import { WorkspaceTaskbar } from "@/components/workspace-taskbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -232,20 +233,15 @@ export function LiveWorkspaceScreen() {
   const openCase = state.cases.find((c) => c.id === caseId);
 
   useEffect(() => {
-    if (!isClient && search.case) workspaceTabs.open(search.case);
-  }, [isClient, search.case]);
+    if (isClient) return;
+    if (search.case) workspaceTabs.open(search.case);
+    else if (state.cases[0])
+      void navigate({ to: "/workspace", search: { case: state.cases[0].id }, replace: true });
+  }, [isClient, search.case, state.cases, navigate]);
 
   return (
     <div className={cn(!isClient && "pb-16")}>
-      <PageHeader
-        title="Live Workspace"
-        description={
-          isClient
-            ? "Where you are in the advice lifecycle."
-            : "Where every client is in the advice lifecycle, updated live."
-        }
-      />
-      <div className="mb-4 flex flex-wrap items-center gap-2">
+      <div className="mb-3 flex flex-wrap items-center gap-2">
         <p className="label-caps mr-auto text-muted-foreground">indigro advice workflow</p>
         {!isClient && (
           <Select
@@ -278,12 +274,20 @@ export function LiveWorkspaceScreen() {
             </Button>
           ))}
         </div>
+        {openCase && (
+          <span
+            aria-label="Live workspace ID"
+            className="rounded-full border-2 border-foreground bg-warning px-3 py-1 font-mono text-xs font-bold text-foreground"
+          >
+            LW-{openCase.code}
+          </span>
+        )}
       </div>
 
       {openCase ? (
         <section
           aria-label="Case workflow"
-          className="grid gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-start"
+          className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(320px,1fr)] lg:items-start"
         >
           <div className="rounded-lg border bg-card p-4 sm:p-6">
             <div className="mb-4 flex items-center justify-between gap-2">
@@ -293,7 +297,7 @@ export function LiveWorkspaceScreen() {
               </div>
               <StageBadge c={openCase} />
             </div>
-            {mode === "map" ? <FlowCanvas c={openCase} /> : <StepsView c={openCase} />}
+            {mode === "map" ? <FramedCanvas c={openCase} /> : <StepsView c={openCase} />}
           </div>
           <div className="space-y-4 lg:sticky lg:top-32">
             <div className="rounded-lg border bg-card p-4">

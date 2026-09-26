@@ -143,3 +143,21 @@ Take Playwright screenshots at 1280 px wide and confirm:
 - [ ] Only one element pulses: the current user's next step.
 - [ ] The taskbar has the + NEW pill, zoom, tabs, refresh and close.
 - [ ] Every label uses the domain lexicon.
+
+## Upfront prompts (ask before building)
+1. Which application/domain is this for? (maps the lexicon)
+2. Colour scheme: step frame colour **in process**, step frame colour **complete**, pulse colour for the **initiating party**, pulse colour for the **responding party**.
+3. Shape: **rounded** or **square** frames, buttons and pills.
+
+## Map layout (mandatory)
+- Every step is a bordered **frame**; its sub-steps are pills **inside** the frame, joined by arrows.
+- Perimeter loop: Step 1 horizontal across the top; Step 2 vertical on the right; Step 3 vertical beneath Step 2; Step 4 centred at the bottom below Step 3; Step 5 bottom-left in line with Step 4; Step 6 above Step 5. Arrows link frame to frame.
+- Each frame has a step pill top-left and a reference ID top-right.
+- Every Live Workspace shows its **ID pill top-right** of the header (e.g. LW-CASE-1024).
+- Opening the workspace auto-opens a record so the taskbar tabs and ID are always visible.
+
+## Full-bleed viewport shell
+Ask for: "full-bleed viewport app shell — no max-width container, no page banner, canvas and tray fill the screen width". The workspace route must bypass the site's centred max-width wrapper and big page header; use a slim label bar with the MAP|STEPS toggle and ID pill.
+
+## Mobile-app first
+Design at 390px first: frames stack 1→6 vertically, horizontal arrows rotate to point down, tray drops below the canvas, taskbar scrolls sideways, tap targets ≥ 40px. Expand to the perimeter grid only at large screens.
