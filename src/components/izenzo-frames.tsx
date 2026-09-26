@@ -140,20 +140,32 @@ function Frame({
   );
 }
 
-/** Map arrow: 1px grey line with a small solid triangular head. */
-export function ThinArrow({ dir, className }: { dir: "right" | "down" | "left" | "up"; className?: string }) {
+/** Map arrow: a hairline grey stem with a small solid triangular head. */
+export function ThinArrow({
+  dir,
+  length = 28,
+  className,
+}: {
+  dir: "right" | "down" | "left" | "up";
+  /** Total length in px, tip to tail. Longer values close the gap between two frames without moving the tail. */
+  length?: number;
+  className?: string;
+}) {
   const rot = { right: -90, down: 0, left: 90, up: 180 }[dir];
+  const lineEnd = length - 7;
+  const headBase = length - 8;
+  const tip = length - 1;
   return (
     <svg
       aria-hidden
-      width="12"
-      height="28"
-      viewBox="0 0 12 28"
+      width="8"
+      height={length}
+      viewBox={`0 0 8 ${length}`}
       className={cn("shrink-0 text-muted-foreground", className)}
       style={{ transform: `rotate(${rot}deg)` }}
     >
-      <path d="M6 0 V21" stroke="currentColor" strokeWidth="1" />
-      <path d="M2 20 L6 27 L10 20 Z" fill="currentColor" />
+      <path d={`M4 0 V${lineEnd}`} stroke="currentColor" strokeWidth="1" />
+      <path d={`M1.5 ${headBase} L4 ${tip} L6.5 ${headBase} Z`} fill="currentColor" />
     </svg>
   );
 }
@@ -168,13 +180,13 @@ export function FramedCanvas({ c }: { c: CaseRecord }) {
   const s = data.stage;
   const props = { c, data, stage: s };
   return (
-    <div className="flex flex-col gap-5 lg:grid lg:grid-cols-3 lg:grid-rows-[auto_auto_auto_auto] lg:gap-x-6 lg:gap-y-6">
+    <div className="flex w-full flex-col gap-5 lg:grid lg:w-3/4 lg:grid-cols-3 lg:grid-rows-[auto_auto_auto_auto] lg:gap-x-6 lg:gap-y-6">
       <Frame n={1} dir="row" {...props} className="lg:col-span-3 lg:row-start-1" />
-      <ThinArrow dir="down" className="mx-auto hidden lg:col-start-3 lg:row-start-2 lg:-mt-6 lg:block" />
+      <ThinArrow dir="down" length={32} className="mx-auto hidden lg:col-start-3 lg:row-start-2 lg:-mt-6 lg:block" />
       <Frame n={2} dir="col" {...props} className="lg:col-start-3 lg:row-start-2 lg:mt-2" />
-      <Frame n={3} dir="col" {...props} className="lg:col-start-3 lg:row-start-3" />
+      <Frame n={3} dir="col" {...props} className="lg:col-start-3 lg:row-start-3 lg:self-start" />
       <Frame n={4} dir="row" {...props} className="lg:col-start-2 lg:row-start-4" />
-      <ThinArrow dir="left" className="hidden self-center justify-self-end lg:col-start-1 lg:row-start-4 lg:-mr-5 lg:block" />
+      <ThinArrow dir="left" length={40} className="hidden self-center justify-self-end lg:col-start-1 lg:row-start-4 lg:-mr-3 lg:block" />
       <Frame n={5} dir="col" {...props} className="lg:col-start-1 lg:row-start-4 lg:mr-3" />
       <Frame n={6} dir="col" {...props} className="lg:col-start-1 lg:row-start-3" />
       <ThinArrow dir="up" className="mx-auto hidden lg:col-start-1 lg:row-start-3 lg:-mb-6 lg:self-end lg:block" />
