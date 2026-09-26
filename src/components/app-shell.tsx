@@ -330,7 +330,7 @@ export function AppShell({
               <DropdownMenuContent align="end" className="w-64">
                 <DropdownMenuLabel className="flex items-center gap-2 font-normal">
                   <Building2 className="h-4 w-4 text-muted-foreground" />
-                  <span className="truncate text-xs text-muted-foreground">{s.fsp.name}</span>
+                  <span className="truncate text-xs text-muted-foreground">{s.fsp?.name ?? ""}</span>
                 </DropdownMenuLabel>
                 <div className="px-2 pb-2 md:hidden">
                   <div className="flex flex-col gap-2 [&_button]:w-full">
