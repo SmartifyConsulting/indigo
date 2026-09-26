@@ -92,7 +92,7 @@ function Capsule({ n }: { n: FlowNode }) {
     <div
       className={cn(
         "flex items-center gap-2 rounded-full border-2 px-4 py-2 text-xs font-medium",
-        n.state === "done" && "border-success bg-success text-success-foreground",
+        n.state === "done" && "border-success bg-success text-background",
         n.state === "current" && "animate-throb-aqua border-success bg-success/15 text-foreground",
         n.state === "upcoming" && "border-success bg-card text-foreground opacity-60",
         n.state === "locked" && "border-border bg-card text-muted-foreground opacity-60",

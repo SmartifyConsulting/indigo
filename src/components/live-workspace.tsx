@@ -312,20 +312,7 @@ export function LiveWorkspaceScreen() {
         </section>
       ) : mode === "steps" ? (
         <section aria-label="Steps" className="rounded-lg border bg-card p-4 sm:p-6">
-          {openCase ? (
-            <>
-              <div className="mb-4 flex items-center justify-between gap-2">
-                <div>
-                  <p className="font-mono text-xs text-muted-foreground">{openCase.code}</p>
-                  <h2 className="text-lg font-medium">{openCase.clientName}</h2>
-                </div>
-                <StageBadge c={openCase} />
-              </div>
-              <StepsView c={openCase} />
-            </>
-          ) : (
-            <Empty>Open a case above to follow its steps.</Empty>
-          )}
+          <Empty>Open a case above to follow its steps.</Empty>
         </section>
       ) : (
         <section
