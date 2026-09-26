@@ -121,10 +121,7 @@ function Frame({
     <section
       aria-label={`Step ${n}`}
       className={cn(
-        "relative rounded-2xl border border-border p-3 pt-6",
-        done && "bg-warning/20",
-        active && "bg-success/5",
-        !done && !active && "bg-card/50",
+        "relative rounded-2xl border border-border bg-card p-3 pt-6",
         className,
       )}
     >

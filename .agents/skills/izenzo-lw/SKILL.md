@@ -168,3 +168,10 @@ Design at 390px first: frames stack 1→6 vertically, horizontal arrows rotate t
 - Map step frames carry only the step pill top-left. **No ID pills on frames and no step pill on the top-right of the map area.**
 - Every map frame and every accordion gate heading uses a **fine grey line**: `border border-border` (1px). No 2px, black or dashed frame borders.
 - **All arrows on the map** (inside and between frames) share one style: a 1px grey line (`muted-foreground`) ending in a small solid triangular head, about 28px long. Never use chunky icon arrows or coloured/thick connectors.
+- **All map frames are white filled** (`bg-card`, white in light mode) inside the fine grey line. No tinted, translucent or state-coloured frame backgrounds; state shows on the sub-step pills only.
+
+## Classic STEPS view format (mandatory; colours follow the app)
+- Each gate is one row: a thin grey curly bracket `{` on the far left, then a `label-caps` pill reading `+STEP n · NAME` when collapsed and `−STEP n · NAME` when open. Completed gates use the complete colour and show an outline check-circle at the far right; open/upcoming gates use the dark pill.
+- Only the current gate is open. Inside it, indented: a group divider `−GROUP NAME` in `label-caps` followed by a 1px grey rule stretching to the right edge.
+- Sub-steps are full-width `rounded-full` rows with a leading icon and label: done = step-green border with a light green tint, current = pulsing, upcoming = white fill with a fine grey border and muted text.
+- The MAP | STEPS toggle stays top-right in the same frame header.
