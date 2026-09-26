@@ -3,6 +3,7 @@
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
+@custom-variant theme-light (&:is([data-app="alpha-bravo"] *));
 
 /*
  * Design system definition — modelled on a modern broker-portal look and feel:
@@ -22,8 +23,14 @@
  */
 
 @theme inline {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Manrope Variable", "Manrope", system-ui, -apple-system, sans-serif;
+  --font-display: "Sora Variable", "Sora", system-ui, sans-serif;
+  --font-heading: "Sora Variable", "Sora", system-ui, sans-serif;
+  --font-greeting: "Montserrat", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --color-success: var(--success);
+  --color-info: var(--info);
+  --color-throb-accent: var(--throb-accent);
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
   --color-brand-soft: var(--brand-soft);
@@ -144,6 +151,24 @@
   --sidebar-accent-foreground: oklch(0.465 0.138 251.8);
   --sidebar-border: oklch(0.935 0.01 273.4);
   --sidebar-ring: oklch(0.519 0.156 252.1);
+  /* Izenzo cream (alpha-bravo) */
+  --background: oklch(0.98 0.006 90);
+  --foreground: oklch(0.19 0.01 260);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.19 0.01 260);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.19 0.01 260);
+  --primary: oklch(0.19 0.01 260);
+  --primary-foreground: oklch(0.98 0.006 90);
+  --ring: oklch(0.19 0.01 260);
+  --navy: oklch(0.19 0.01 260);
+  --navy-muted: oklch(0.3 0.01 260);
+  --success: oklch(0.63 0.15 155);
+  --info: oklch(0.6 0.14 240);
+  --throb-accent: oklch(0.63 0.15 155);
+  --step-pill-bg: oklch(0.82 0.005 260);
+  --lw-pill-bg: oklch(0.52 0.005 285);
+  --sidebar-primary: oklch(0.19 0.01 260);
 }
 
 .dark {
@@ -183,6 +208,28 @@
   --sidebar-accent-foreground: oklch(0.96 0.005 260);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.65 0.15 252);
+  --background: oklch(0.16 0.008 260);
+  --foreground: oklch(0.94 0.012 250);
+  --card: oklch(0.255 0.02 253);
+  --card-foreground: oklch(0.94 0.012 250);
+  --popover: oklch(0.255 0.02 253);
+  --popover-foreground: oklch(0.94 0.012 250);
+  --primary: oklch(0.78 0.12 178);
+  --primary-foreground: oklch(0.16 0.008 260);
+  --success: oklch(0.71 0.13 172);
+  --positive: oklch(0.71 0.13 172);
+  --warning: oklch(0.78 0.14 78);
+  --info: oklch(0.75 0.14 230);
+  --throb-accent: oklch(0.78 0.12 178);
+  --taskbar-active-bg: oklch(0 0 0);
+  --step-pill-bg: oklch(0.82 0.005 260);
+  --lw-pill-bg: oklch(0.52 0.005 285);
+  --navy: oklch(0.12 0.006 260);
+  --navy-muted: oklch(0.22 0.01 260);
+  --brand: oklch(0.78 0.12 178);
+  --ring: oklch(0.78 0.12 178);
+  --sidebar: oklch(0.2 0.012 258);
+  --sidebar-primary: oklch(0.78 0.12 178);
 }
 
 @layer base {
@@ -197,6 +244,9 @@
     font-size: 14px;
     line-height: 20px;
     -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4 {
+    font-family: var(--font-heading);
   }
 }
 
@@ -238,13 +288,13 @@
   0%,
   100% {
     box-shadow:
-      0 0 0 0 color-mix(in oklab, var(--brand) 60%, transparent),
-      0 0 22px -6px var(--brand);
+      0 0 0 0 color-mix(in oklab, var(--throb-accent) 60%, transparent),
+      0 0 22px -6px var(--throb-accent);
   }
   50% {
     box-shadow:
-      0 0 0 7px color-mix(in oklab, var(--brand) 0%, transparent),
-      0 0 34px -2px var(--brand);
+      0 0 0 7px color-mix(in oklab, var(--throb-accent) 0%, transparent),
+      0 0 34px -2px var(--throb-accent);
   }
 }
 
@@ -253,6 +303,50 @@
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
-    box-shadow: 0 0 22px -6px var(--brand);
+    box-shadow: 0 0 22px -6px var(--throb-accent);
   }
+}
+
+@utility label-caps {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-weight: 600;
+}
+
+@utility font-greeting {
+  font-family: var(--font-greeting);
+  font-weight: 700;
+}
+
+@keyframes throb {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--primary) 60%, transparent); }
+  50% { box-shadow: 0 0 0 8px color-mix(in oklab, var(--primary) 0%, transparent); }
+}
+@keyframes throb-aqua {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--throb-accent) 85%, transparent);
+    background-color: color-mix(in oklab, var(--throb-accent) 14%, transparent);
+    border-color: color-mix(in oklab, var(--throb-accent) 95%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 14px color-mix(in oklab, var(--throb-accent) 0%, transparent);
+    background-color: color-mix(in oklab, var(--throb-accent) 4%, transparent);
+    border-color: color-mix(in oklab, var(--throb-accent) 55%, transparent);
+  }
+}
+@utility animate-throb {
+  animation: throb 1.6s ease-in-out infinite;
+  @media (prefers-reduced-motion: reduce) { animation: none; }
+}
+@utility animate-throb-aqua {
+  animation: throb-aqua 1.8s ease-out infinite;
+  @media (prefers-reduced-motion: reduce) { animation: none; }
+}
+
+body.ink-grid {
+  background-image:
+    linear-gradient(color-mix(in oklab, var(--foreground) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklab, var(--foreground) 5%, transparent) 1px, transparent 1px);
+  background-size: 32px 32px;
 }
