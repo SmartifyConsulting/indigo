@@ -4,7 +4,7 @@ import { LiveWorkspaceScreen } from "@/components/live-workspace";
 
 export const Route = createFileRoute("/workspace")({
   validateSearch: (s: Record<string, unknown>): { case?: string } =>
-    typeof s.case === "string" ? { case: s.case } : {},
+    typeof s["case"] === "string" ? { case: s["case"] } : {},
   head: () => ({
     meta: [
       { title: "Live Workspace | indigro" },

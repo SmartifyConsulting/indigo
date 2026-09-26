@@ -9,8 +9,8 @@ import { fmtDate, initials } from "@/lib/fmt";
 
 export const Route = createFileRoute("/cases")({
   validateSearch: (s: Record<string, unknown>): { q?: string; stage?: string } => ({
-    ...(typeof s.q === "string" && s.q ? { q: s.q } : {}),
-    ...(typeof s.stage === "string" && s.stage ? { stage: s.stage } : {}),
+    ...(typeof s["q"] === "string" && s["q"] ? { q: s["q"] } : {}),
+    ...(typeof s["stage"] === "string" && s["stage"] ? { stage: s["stage"] } : {}),
   }),
   head: () => ({
     meta: [
