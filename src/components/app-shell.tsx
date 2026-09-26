@@ -2,6 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
+  Bell,
+  FolderKanban,
   Building2,
   ClipboardCheck,
   CreditCard,
@@ -60,6 +62,8 @@ const NAV: Record<Role, NavItem[]> = {
     { to: "/workspace", label: "Live Workspace", icon: Workflow },
     { to: "/", label: "Dashboard", icon: LayoutDashboard },
     { to: "/clients", label: "Clients", icon: Users },
+    { to: "/cases", label: "All cases", icon: FolderKanban },
+    { to: "/inbox", label: "Inbox", icon: Bell },
     { to: "/reports", label: "Documents & ROAs", icon: FileText },
     { to: "/integrations", label: "Integrations", icon: Plug },
   ],
@@ -69,12 +73,15 @@ const NAV: Record<Role, NavItem[]> = {
     { to: "/portfolios", label: "My wealth & protection", icon: Wallet },
     { to: "/actions", label: "Actions & signatures", icon: ClipboardCheck },
     { to: "/reports", label: "My documents", icon: FileText },
+    { to: "/inbox", label: "Inbox", icon: Bell },
   ],
   fsp: [
     { to: "/workspace", label: "Live Workspace", icon: Workflow },
     { to: "/", label: "Dashboard", icon: LayoutDashboard },
     { to: "/compliance", label: "Compliance & audit", icon: ShieldCheck },
     { to: "/clients", label: "Client pipeline", icon: Users },
+    { to: "/cases", label: "All cases", icon: FolderKanban },
+    { to: "/inbox", label: "Inbox", icon: Bell },
     { to: "/integrations", label: "Integrations", icon: Plug },
     { to: "/billing", label: "Billing", icon: CreditCard },
   ],
@@ -82,6 +89,7 @@ const NAV: Record<Role, NavItem[]> = {
     { to: "/workspace", label: "Live Workspace", icon: Workflow },
     { to: "/", label: "Dashboard", icon: LayoutDashboard },
     { to: "/applications", label: "Applications", icon: Inbox },
+    { to: "/inbox", label: "Inbox", icon: Bell },
   ],
 };
 
