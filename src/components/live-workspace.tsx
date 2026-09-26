@@ -3,7 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { ActivityList } from "@/components/dashboards";
-import { PageHeader, StageBadge } from "@/components/common";
+import { StageBadge } from "@/components/common";
 import { ClientPanel } from "@/components/client-panel";
 import { LifecycleFlow } from "@/components/lifecycle-diagram";
 import { LiveStats } from "@/components/live-stats";
