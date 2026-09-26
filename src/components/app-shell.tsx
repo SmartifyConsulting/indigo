@@ -5,6 +5,7 @@ import {
   Bell,
   FolderKanban,
   Building2,
+  ChevronDown,
   ClipboardCheck,
   CreditCard,
   FileText,
@@ -57,57 +58,78 @@ interface NavItem {
   icon: LucideIcon;
 }
 
-const NAV: Record<Role, NavItem[]> = {
+interface NavGroup {
+  group: string;
+  items: NavItem[];
+}
+
+type NavEntry = NavItem | NavGroup;
+
+function isNavGroup(entry: NavEntry): entry is NavGroup {
+  return "group" in entry;
+}
+
+const NAV: Record<Role, NavEntry[]> = {
   advisor: [
-    { to: "/workspace", label: "Live Workspace", icon: Workflow },
     { to: "/", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/workspace", label: "Live Workspace", icon: Workflow },
     { to: "/clients", label: "Clients", icon: Users },
-    { to: "/cases", label: "All cases", icon: FolderKanban },
+    { to: "/cases", label: "All Cases", icon: FolderKanban },
     { to: "/inbox", label: "Inbox", icon: Bell },
     { to: "/reports", label: "Documents & ROAs", icon: FileText },
     { to: "/integrations", label: "Integrations", icon: Plug },
   ],
   client: [
-    { to: "/workspace", label: "Live Workspace", icon: Workflow },
     { to: "/", label: "Overview", icon: LayoutDashboard },
-    { to: "/portfolios", label: "My wealth & protection", icon: Wallet },
-    { to: "/actions", label: "Actions & signatures", icon: ClipboardCheck },
-    { to: "/reports", label: "My documents", icon: FileText },
+    { to: "/workspace", label: "Live Workspace", icon: Workflow },
+    { to: "/portfolios", label: "My Wealth & Protection", icon: Wallet },
+    { to: "/actions", label: "Actions & Signatures", icon: ClipboardCheck },
+    { to: "/reports", label: "My Documents", icon: FileText },
     { to: "/inbox", label: "Inbox", icon: Bell },
   ],
   fsp: [
-    { to: "/workspace", label: "Live Workspace", icon: Workflow },
     { to: "/", label: "Dashboard", icon: LayoutDashboard },
-    { to: "/compliance", label: "Compliance & audit", icon: ShieldCheck },
-    { to: "/clients", label: "Client pipeline", icon: Users },
-    { to: "/cases", label: "All cases", icon: FolderKanban },
+    { to: "/workspace", label: "Live Workspace", icon: Workflow },
+    { to: "/compliance", label: "Compliance & Audit", icon: ShieldCheck },
+    { to: "/clients", label: "Client Pipeline", icon: Users },
+    { to: "/cases", label: "All Cases", icon: FolderKanban },
     { to: "/inbox", label: "Inbox", icon: Bell },
     { to: "/integrations", label: "Integrations", icon: Plug },
     { to: "/billing", label: "Billing", icon: CreditCard },
   ],
   insurer: [
-    { to: "/workspace", label: "Live Workspace", icon: Workflow },
     { to: "/", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/workspace", label: "Live Workspace", icon: Workflow },
     { to: "/applications", label: "Applications", icon: Inbox },
     { to: "/inbox", label: "Inbox", icon: Bell },
   ],
   admin: [
-    { to: "/workspace", label: "Live Workspace", icon: Workflow },
     { to: "/", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/workspace", label: "Live Workspace", icon: Workflow },
     { to: "/clients", label: "Clients", icon: Users },
-    { to: "/cases", label: "All cases", icon: FolderKanban },
-    { to: "/compliance", label: "Compliance & audit", icon: ShieldCheck },
-    { to: "/applications", label: "Applications", icon: Inbox },
-    { to: "/billing", label: "Billing", icon: CreditCard },
-    { to: "/portfolios", label: "My wealth & protection", icon: Wallet },
-    { to: "/actions", label: "Actions & signatures", icon: ClipboardCheck },
+    { to: "/cases", label: "All Cases", icon: FolderKanban },
     { to: "/inbox", label: "Inbox", icon: Bell },
     { to: "/reports", label: "Documents & ROAs", icon: FileText },
-    { to: "/integrations", label: "Integrations", icon: Plug },
+    {
+      group: "FSP",
+      items: [
+        { to: "/compliance", label: "Compliance & Audit", icon: ShieldCheck },
+        { to: "/billing", label: "Billing", icon: CreditCard },
+      ],
+    },
+    {
+      group: "Client",
+      items: [
+        { to: "/portfolios", label: "My Wealth & Protection", icon: Wallet },
+        { to: "/actions", label: "Actions & Signatures", icon: ClipboardCheck },
+      ],
+    },
+    {
+      group: "Insurer",
+      items: [{ to: "/applications", label: "Applications", icon: Inbox }],
+    },
   ],
 };
-
-const ADMIN_NAV: NavItem[] = [{ to: "/admin/integrations", label: "APIs", icon: KeyRound }];
 
 function useIsAdmin() {
   const check = useServerFn(isAdminFn);
@@ -129,27 +151,48 @@ function NavLink({ to, label, icon: Icon }: NavItem) {
   );
 }
 
+/** A profile-specific slice of the Admin nav, collapsed into one dropdown so shared screens stay flat. */
+function NavGroupMenu({ group, items }: NavGroup) {
+  const pathname = useRouterState({ select: (r) => r.location.pathname });
+  const active = items.some((i) => pathname === i.to);
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className={cn(
+            "flex h-11 items-center gap-1 whitespace-nowrap border-b-2 border-transparent px-3 text-sm font-medium text-navy-foreground/70 transition-colors hover:text-navy-foreground",
+            active && "border-brand text-navy-foreground",
+          )}
+        >
+          {group}
+          <ChevronDown className="h-3.5 w-3.5" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start">
+        {items.map((item) => (
+          <DropdownMenuItem key={item.to} asChild>
+            <Link to={item.to} className="flex items-center gap-2">
+              <item.icon className="h-4 w-4" />
+              {item.label}
+            </Link>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 /** Main menu, a horizontal row under the header. Scrolls sideways on narrow screens. */
 function NavLinks({ role }: { role: Role }) {
-  const admin = useIsAdmin();
   return (
     <nav aria-label="Main" className="border-t border-white/10 px-2 sm:px-4">
       <ul className="flex items-center gap-1 overflow-x-auto">
-        {NAV[role].map((item) => (
-          <li key={item.to} className="shrink-0">
-            <NavLink {...item} />
+        {NAV[role].map((entry) => (
+          <li key={isNavGroup(entry) ? entry.group : entry.to} className="shrink-0">
+            {isNavGroup(entry) ? <NavGroupMenu {...entry} /> : <NavLink {...entry} />}
           </li>
         ))}
-        {admin && (
-          <>
-            <li aria-hidden className="mx-2 h-5 w-px shrink-0 bg-white/20" />
-            {ADMIN_NAV.map((item) => (
-              <li key={item.to} className="shrink-0">
-                <NavLink {...item} />
-              </li>
-            ))}
-          </>
-        )}
       </ul>
     </nav>
   );
@@ -263,6 +306,19 @@ function ThemeToggle() {
   );
 }
 
+/** Admin hub link (Integrations + APIs), shown only to real admin accounts. */
+function AdminMenuItem() {
+  const admin = useIsAdmin();
+  if (!admin) return null;
+  return (
+    <DropdownMenuItem asChild>
+      <Link to="/admin" className="flex items-center gap-2">
+        <KeyRound className="h-4 w-4" /> Admin
+      </Link>
+    </DropdownMenuItem>
+  );
+}
+
 function ThemeItem() {
   const { dark, toggle } = useTheme();
   return (
@@ -349,6 +405,7 @@ export function AppShell({
                 </div>
                 <DropdownMenuSeparator />
                 <ThemeItem />
+                <AdminMenuItem />
                 <DropdownMenuItem onSelect={() => resetDemo()}>
                   <RotateCcw className="h-4 w-4" /> Reset demo data
                 </DropdownMenuItem>
