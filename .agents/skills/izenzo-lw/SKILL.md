@@ -161,3 +161,10 @@ Ask for: "full-bleed viewport app shell — no max-width container, no page bann
 
 ## Mobile-app first
 Design at 390px first: frames stack 1→6 vertically, horizontal arrows rotate to point down, tray drops below the canvas, taskbar scrolls sideways, tap targets ≥ 40px. Expand to the perimeter grid only at large screens.
+
+## Frame, toggle, ID and arrow style (mandatory)
+- The **MAP | STEPS** toggle sits **inside the Workflow Map frame header** (top-right of the map card), never in the page top bar.
+- The **LW ID pill** (e.g. `LW-CASE-1024`) sits **inside the Live Workspace tray header, replacing the Live indicator**.
+- Map step frames carry only the step pill top-left. **No ID pills on frames and no step pill on the top-right of the map area.**
+- Every map frame and every accordion gate heading uses a **fine grey line**: `border border-border` (1px). No 2px, black or dashed frame borders.
+- **All arrows on the map** (inside and between frames) share one style: a 1px grey line (`muted-foreground`) ending in a small solid triangular head, about 28px long. Never use chunky icon arrows or coloured/thick connectors.

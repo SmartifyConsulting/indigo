@@ -213,10 +213,10 @@ export function GateTray({ c }: { c: CaseRecord }) {
           <li key={gate.no}>
             <div
               className={cn(
-                "flex items-center gap-2 rounded-full border-2 px-4 py-2",
-                complete && "border-foreground bg-warning text-foreground",
-                active && "border-foreground bg-muted text-foreground",
-                locked && "border-border bg-card text-muted-foreground opacity-70",
+                "flex items-center gap-2 rounded-full border border-border px-4 py-2",
+                complete && "bg-warning text-foreground",
+                active && "bg-muted text-foreground",
+                locked && "bg-card text-muted-foreground opacity-70",
               )}
             >
               <span className="label-caps flex-1 font-bold">
