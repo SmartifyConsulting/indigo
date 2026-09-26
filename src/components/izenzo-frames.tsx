@@ -136,7 +136,7 @@ function Frame({
           <Fragment key={sub.id}>
             <Pill sub={sub} st={st} party={party} />
             {i < arr.length - 1 && (
-              <ThinArrow dir={dir === "row" ? "right" : "down"} className={cn("self-center", dir === "row" && "rotate-90 sm:rotate-0")} />
+              <span className={cn("flex self-center", dir === "row" && "sm:-rotate-90")}><ThinArrow dir="down" /></span>
             )}
           </Fragment>
         ))}
