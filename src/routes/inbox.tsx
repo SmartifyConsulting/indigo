@@ -55,7 +55,7 @@ function InboxPage() {
         />
         <Link
           to="/workspace"
-          search={{ case: e.caseId ?? undefined }}
+          search={e.caseId ? { case: e.caseId } : {}}
           onClick={() => inbox.markRead(e.seq)}
           className="min-w-0 flex-1 hover:text-primary"
         >
