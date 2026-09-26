@@ -372,7 +372,6 @@ export function AppShell({
               <ContextPicker />
               <RoleSwitcher />
             </div>
-            <ThemeToggle />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
@@ -404,7 +403,6 @@ export function AppShell({
                   </div>
                 </div>
                 <DropdownMenuSeparator />
-                <ThemeItem />
                 <AdminMenuItem />
                 <DropdownMenuItem onSelect={() => resetDemo()}>
                   <RotateCcw className="h-4 w-4" /> Reset demo data
