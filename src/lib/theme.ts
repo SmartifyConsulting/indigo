@@ -1,27 +1,56 @@
 import { useEffect, useState } from "react";
 
-const KEY = "indigro-theme";
+/** Izenzo style presets: cream (default light), black (Ink & Aqua), grid (black + ink grid). */
+export type StylePreset = "cream" | "black" | "grid";
+export const PRESET_KEY = "izenzo:style-preset";
+export const PRESET_EVENT = "izenzo:style-preset-change";
 
-/** Runs in <head> before first paint so a saved dark choice never flashes light. Default is always light. */
-export const THEME_INIT_SCRIPT = `try{if(localStorage.getItem("${KEY}")==="dark")document.documentElement.classList.add("dark")}catch(e){}`;
+/** Runs in <head> before first paint so the saved preset never flashes. */
+export const THEME_INIT_SCRIPT = `try{var p=localStorage.getItem("${PRESET_KEY}")||"cream";var h=document.documentElement;h.setAttribute("data-theme","dark");h.setAttribute("data-app",p==="cream"?"alpha-bravo":"izenzo");if(p!=="cream")h.classList.add("dark");}catch(e){}`;
 
-/** Dark-mode state backed by the <html> class and localStorage. */
+export function readPreset(): StylePreset {
+  try {
+    const p = localStorage.getItem(PRESET_KEY);
+    return p === "black" || p === "grid" ? p : "cream";
+  } catch {
+    return "cream";
+  }
+}
+
+export function applyStylePreset(p: StylePreset) {
+  const h = document.documentElement;
+  h.setAttribute("data-theme", "dark");
+  h.setAttribute("data-app", p === "cream" ? "alpha-bravo" : "izenzo");
+  h.classList.toggle("dark", p !== "cream");
+  document.body.classList.toggle("ink-grid", p === "grid");
+}
+
+export function applyCurrentStylePreset() {
+  applyStylePreset(readPreset());
+}
+
+export function setStylePreset(p: StylePreset) {
+  try {
+    localStorage.setItem(PRESET_KEY, p);
+  } catch {
+    /* session only */
+  }
+  applyStylePreset(p);
+  window.dispatchEvent(new CustomEvent(PRESET_EVENT, { detail: p }));
+}
+
+/** Dark-mode state (black vs cream) kept in sync with the preset. */
 export function useTheme() {
   const [dark, setDark] = useState(false);
 
   useEffect(() => {
-    setDark(document.documentElement.classList.contains("dark"));
+    applyCurrentStylePreset();
+    const sync = () => setDark(readPreset() !== "cream");
+    sync();
+    window.addEventListener(PRESET_EVENT, sync);
+    return () => window.removeEventListener(PRESET_EVENT, sync);
   }, []);
 
-  const set = (next: boolean) => {
-    document.documentElement.classList.toggle("dark", next);
-    try {
-      localStorage.setItem(KEY, next ? "dark" : "light");
-    } catch {
-      /* storage unavailable: the choice lasts for this session only */
-    }
-    setDark(next);
-  };
-
+  const set = (next: boolean) => setStylePreset(next ? "black" : "cream");
   return { dark, set, toggle: () => set(!dark) };
 }
