@@ -80,7 +80,7 @@ const NAV: Record<Role, NavEntry[]> = {
     { to: "/integrations", label: "Integrations", icon: Plug },
   ],
   client: [
-    { to: "/", label: "Overview", icon: LayoutDashboard },
+    { to: "/", label: "Dashboard", icon: LayoutDashboard },
     { to: "/workspace", label: "Live Workspace", icon: Workflow },
     { to: "/portfolios", label: "My Wealth & Protection", icon: Wallet },
     { to: "/actions", label: "Actions & Signatures", icon: ClipboardCheck },
