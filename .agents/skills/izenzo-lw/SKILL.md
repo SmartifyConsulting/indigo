@@ -1,6 +1,6 @@
 ---
 name: izenzo-lw
-description: Rebuild a governed five-gate Live Workspace (LW) in the Izenzo visual style for any domain: trades, financial advisory, legal, insurance, supply chain and more. Always ask which application and domain it is for before building.
+description: "Rebuild a governed five-gate Live Workspace (LW) in the Izenzo visual style for any domain (trades, financial advisory, legal, insurance, supply chain and more). Always ask which application and domain it is for before building."
 ---
 
 # Izenzo Live Workspace: a reusable template
