@@ -353,12 +353,15 @@ export function AppShell({
       <main
         key={role + pathname.split("/")[1]}
         className={cn(
-          "min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8",
+          "min-w-0 flex-1",
+          pathname.startsWith("/workspace") ? "px-2 py-2 md:px-3" : "px-4 py-6 md:px-8 md:py-8",
           tone === "navy" && "bg-navy",
           tone === "white" && "bg-card",
         )}
       >
-        <div className="mx-auto max-w-6xl">{children}</div>
+        <div className={pathname.startsWith("/workspace") ? "w-full" : "mx-auto max-w-6xl"}>
+          {children}
+        </div>
       </main>
     </div>
   );
