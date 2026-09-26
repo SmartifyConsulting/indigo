@@ -3,11 +3,13 @@ import { ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { ActivityList } from "@/components/dashboards";
-import { PageHeader, StageBadge } from "@/components/common";
+import { StageBadge } from "@/components/common";
 import { ClientPanel } from "@/components/client-panel";
 import { LifecycleFlow } from "@/components/lifecycle-diagram";
 import { LiveStats } from "@/components/live-stats";
 import { StepsView } from "@/components/steps-view";
+import { GateTray } from "@/components/izenzo-canvas";
+import { FramedCanvas } from "@/components/izenzo-frames";
 import { WorkspaceTaskbar } from "@/components/workspace-taskbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -231,20 +233,15 @@ export function LiveWorkspaceScreen() {
   const openCase = state.cases.find((c) => c.id === caseId);
 
   useEffect(() => {
-    if (!isClient && search.case) workspaceTabs.open(search.case);
-  }, [isClient, search.case]);
+    if (isClient) return;
+    if (search.case) workspaceTabs.open(search.case);
+    else if (state.cases[0])
+      void navigate({ to: "/workspace", search: { case: state.cases[0].id }, replace: true });
+  }, [isClient, search.case, state.cases, navigate]);
 
   return (
     <div className={cn(!isClient && "pb-16")}>
-      <PageHeader
-        title="Live Workspace"
-        description={
-          isClient
-            ? "Where you are in the advice lifecycle."
-            : "Where every client is in the advice lifecycle, updated live."
-        }
-      />
-      <div className="mb-4 flex flex-wrap items-center gap-2">
+      <div className="mb-3 flex flex-wrap items-center gap-2">
         <p className="label-caps mr-auto text-muted-foreground">indigro advice workflow</p>
         {!isClient && (
           <Select
@@ -263,38 +260,62 @@ export function LiveWorkspaceScreen() {
             </SelectContent>
           </Select>
         )}
-        <div role="group" aria-label="View" className="flex gap-1">
-          {(["map", "steps"] as const).map((m) => (
-            <Button
-              key={m}
-              size="sm"
-              variant={mode === m ? "default" : "outline"}
-              aria-pressed={mode === m}
-              onClick={() => setMode(m)}
-              className="h-8 capitalize"
-            >
-              {m}
-            </Button>
-          ))}
-        </div>
       </div>
 
-      {mode === "steps" ? (
-        <section aria-label="Steps" className="rounded-lg border bg-card p-4 sm:p-6">
-          {openCase ? (
-            <>
-              <div className="mb-4 flex items-center justify-between gap-2">
-                <div>
-                  <p className="font-mono text-xs text-muted-foreground">{openCase.code}</p>
-                  <h2 className="text-lg font-medium">{openCase.clientName}</h2>
-                </div>
-                <StageBadge c={openCase} />
+      {openCase ? (
+        <section
+          aria-label="Case workflow"
+          className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(320px,1fr)] lg:items-start"
+        >
+          <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p className="font-mono text-xs text-muted-foreground">{openCase.code}</p>
+                <h2 className="text-lg font-medium">{openCase.clientName}</h2>
               </div>
-              <StepsView c={openCase} />
-            </>
-          ) : (
-            <Empty>Open a case above to follow its steps.</Empty>
-          )}
+              <div className="flex items-center gap-2">
+                <StageBadge c={openCase} />
+                <div role="group" aria-label="View" className="flex gap-1">
+                  {(["map", "steps"] as const).map((m) => (
+                    <Button
+                      key={m}
+                      size="sm"
+                      variant={mode === m ? "default" : "outline"}
+                      aria-pressed={mode === m}
+                      onClick={() => setMode(m)}
+                      className="h-8 rounded-full capitalize"
+                    >
+                      {m}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            {mode === "map" ? <FramedCanvas c={openCase} /> : <StepsView c={openCase} />}
+          </div>
+          <div className="space-y-4 lg:sticky lg:top-32">
+            <div className="rounded-lg border border-border bg-card p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <p className="label-caps text-foreground">Live workspace</p>
+                <span
+                  aria-label="Live workspace ID"
+                  className="rounded-full border border-border bg-warning px-3 py-1 font-mono text-xs font-bold text-foreground"
+                >
+                  LW-{openCase.code}
+                </span>
+              </div>
+              <GateTray c={openCase} />
+            </div>
+            {isClient ? (
+              <ClientPanel />
+            ) : (
+              <LiveWorkspacePanel selected={selected} onSelect={setSelected} />
+            )}
+          </div>
+        </section>
+      ) : mode === "steps" ? (
+        <section aria-label="Steps" className="rounded-lg border bg-card p-4 sm:p-6">
+          <Empty>Open a case above to follow its steps.</Empty>
         </section>
       ) : (
         <section

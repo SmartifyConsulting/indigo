@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { Plus, X } from "lucide-react";
+import { Plus, RotateCw, X, XCircle } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,15 @@ export function WorkspaceTaskbar() {
   return (
     <>
       <div className="fixed inset-x-0 bottom-0 z-30 border-t bg-card/95 backdrop-blur">
-        <div className="flex items-center gap-1 overflow-x-auto px-3 py-1.5">
+        <div className="flex items-center gap-1.5 px-3 py-1.5">
+          <button
+            type="button"
+            onClick={() => go(null)}
+            className="flex shrink-0 items-center gap-1 rounded-full border-2 border-foreground bg-warning px-3 py-1 text-[11px] font-bold uppercase tracking-[0.1em] text-foreground"
+          >
+            <Plus className="h-3.5 w-3.5" /> New
+          </button>
+          <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">
           {tabs.ids.map((id, i) => {
             const c = name(id);
             if (!c) return null;
@@ -72,8 +80,27 @@ export function WorkspaceTaskbar() {
               </div>
             );
           })}
-          <Button size="sm" variant="ghost" className="h-7 shrink-0 text-xs" onClick={() => go(null)}>
-            <Plus className="h-3.5 w-3.5" /> New tab
+          </div>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-7 w-7 shrink-0"
+            aria-label="Refresh"
+            onClick={() => go(tabs.active)}
+          >
+            <RotateCw className="h-3.5 w-3.5" />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-7 w-7 shrink-0"
+            aria-label="Close all tabs"
+            onClick={() => {
+              tabs.ids.forEach((id) => workspaceTabs.close(id));
+              go(null);
+            }}
+          >
+            <XCircle className="h-3.5 w-3.5" />
           </Button>
         </div>
       </div>
