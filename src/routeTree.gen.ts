@@ -13,8 +13,10 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ActionsRouteImport } from './routes/actions'
 import { Route as ApplicationsRouteImport } from './routes/applications'
 import { Route as BillingRouteImport } from './routes/billing'
+import { Route as CasesRouteImport } from './routes/cases'
 import { Route as ComplianceRouteImport } from './routes/compliance'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as InboxRouteImport } from './routes/inbox'
 import { Route as IntegrationsRouteImport } from './routes/integrations'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PortfoliosRouteImport } from './routes/portfolios'
@@ -48,6 +50,11 @@ const BillingRoute = BillingRouteImport.update({
   path: '/billing',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CasesRoute = CasesRouteImport.update({
+  id: '/cases',
+  path: '/cases',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ComplianceRoute = ComplianceRouteImport.update({
   id: '/compliance',
   path: '/compliance',
@@ -56,6 +63,11 @@ const ComplianceRoute = ComplianceRouteImport.update({
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InboxRoute = InboxRouteImport.update({
+  id: '/inbox',
+  path: '/inbox',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IntegrationsRoute = IntegrationsRouteImport.update({
@@ -124,8 +136,10 @@ export interface FileRoutesByFullPath {
   '/actions': typeof ActionsRoute
   '/applications': typeof ApplicationsRoute
   '/billing': typeof BillingRoute
+  '/cases': typeof CasesRoute
   '/compliance': typeof ComplianceRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/inbox': typeof InboxRoute
   '/integrations': typeof IntegrationsRoute
   '/login': typeof LoginRoute
   '/portfolios': typeof PortfoliosRoute
@@ -144,8 +158,10 @@ export interface FileRoutesByTo {
   '/actions': typeof ActionsRoute
   '/applications': typeof ApplicationsRoute
   '/billing': typeof BillingRoute
+  '/cases': typeof CasesRoute
   '/compliance': typeof ComplianceRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/inbox': typeof InboxRoute
   '/integrations': typeof IntegrationsRoute
   '/login': typeof LoginRoute
   '/portfolios': typeof PortfoliosRoute
@@ -165,8 +181,10 @@ export interface FileRoutesById {
   '/actions': typeof ActionsRoute
   '/applications': typeof ApplicationsRoute
   '/billing': typeof BillingRoute
+  '/cases': typeof CasesRoute
   '/compliance': typeof ComplianceRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/inbox': typeof InboxRoute
   '/integrations': typeof IntegrationsRoute
   '/login': typeof LoginRoute
   '/portfolios': typeof PortfoliosRoute
@@ -187,8 +205,10 @@ export interface FileRouteTypes {
     | '/actions'
     | '/applications'
     | '/billing'
+    | '/cases'
     | '/compliance'
     | '/forgot-password'
+    | '/inbox'
     | '/integrations'
     | '/login'
     | '/portfolios'
@@ -207,8 +227,10 @@ export interface FileRouteTypes {
     | '/actions'
     | '/applications'
     | '/billing'
+    | '/cases'
     | '/compliance'
     | '/forgot-password'
+    | '/inbox'
     | '/integrations'
     | '/login'
     | '/portfolios'
@@ -227,8 +249,10 @@ export interface FileRouteTypes {
     | '/actions'
     | '/applications'
     | '/billing'
+    | '/cases'
     | '/compliance'
     | '/forgot-password'
+    | '/inbox'
     | '/integrations'
     | '/login'
     | '/portfolios'
@@ -248,8 +272,10 @@ export interface RootRouteChildren {
   ActionsRoute: typeof ActionsRoute
   ApplicationsRoute: typeof ApplicationsRoute
   BillingRoute: typeof BillingRoute
+  CasesRoute: typeof CasesRoute
   ComplianceRoute: typeof ComplianceRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
+  InboxRoute: typeof InboxRoute
   IntegrationsRoute: typeof IntegrationsRoute
   LoginRoute: typeof LoginRoute
   PortfoliosRoute: typeof PortfoliosRoute
@@ -294,6 +320,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BillingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cases': {
+      id: '/cases'
+      path: '/cases'
+      fullPath: '/cases'
+      preLoaderRoute: typeof CasesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/compliance': {
       id: '/compliance'
       path: '/compliance'
@@ -306,6 +339,13 @@ declare module '@tanstack/react-router' {
       path: '/forgot-password'
       fullPath: '/forgot-password'
       preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inbox': {
+      id: '/inbox'
+      path: '/inbox'
+      fullPath: '/inbox'
+      preLoaderRoute: typeof InboxRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/integrations': {
@@ -400,8 +440,10 @@ const rootRouteChildren: RootRouteChildren = {
   ActionsRoute: ActionsRoute,
   ApplicationsRoute: ApplicationsRoute,
   BillingRoute: BillingRoute,
+  CasesRoute: CasesRoute,
   ComplianceRoute: ComplianceRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
+  InboxRoute: InboxRoute,
   IntegrationsRoute: IntegrationsRoute,
   LoginRoute: LoginRoute,
   PortfoliosRoute: PortfoliosRoute,
