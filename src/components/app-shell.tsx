@@ -219,18 +219,25 @@ function useIdentity() {
   const s = useAppState();
   switch (s.session.role) {
     case "advisor":
-      return { name: s.advisors[0]!.name, sub: s.advisors[0]!.title };
+      return {
+        name: s.advisors?.[0]?.name ?? "Adviser",
+        sub: s.advisors?.[0]?.title ?? "Adviser",
+      };
     case "client": {
-      const c = s.cases.find((x) => x.id === s.session.clientCaseId);
+      const c = s.cases?.find((x) => x.id === s.session.clientCaseId);
       return { name: c?.clientName ?? "Client", sub: "Client" };
     }
     case "fsp":
-      return { name: s.fsp.keyIndividual, sub: `Key Individual, ${s.fsp.fspNumber}` };
+      return {
+        name: s.fsp?.keyIndividual ?? "Key Individual",
+        sub: `Key Individual${s.fsp?.fspNumber ? `, ${s.fsp.fspNumber}` : ""}`,
+      };
     case "insurer": {
       const p = PROVIDERS.find((x) => x.id === s.session.insurerId);
       return { name: p?.name ?? "Insurer", sub: "Underwriting desk" };
     }
   }
+  return { name: "User", sub: "" };
 }
 
 function ThemeToggle() {
