@@ -91,6 +91,7 @@ const NAV: Record<Role, NavItem[]> = {
     { to: "/applications", label: "Applications", icon: Inbox },
     { to: "/inbox", label: "Inbox", icon: Bell },
   ],
+  admin: [{ to: "/", label: "Dashboard", icon: LayoutDashboard }],
 };
 
 const ADMIN_NAV: NavItem[] = [{ to: "/admin/integrations", label: "APIs", icon: KeyRound }];
@@ -230,6 +231,8 @@ function useIdentity() {
       const p = PROVIDERS.find((x) => x.id === s.session.insurerId);
       return { name: p?.name ?? "Insurer", sub: "Underwriting desk" };
     }
+    case "admin":
+      return { name: "Georgia Adams", sub: "Admin" };
   }
 }
 
