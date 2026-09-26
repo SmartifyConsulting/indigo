@@ -143,7 +143,7 @@ function NavLink({ to, label, icon: Icon }: NavItem) {
       to={to}
       activeOptions={{ exact: to === "/" }}
       className="flex h-11 items-center gap-2 whitespace-nowrap rounded-t-md px-3 text-sm font-medium text-navy-foreground/70 transition-colors hover:text-navy-foreground"
-      activeProps={{ className: "bg-white text-black hover:text-black" }}
+      activeProps={{ className: "!bg-highlight-fill !text-black hover:!text-black" }}
     >
       <Icon className="h-4 w-4" />
       {label}
@@ -162,7 +162,7 @@ function NavGroupMenu({ group, items }: NavGroup) {
           type="button"
           className={cn(
             "flex h-11 items-center gap-1 whitespace-nowrap rounded-t-md px-3 text-sm font-medium text-navy-foreground/70 transition-colors hover:text-navy-foreground",
-            active && "bg-white text-black hover:text-black",
+            active && "!bg-highlight-fill !text-black hover:!text-black",
           )}
         >
           {group}

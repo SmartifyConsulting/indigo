@@ -268,12 +268,12 @@ export function LiveWorkspaceScreen() {
           className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(320px,1fr)] lg:items-start"
         >
           <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <div className="mb-4 space-y-3">
               <div>
                 <p className="font-mono text-xs text-muted-foreground">{openCase.code}</p>
                 <h2 className="text-lg font-medium">{openCase.clientName}</h2>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center justify-end gap-2 lg:w-3/4">
                 <StageBadge c={openCase} />
                 <div role="group" aria-label="View" className="flex gap-1">
                   {(["map", "steps"] as const).map((m) => (
@@ -283,7 +283,7 @@ export function LiveWorkspaceScreen() {
                       variant={mode === m ? "default" : "outline"}
                       aria-pressed={mode === m}
                       onClick={() => setMode(m)}
-                      className="h-8 rounded-full capitalize"
+                      className="h-8 rounded-lg capitalize"
                     >
                       {m}
                     </Button>
@@ -299,7 +299,7 @@ export function LiveWorkspaceScreen() {
                 <p className="label-caps text-foreground">Live workspace</p>
                 <span
                   aria-label="Live workspace ID"
-                  className="rounded-full border border-border bg-warning px-3 py-1 font-mono text-xs font-bold text-foreground"
+                  className="rounded-lg border border-border bg-highlight-fill px-3 py-1 font-mono text-xs font-bold text-foreground"
                 >
                   LW-{openCase.code}
                 </span>

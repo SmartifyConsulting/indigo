@@ -51,7 +51,7 @@ export function StepsView({ c }: { c: CaseRecord }) {
                 aria-expanded={open}
                 onClick={() => !active && setPeek(peek === st.no ? null : st.no)}
                 className={cn(
-                  "label-caps rounded-full border border-border px-3 py-1 text-[10px] font-bold",
+                  "label-caps rounded-lg border border-border px-3 py-1 text-[10px] font-bold",
                   complete && "bg-warning text-foreground",
                   !complete && "bg-foreground text-background",
                   locked && "cursor-not-allowed opacity-80",
@@ -81,7 +81,7 @@ export function StepsView({ c }: { c: CaseRecord }) {
                     <div
                       key={g.id}
                       className={cn(
-                        "flex items-center gap-2.5 rounded-full border px-4 py-2 text-sm",
+                        "flex items-center gap-2.5 rounded-lg border px-4 py-2 text-sm",
                         g.met && "border-success bg-success/10",
                         isCurrent && "animate-throb-aqua border-success",
                         !g.met && !isCurrent && "border-border bg-card text-muted-foreground",

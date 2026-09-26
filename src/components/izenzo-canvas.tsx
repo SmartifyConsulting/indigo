@@ -91,7 +91,7 @@ function Capsule({ n }: { n: FlowNode }) {
   return (
     <div
       className={cn(
-        "flex items-center gap-2 rounded-full border-2 px-4 py-2 text-xs font-medium",
+        "flex items-center gap-2 rounded-lg border-2 px-4 py-2 text-xs font-medium",
         n.state === "done" && "border-success bg-success text-background",
         n.state === "current" && "animate-throb-aqua border-success bg-success/15 text-foreground",
         n.state === "upcoming" && "border-success bg-card text-foreground opacity-60",
@@ -107,9 +107,9 @@ function Capsule({ n }: { n: FlowNode }) {
 function Connector({ done }: { done: boolean }) {
   return (
     <div className="flex justify-center" aria-hidden>
-      <svg width="12" height="22" viewBox="0 0 12 22">
-        <path d="M6 0 V16" className={done ? "stroke-success" : "stroke-border"} strokeWidth="2" />
-        <path d="M1 14 L6 21 L11 14" className={done ? "fill-success" : "fill-border"} />
+      <svg width="6" height="22" viewBox="0 0 6 22">
+        <path d="M3 0 V17" className={done ? "stroke-success" : "stroke-border"} strokeWidth="0.75" />
+        <path d="M0.5 16 L3 21 L5.5 16" className={done ? "stroke-success" : "stroke-border"} strokeWidth="0.75" fill="none" strokeLinejoin="round" />
       </svg>
     </div>
   );
@@ -181,7 +181,7 @@ export function FlowCanvas({ c }: { c: CaseRecord }) {
       <div className="flex justify-center pt-1">
         <div
           className={cn(
-            "flex h-28 w-28 flex-col items-center justify-center rounded-full border-2 border-foreground bg-warning text-center text-foreground",
+            "flex h-28 w-28 flex-col items-center justify-center rounded-2xl border-2 border-foreground bg-warning text-center text-foreground",
             g === 5 && "animate-throb-aqua",
           )}
         >
@@ -213,7 +213,7 @@ export function GateTray({ c }: { c: CaseRecord }) {
           <li key={gate.no}>
             <div
               className={cn(
-                "flex items-center gap-2 rounded-full border border-border px-4 py-2",
+                "flex items-center gap-2 rounded-lg border border-border px-4 py-2",
                 complete && "bg-warning text-foreground",
                 active && "bg-muted text-foreground",
                 locked && "bg-card text-muted-foreground opacity-70",
@@ -222,7 +222,7 @@ export function GateTray({ c }: { c: CaseRecord }) {
               <span className="label-caps flex-1 font-bold">
                 Step {gate.no} · {gate.title}
               </span>
-              <span className="rounded-full border border-current px-1.5 py-0.5 font-mono text-[10px]">
+              <span className="rounded-lg border border-current bg-highlight-fill px-1.5 py-0.5 font-mono text-[10px]">
                 {c.code}
               </span>
               {locked ? (
@@ -234,7 +234,7 @@ export function GateTray({ c }: { c: CaseRecord }) {
                   aria-label={open ? "Collapse" : "Expand"}
                   disabled={active}
                   onClick={() => setPeek(peek === gate.no ? null : gate.no)}
-                  className="flex h-5 w-5 items-center justify-center rounded-full border border-current"
+                  className="flex h-5 w-5 items-center justify-center rounded-md border border-current"
                 >
                   {open ? <Minus className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
                 </button>

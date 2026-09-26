@@ -177,7 +177,7 @@ function StageCard({
         >
           <span
             className={cn(
-              "flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold",
+              "flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-[11px] font-semibold",
               state === "done"
                 ? "bg-positive text-white"
                 : state === "current"
@@ -287,7 +287,7 @@ function StageCard({
 function Hub() {
   return (
     <div className="flex w-56 flex-col items-center rounded-lg bg-card px-3 py-1 text-center">
-      <span className="flex h-14 w-14 items-center justify-center rounded-full border bg-card shadow-[0_0_40px_-4px_var(--brand)]">
+      <span className="flex h-14 w-14 items-center justify-center rounded-xl border bg-card shadow-[0_0_40px_-4px_var(--brand)]">
         <LogoMark className="h-8 w-8" />
       </span>
       <p className="mt-2 text-[13px] font-medium text-foreground">Compliance engine</p>
@@ -359,7 +359,7 @@ export function LifecycleFlow({
         {STAGES.map((s) => (
           <li key={s.no} className="relative pl-9">
             <span
-              className="absolute left-0 top-3 flex h-6 w-6 items-center justify-center rounded-full border bg-card text-brand-ink"
+              className="absolute left-0 top-3 flex h-6 w-6 items-center justify-center rounded-md border bg-card text-brand-ink"
               aria-hidden
             >
               <ChevronDown className="h-3.5 w-3.5" />

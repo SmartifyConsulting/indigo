@@ -84,7 +84,7 @@ function Pill({ sub, st, party }: { sub: Sub; st: St; party: "init" | "resp" }) 
   return (
     <div
       className={cn(
-        "flex min-w-0 items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-[11px] font-medium",
+        "flex min-w-0 items-center gap-1.5 rounded-lg border-2 px-3 py-1.5 text-[11px] font-medium",
         st === "done" && "border-success bg-success text-background",
         st === "current" && party === "init" && "animate-throb-aqua border-success bg-success/15",
         st === "current" && party === "resp" && "animate-throb border-warning bg-warning/20",
@@ -123,7 +123,7 @@ function Frame({
         className,
       )}
     >
-      <span className="label-caps absolute -top-3 left-3 rounded-full border border-border bg-card px-2.5 py-0.5 text-[10px] text-foreground">
+      <span className="label-caps absolute -top-3 left-3 rounded-lg border border-border bg-card px-2.5 py-0.5 text-[10px] text-foreground">
         Step {n} · {STAGES[n - 1]?.short}
       </span>
       <div className={cn("flex gap-1.5", dir === "row" ? "flex-col sm:flex-row sm:flex-wrap sm:items-center" : "flex-col items-stretch")}>
@@ -140,32 +140,32 @@ function Frame({
   );
 }
 
-/** Map arrow: a hairline grey stem with a small solid triangular head. */
+/** Map arrow: a refined hairline stem with a precise chevron head. */
 export function ThinArrow({
   dir,
   length = 28,
   className,
 }: {
   dir: "right" | "down" | "left" | "up";
-  /** Total length in px, tip to tail. Longer values close the gap between two frames without moving the tail. */
+  /** Total length in px, tip to tail. */
   length?: number;
   className?: string;
 }) {
   const rot = { right: -90, down: 0, left: 90, up: 180 }[dir];
-  const lineEnd = length - 7;
-  const headBase = length - 8;
+  const stemEnd = length - 5;
   const tip = length - 1;
+  const headBase = length - 6;
   return (
     <svg
       aria-hidden
-      width="8"
+      width="6"
       height={length}
-      viewBox={`0 0 8 ${length}`}
-      className={cn("shrink-0 text-muted-foreground", className)}
+      viewBox={`0 0 6 ${length}`}
+      className={cn("shrink-0 text-border", className)}
       style={{ transform: `rotate(${rot}deg)` }}
     >
-      <path d={`M4 0 V${lineEnd}`} stroke="currentColor" strokeWidth="1" />
-      <path d={`M1.5 ${headBase} L4 ${tip} L6.5 ${headBase} Z`} fill="currentColor" />
+      <path d={`M3 0 V${stemEnd}`} stroke="currentColor" strokeWidth="0.75" />
+      <path d={`M0.5 ${headBase} L3 ${tip} L5.5 ${headBase}`} stroke="currentColor" strokeWidth="0.75" fill="none" strokeLinejoin="round" />
     </svg>
   );
 }
