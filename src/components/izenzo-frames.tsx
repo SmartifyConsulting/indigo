@@ -1,8 +1,4 @@
 import {
-  ArrowDown,
-  ArrowLeft,
-  ArrowRight,
-  ArrowUp,
   Banknote,
   BookOpen,
   Check,

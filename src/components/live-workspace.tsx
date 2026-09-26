@@ -30,18 +30,6 @@ import { cn } from "@/lib/utils";
 
 const inStage = (c: CaseRecord, n: StageNo) => getStage(c) === n && (n === 6 || !isComplete(c));
 
-function LiveDot() {
-  return (
-    <span className="flex items-center gap-1.5 text-[11px] font-medium text-positive">
-      <span className="relative flex h-2 w-2">
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-positive opacity-60 motion-reduce:animate-none" />
-        <span className="relative inline-flex h-2 w-2 rounded-full bg-positive" />
-      </span>
-      Live
-    </span>
-  );
-}
-
 function Empty({ children }: { children: string }) {
   return <p className="py-6 text-center text-sm text-muted-foreground">{children}</p>;
 }
