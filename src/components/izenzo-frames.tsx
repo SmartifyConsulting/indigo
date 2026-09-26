@@ -119,49 +119,51 @@ function Frame({
 }) {
   const done = stage > n;
   const active = stage === n;
-  const Arrow = dir === "row" ? ArrowRight : ArrowDown;
   // Client-side steps (disclosure, presentation) pulse as the responding party.
   const party = n === 5 ? "resp" : "init";
   return (
     <section
       aria-label={`Step ${n}`}
       className={cn(
-        "relative rounded-2xl border-2 p-3 pt-6",
-        done && "border-foreground bg-warning/30",
-        active && "border-success bg-success/5",
-        !done && !active && "border-dashed border-border bg-card/50",
+        "relative rounded-2xl border border-border p-3 pt-6",
+        done && "bg-warning/20",
+        active && "bg-success/5",
+        !done && !active && "bg-card/50",
         className,
       )}
     >
-      <span
-        className={cn(
-          "label-caps absolute -top-3 left-3 rounded-full border-2 px-2.5 py-0.5 text-[10px]",
-          done ? "border-foreground bg-warning text-foreground" : active ? "border-success bg-success text-background" : "border-border bg-card text-muted-foreground",
-        )}
-      >
+      <span className="label-caps absolute -top-3 left-3 rounded-full border border-border bg-card px-2.5 py-0.5 text-[10px] text-foreground">
         Step {n} · {STAGES[n - 1]?.short}
-      </span>
-      <span className="absolute -top-3 right-3 rounded-full border bg-card px-2 py-0.5 font-mono text-[9px] text-muted-foreground">
-        {c.code}-S{n}
       </span>
       <div className={cn("flex gap-1.5", dir === "row" ? "flex-col sm:flex-row sm:flex-wrap sm:items-center" : "flex-col items-stretch")}>
         {data.out[n].map(({ sub, st }, i, arr) => (
           <Fragment key={sub.id}>
             <Pill sub={sub} st={st} party={party} />
             {i < arr.length - 1 && (
-              <Arrow
-                aria-hidden
-                className={cn(
-                  "h-3.5 w-3.5 shrink-0 self-center",
-                  dir === "row" && "rotate-90 sm:rotate-0",
-                  st === "done" ? "text-success" : "text-border",
-                )}
-              />
+              <ThinArrow dir={dir === "row" ? "right" : "down"} className={cn("self-center", dir === "row" && "rotate-90 sm:rotate-0")} />
             )}
           </Fragment>
         ))}
       </div>
     </section>
+  );
+}
+
+/** Map arrow: 1px grey line with a small solid triangular head. */
+export function ThinArrow({ dir, className }: { dir: "right" | "down" | "left" | "up"; className?: string }) {
+  const rot = { right: -90, down: 0, left: 90, up: 180 }[dir];
+  return (
+    <svg
+      aria-hidden
+      width="12"
+      height="28"
+      viewBox="0 0 12 28"
+      className={cn("shrink-0 text-muted-foreground", className)}
+      style={{ transform: `rotate(${rot}deg)` }}
+    >
+      <path d="M6 0 V21" stroke="currentColor" strokeWidth="1" />
+      <path d="M2 20 L6 27 L10 20 Z" fill="currentColor" />
+    </svg>
   );
 }
 
@@ -173,20 +175,19 @@ function Frame({
 export function FramedCanvas({ c }: { c: CaseRecord }) {
   const data = states(c);
   const s = data.stage;
-  const link = (on: boolean) => (on ? "text-success" : "text-border");
   const props = { c, data, stage: s };
   return (
     <div className="flex flex-col gap-5 lg:grid lg:grid-cols-3 lg:grid-rows-[auto_auto_auto_auto] lg:gap-x-6 lg:gap-y-6">
       <Frame n={1} dir="row" {...props} className="lg:col-span-3 lg:row-start-1" />
-      <ArrowDown aria-hidden className={cn("mx-auto hidden h-5 w-5 lg:col-start-3 lg:row-start-2 lg:-mt-5 lg:block", link(s > 1))} />
+      <ThinArrow dir="down" className="mx-auto hidden lg:col-start-3 lg:row-start-2 lg:-mt-6 lg:block" />
       <Frame n={2} dir="col" {...props} className="lg:col-start-3 lg:row-start-2 lg:mt-2" />
       <Frame n={3} dir="col" {...props} className="lg:col-start-3 lg:row-start-3" />
       <Frame n={4} dir="row" {...props} className="lg:col-start-2 lg:row-start-4" />
-      <ArrowLeft aria-hidden className={cn("hidden h-5 w-5 self-center justify-self-end lg:col-start-1 lg:row-start-4 lg:-mr-5 lg:block", link(s > 4))} />
+      <ThinArrow dir="left" className="hidden self-center justify-self-end lg:col-start-1 lg:row-start-4 lg:-mr-5 lg:block" />
       <Frame n={5} dir="col" {...props} className="lg:col-start-1 lg:row-start-4 lg:mr-3" />
       <Frame n={6} dir="col" {...props} className="lg:col-start-1 lg:row-start-3" />
-      <ArrowUp aria-hidden className={cn("mx-auto hidden h-5 w-5 lg:col-start-1 lg:row-start-3 lg:-mb-5 lg:self-end lg:block", link(s > 5))} />
-      <div className="hidden items-center justify-center rounded-2xl border-2 border-dashed border-border p-4 text-center lg:col-start-2 lg:row-span-2 lg:row-start-2 lg:flex">
+      <ThinArrow dir="up" className="mx-auto hidden lg:col-start-1 lg:row-start-3 lg:-mb-6 lg:self-end lg:block" />
+      <div className="hidden items-center justify-center rounded-2xl border border-border p-4 text-center lg:col-start-2 lg:row-span-2 lg:row-start-2 lg:flex">
         <p className="label-caps text-muted-foreground">
           {c.clientName}
           <br />
