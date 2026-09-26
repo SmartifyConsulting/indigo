@@ -91,7 +91,20 @@ const NAV: Record<Role, NavItem[]> = {
     { to: "/applications", label: "Applications", icon: Inbox },
     { to: "/inbox", label: "Inbox", icon: Bell },
   ],
-  admin: [{ to: "/", label: "Dashboard", icon: LayoutDashboard }],
+  admin: [
+    { to: "/workspace", label: "Live Workspace", icon: Workflow },
+    { to: "/", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/clients", label: "Clients", icon: Users },
+    { to: "/cases", label: "All cases", icon: FolderKanban },
+    { to: "/compliance", label: "Compliance & audit", icon: ShieldCheck },
+    { to: "/applications", label: "Applications", icon: Inbox },
+    { to: "/billing", label: "Billing", icon: CreditCard },
+    { to: "/portfolios", label: "My wealth & protection", icon: Wallet },
+    { to: "/actions", label: "Actions & signatures", icon: ClipboardCheck },
+    { to: "/inbox", label: "Inbox", icon: Bell },
+    { to: "/reports", label: "Documents & ROAs", icon: FileText },
+    { to: "/integrations", label: "Integrations", icon: Plug },
+  ],
 };
 
 const ADMIN_NAV: NavItem[] = [{ to: "/admin/integrations", label: "APIs", icon: KeyRound }];
