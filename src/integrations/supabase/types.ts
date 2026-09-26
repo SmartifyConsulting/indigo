@@ -107,44 +107,95 @@ export type Database = {
         Row: {
           base_url: string
           category: string
+          config: Json
+          currency: string
           description: string
+          docs_url: string
+          enabled: boolean
           environment: string
           id: string
           key_hint: string | null
           last_checked_at: string | null
           last_rotated_at: string | null
           name: string
+          portal_url: string
+          portal_username: string
           status: string
+          top_up_url: string
+          unit_label: string
+          unit_price: number | null
           updated_at: string
           updated_by: string | null
         }
         Insert: {
           base_url?: string
           category: string
+          config?: Json
+          currency?: string
           description?: string
+          docs_url?: string
+          enabled?: boolean
           environment?: string
           id: string
           key_hint?: string | null
           last_checked_at?: string | null
           last_rotated_at?: string | null
           name: string
+          portal_url?: string
+          portal_username?: string
           status?: string
+          top_up_url?: string
+          unit_label?: string
+          unit_price?: number | null
           updated_at?: string
           updated_by?: string | null
         }
         Update: {
           base_url?: string
           category?: string
+          config?: Json
+          currency?: string
           description?: string
+          docs_url?: string
+          enabled?: boolean
           environment?: string
           id?: string
           key_hint?: string | null
           last_checked_at?: string | null
           last_rotated_at?: string | null
           name?: string
+          portal_url?: string
+          portal_username?: string
           status?: string
+          top_up_url?: string
+          unit_label?: string
+          unit_price?: number | null
           updated_at?: string
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      api_secrets: {
+        Row: {
+          field_key: string
+          integration_id: string
+          rotated_at: string
+          rotated_by: string | null
+          secret_value: string
+        }
+        Insert: {
+          field_key: string
+          integration_id: string
+          rotated_at?: string
+          rotated_by?: string | null
+          secret_value: string
+        }
+        Update: {
+          field_key?: string
+          integration_id?: string
+          rotated_at?: string
+          rotated_by?: string | null
+          secret_value?: string
         }
         Relationships: []
       }
@@ -338,23 +389,62 @@ export type Database = {
         Row: {
           created_at: string
           email: string
+          email_verified_at: string | null
           full_name: string
           id: string
+          login_count: number
           title: string
         }
         Insert: {
           created_at?: string
           email?: string
+          email_verified_at?: string | null
           full_name?: string
           id: string
+          login_count?: number
           title?: string
         }
         Update: {
           created_at?: string
           email?: string
+          email_verified_at?: string | null
           full_name?: string
           id?: string
+          login_count?: number
           title?: string
+        }
+        Relationships: []
+      }
+      role_requests: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          id: string
+          note: string
+          requested_role: Database["public"]["Enums"]["app_role"]
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          id?: string
+          note?: string
+          requested_role: Database["public"]["Enums"]["app_role"]
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          id?: string
+          note?: string
+          requested_role?: Database["public"]["Enums"]["app_role"]
+          status?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -381,6 +471,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      bump_login_count: { Args: never; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -388,9 +479,17 @@ export type Database = {
         }
         Returns: boolean
       }
+      mark_email_verified: { Args: never; Returns: undefined }
+      mark_email_verified_if_oauth: { Args: never; Returns: undefined }
     }
     Enums: {
-      app_role: "admin" | "advisor" | "compliance" | "client"
+      app_role:
+        | "admin"
+        | "advisor"
+        | "compliance"
+        | "client"
+        | "insurer"
+        | "fsp"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -518,7 +617,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "advisor", "compliance", "client"],
+      app_role: ["admin", "advisor", "compliance", "client", "insurer", "fsp"],
     },
   },
 } as const

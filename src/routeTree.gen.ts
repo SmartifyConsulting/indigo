@@ -21,6 +21,8 @@ import { Route as PortfoliosRouteImport } from './routes/portfolios'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as WelcomeRouteImport } from './routes/welcome'
+import { Route as WorkspaceRouteImport } from './routes/workspace'
 import { Route as AdminIntegrationsRouteImport } from './routes/admin.integrations'
 import { Route as ClientsIndexRouteImport } from './routes/clients.index'
 import { Route as ClientsClientIdRouteImport } from './routes/clients.$clientId'
@@ -86,6 +88,16 @@ const SignupRoute = SignupRouteImport.update({
   path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WelcomeRoute = WelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WorkspaceRoute = WorkspaceRouteImport.update({
+  id: '/workspace',
+  path: '/workspace',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminIntegrationsRoute = AdminIntegrationsRouteImport.update({
   id: '/admin/integrations',
   path: '/admin/integrations',
@@ -120,6 +132,8 @@ export interface FileRoutesByFullPath {
   '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/welcome': typeof WelcomeRoute
+  '/workspace': typeof WorkspaceRoute
   '/admin/integrations': typeof AdminIntegrationsRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
   '/onboard/$code': typeof OnboardCodeRoute
@@ -138,6 +152,8 @@ export interface FileRoutesByTo {
   '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/welcome': typeof WelcomeRoute
+  '/workspace': typeof WorkspaceRoute
   '/admin/integrations': typeof AdminIntegrationsRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
   '/onboard/$code': typeof OnboardCodeRoute
@@ -157,6 +173,8 @@ export interface FileRoutesById {
   '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/welcome': typeof WelcomeRoute
+  '/workspace': typeof WorkspaceRoute
   '/admin/integrations': typeof AdminIntegrationsRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
   '/onboard/$code': typeof OnboardCodeRoute
@@ -177,6 +195,8 @@ export interface FileRouteTypes {
     | '/reports'
     | '/reset-password'
     | '/signup'
+    | '/welcome'
+    | '/workspace'
     | '/admin/integrations'
     | '/clients/$clientId'
     | '/onboard/$code'
@@ -195,6 +215,8 @@ export interface FileRouteTypes {
     | '/reports'
     | '/reset-password'
     | '/signup'
+    | '/welcome'
+    | '/workspace'
     | '/admin/integrations'
     | '/clients/$clientId'
     | '/onboard/$code'
@@ -213,6 +235,8 @@ export interface FileRouteTypes {
     | '/reports'
     | '/reset-password'
     | '/signup'
+    | '/welcome'
+    | '/workspace'
     | '/admin/integrations'
     | '/clients/$clientId'
     | '/onboard/$code'
@@ -232,6 +256,8 @@ export interface RootRouteChildren {
   ReportsRoute: typeof ReportsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
+  WelcomeRoute: typeof WelcomeRoute
+  WorkspaceRoute: typeof WorkspaceRoute
   AdminIntegrationsRoute: typeof AdminIntegrationsRoute
   ClientsClientIdRoute: typeof ClientsClientIdRoute
   OnboardCodeRoute: typeof OnboardCodeRoute
@@ -324,6 +350,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/welcome': {
+      id: '/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof WelcomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/workspace': {
+      id: '/workspace'
+      path: '/workspace'
+      fullPath: '/workspace'
+      preLoaderRoute: typeof WorkspaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/integrations': {
       id: '/admin/integrations'
       path: '/admin/integrations'
@@ -368,6 +408,8 @@ const rootRouteChildren: RootRouteChildren = {
   ReportsRoute: ReportsRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
+  WelcomeRoute: WelcomeRoute,
+  WorkspaceRoute: WorkspaceRoute,
   AdminIntegrationsRoute: AdminIntegrationsRoute,
   ClientsClientIdRoute: ClientsClientIdRoute,
   OnboardCodeRoute: OnboardCodeRoute,
