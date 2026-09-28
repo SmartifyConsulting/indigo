@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Download, ShieldCheck, ShieldX } from "lucide-react";
 import { useState } from "react";
 
-import { LEDGER_TONE } from "@/components/case/issuance-tab";
 import { PageHeader, RequireRole, StatCard } from "@/components/common";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,7 +16,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { isComplete } from "@/lib/domain/gates";
-import { verifyLedger, type Verification } from "@/lib/domain/ledger";
+import { LEDGER_TONE, verifyLedger, type Verification } from "@/lib/domain/ledger";
 import { useAppState } from "@/lib/domain/store";
 import type { LedgerEvent } from "@/lib/domain/types";
 import { fmtDateTime } from "@/lib/fmt";

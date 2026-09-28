@@ -1,17 +1,17 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { useState } from "react";
 
-import { LEDGER_TONE } from "@/components/case/issuance-tab";
 import { ClientFinancialDashboard } from "@/components/client-financial-dashboard";
-import { PageHeader, StageBadge, StatCard } from "@/components/common";
+import { ActivityList, PageHeader, StageBadge, StatCard } from "@/components/common";
+import { LiveWorkspacePanel } from "@/components/live-workspace";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { STAGES, getStage, isComplete, roaSigned } from "@/lib/domain/gates";
+import { STAGES, getStage, isComplete, roaSigned, type StageNo } from "@/lib/domain/gates";
 import { nextAction } from "@/lib/domain/next-action";
 import { useAppState } from "@/lib/domain/store";
-import { PROVIDERS, providerName, type AppState, type CaseRecord } from "@/lib/domain/types";
+import { PROVIDERS, providerName, type CaseRecord } from "@/lib/domain/types";
 import { fmtDate, fmtDateTime, zar } from "@/lib/fmt";
 
 function StageChart({ cases }: { cases: CaseRecord[] }) {
@@ -56,49 +56,13 @@ function StageChart({ cases }: { cases: CaseRecord[] }) {
   );
 }
 
-export function ActivityList({
-  s,
-  caseIds,
-  limit = 6,
-}: {
-  s: AppState;
-  caseIds?: Set<string>;
-  limit?: number;
-}) {
-  const events = [...s.ledger]
-    .reverse()
-    .filter((e) => !caseIds || (e.caseId && caseIds.has(e.caseId)))
-    .slice(0, limit);
-  return (
-    <ul className="divide-y text-sm">
-      {events.map((e) => (
-        <li key={e.seq} className="flex items-start gap-3 py-2.5">
-          <Badge variant={LEDGER_TONE[e.type] ?? "secondary"} className="mt-0.5 shrink-0">
-            {e.type.replace(/_/g, " ").toLowerCase()}
-          </Badge>
-          <span className="min-w-0">
-            {e.summary}
-            <span className="block text-xs text-muted-foreground">
-              {e.actor.name} · {fmtDateTime(e.ts)}
-            </span>
-          </span>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
 /* ---------------------------------------------------------------- Advisor */
 
 export function AdvisorDashboard() {
   const s = useAppState();
   const me = s.advisors[0]!;
   const mine = s.cases.filter((c) => c.advisorId === me.id);
-  const ids = new Set(mine.map((c) => c.id));
-  const attention = mine
-    .filter((c) => !isComplete(c))
-    .map((c) => ({ c, n: nextAction(c) }))
-    .filter((x) => x.n.owner === "advisor" || x.n.owner === "fsp");
+  const [selected, setSelected] = useState<StageNo | null>(null);
 
   return (
     <>
@@ -112,37 +76,9 @@ export function AdvisorDashboard() {
         }
       />
       <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Needs your action</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {attention.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nothing is waiting on you.</p>
-            ) : (
-              <ul className="divide-y">
-                {attention.map(({ c, n }) => (
-                  <li key={c.id}>
-                    <Link
-                      to="/clients/$clientId"
-                      params={{ clientId: c.id }}
-                      className="flex items-center justify-between gap-3 py-3 hover:text-primary"
-                    >
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium">{c.clientName}</p>
-                        <p className="text-xs text-muted-foreground">{n.text}</p>
-                      </div>
-                      <span className="flex items-center gap-3">
-                        <StageBadge c={c} />
-                        <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
+        <div className="lg:col-span-2">
+          <LiveWorkspacePanel selected={selected} onSelect={setSelected} />
+        </div>
         <Card>
           <CardHeader>
             <CardTitle>Pipeline by stage</CardTitle>
@@ -152,14 +88,6 @@ export function AdvisorDashboard() {
           </CardContent>
         </Card>
       </div>
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>Recent activity</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ActivityList s={s} caseIds={ids} />
-        </CardContent>
-      </Card>
     </>
   );
 }

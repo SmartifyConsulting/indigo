@@ -2,9 +2,7 @@ import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { ActivityList } from "@/components/dashboards";
-import { PageHeader, StageBadge } from "@/components/common";
-import { ClientPanel } from "@/components/client-panel";
+import { ActivityList, PageHeader, StageBadge } from "@/components/common";
 import { LifecycleFlow } from "@/components/lifecycle-diagram";
 import { LiveStats } from "@/components/live-stats";
 import { StepsView } from "@/components/steps-view";
@@ -313,7 +311,12 @@ export function LiveWorkspaceScreen() {
               logged.
             </p>
           </div>
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:items-start">
+          <div
+            className={cn(
+              "grid gap-6 lg:items-start",
+              !isClient && "lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]",
+            )}
+          >
             <div className="rounded-lg border bg-card p-4 text-card-foreground sm:p-5">
               <FrameLabel>Flow map</FrameLabel>
               <LifecycleFlow
@@ -325,14 +328,25 @@ export function LiveWorkspaceScreen() {
                 onSelect={filterable ? setSelected : undefined}
               />
             </div>
-            <div className="lg:sticky lg:top-32">
-              <FrameLabel>{isClient ? "Your next step" : "Live workspace"}</FrameLabel>
-              {isClient ? (
-                <ClientPanel />
-              ) : (
-                <LiveWorkspacePanel selected={selected} onSelect={setSelected} />
-              )}
-            </div>
+            {!isClient && (
+              <div className="lg:sticky lg:top-32">
+                <FrameLabel>Live workspace</FrameLabel>
+                {role === "advisor" ? (
+                  <Card>
+                    <CardContent className="p-5">
+                      <p className="text-sm text-muted-foreground">
+                        Your client list, stage filters and stats now live on your Dashboard.
+                      </p>
+                      <Button asChild className="mt-3" size="sm" variant="outline">
+                        <Link to="/">Go to Dashboard</Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <LiveWorkspacePanel selected={selected} onSelect={setSelected} />
+                )}
+              </div>
+            )}
           </div>
         </section>
       )}

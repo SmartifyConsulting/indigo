@@ -15,19 +15,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { LEDGER_TONE } from "@/lib/domain/ledger";
 import { actions, useAppState } from "@/lib/domain/store";
-import { providerName, type CaseRecord, type LedgerType } from "@/lib/domain/types";
+import { providerName, type CaseRecord } from "@/lib/domain/types";
 import { fmtDate, fmtDateTime } from "@/lib/fmt";
 
 const STATUS = { submitted: "warning", issued: "success", declined: "danger" } as const;
-
-export const LEDGER_TONE: Partial<Record<LedgerType, "danger" | "success" | "warning" | "info">> = {
-  GATE_BLOCKED: "danger",
-  POLICY_ISSUED: "success",
-  APPLICATION_DECLINED: "danger",
-  ASTUTE_ALERT: "warning",
-  DOCUMENT_SIGNED: "info",
-};
 
 export function CaseAuditTrail({ caseId }: { caseId: string }) {
   const s = useAppState();

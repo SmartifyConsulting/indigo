@@ -1,5 +1,13 @@
 import { sha256 } from "./sha256";
-import type { LedgerEvent } from "./types";
+import type { LedgerEvent, LedgerType } from "./types";
+
+export const LEDGER_TONE: Partial<Record<LedgerType, "danger" | "success" | "warning" | "info">> = {
+  GATE_BLOCKED: "danger",
+  POLICY_ISSUED: "success",
+  APPLICATION_DECLINED: "danger",
+  ASTUTE_ALERT: "warning",
+  DOCUMENT_SIGNED: "info",
+};
 
 /**
  * Append-only, hash-chained audit ledger. Each entry commits to the previous entry's hash,

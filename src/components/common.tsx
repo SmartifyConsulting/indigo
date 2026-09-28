@@ -6,9 +6,11 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { STAGES, getStage, isComplete, type Gate, type StageNo } from "@/lib/domain/gates";
+import { LEDGER_TONE } from "@/lib/domain/ledger";
 import { useAppState } from "@/lib/domain/store";
-import type { CaseRecord, Role } from "@/lib/domain/types";
+import type { AppState, CaseRecord, Role } from "@/lib/domain/types";
 import { ROLE_LABEL } from "@/lib/domain/types";
+import { fmtDateTime } from "@/lib/fmt";
 import { cn } from "@/lib/utils";
 
 /** True where a page sits directly on the navy background (the home dashboard). */
@@ -215,5 +217,37 @@ export function Field({
       {children}
       {hint && <span className="block text-xs text-muted-foreground">{hint}</span>}
     </label>
+  );
+}
+
+export function ActivityList({
+  s,
+  caseIds,
+  limit = 6,
+}: {
+  s: AppState;
+  caseIds?: Set<string>;
+  limit?: number;
+}) {
+  const events = [...s.ledger]
+    .reverse()
+    .filter((e) => !caseIds || (e.caseId && caseIds.has(e.caseId)))
+    .slice(0, limit);
+  return (
+    <ul className="divide-y text-sm">
+      {events.map((e) => (
+        <li key={e.seq} className="flex items-start gap-3 py-2.5">
+          <Badge variant={LEDGER_TONE[e.type] ?? "secondary"} className="mt-0.5 shrink-0">
+            {e.type.replace(/_/g, " ").toLowerCase()}
+          </Badge>
+          <span className="min-w-0">
+            {e.summary}
+            <span className="block text-xs text-muted-foreground">
+              {e.actor.name} · {fmtDateTime(e.ts)}
+            </span>
+          </span>
+        </li>
+      ))}
+    </ul>
   );
 }
