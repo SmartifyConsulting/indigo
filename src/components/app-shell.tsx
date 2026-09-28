@@ -69,7 +69,7 @@ const NAV: Record<Role, NavItem[]> = {
   ],
   client: [
     { to: "/workspace", label: "Live Workspace", icon: Workflow },
-    { to: "/", label: "Overview", icon: LayoutDashboard },
+    { to: "/", label: "Dashboard", icon: LayoutDashboard },
     { to: "/portfolios", label: "My wealth & protection", icon: Wallet },
     { to: "/actions", label: "Actions & signatures", icon: ClipboardCheck },
     { to: "/reports", label: "My documents", icon: FileText },

@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import { LEDGER_TONE } from "@/components/case/issuance-tab";
+import { ClientFinancialDashboard } from "@/components/client-financial-dashboard";
 import { PageHeader, StageBadge, StatCard } from "@/components/common";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -169,6 +170,21 @@ export function ClientDashboard() {
   const s = useAppState();
   const c = s.cases.find((x) => x.id === s.session.clientCaseId) ?? s.cases[0]!;
   const na = nextAction(c);
+  const advisor = s.advisors.find((a) => a.id === c.advisorId);
+  const issued = c.applications.filter((a) => a.status === "issued");
+  const stage = getStage(c);
+  const complete = isComplete(c);
+  const needsOnboarding = stage === 1;
+
+  if (needsOnboarding) {
+    return <ClientOnboardingCard c={c} na={na} />;
+  }
+
+  return <ClientFinancialDashboard />;
+}
+
+function ClientOnboardingCard({ c, na }: { c: CaseRecord; na: ReturnType<typeof nextAction> }) {
+  const s = useAppState();
   const advisor = s.advisors.find((a) => a.id === c.advisorId);
   const issued = c.applications.filter((a) => a.status === "issued");
   const stage = getStage(c);
