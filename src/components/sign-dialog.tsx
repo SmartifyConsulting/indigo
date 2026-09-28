@@ -13,7 +13,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { actions, useAppState } from "@/lib/domain/store";
-import { SIGNATURE_LABEL, type SignatureKind } from "@/lib/domain/types";
+import { SIGNATURE_LABEL, type Signature, type SignatureKind } from "@/lib/domain/types";
+import { fmtDateTime } from "@/lib/fmt";
 
 const DOCUMENT_TEXT: Record<SignatureKind, string[]> = {
   disclosure: [
@@ -110,6 +111,20 @@ export function SignDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** Renders a signer's name in their assigned cursive font, with the date and IP the ledger records. */
+export function SignatureMark({ sig, className }: { sig: Signature; className?: string }) {
+  return (
+    <div className={className}>
+      <p className="text-2xl leading-none" style={{ fontFamily: `"${sig.font}", cursive` }}>
+        {sig.signerName}
+      </p>
+      <p className="mt-1 text-[11px] text-muted-foreground">
+        Signed {fmtDateTime(sig.signedAt)} · IP {sig.ipAddress}
+      </p>
+    </div>
   );
 }
 

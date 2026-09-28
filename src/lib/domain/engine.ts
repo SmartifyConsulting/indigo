@@ -15,6 +15,7 @@ import {
 import { appendEvent } from "./ledger";
 import { buildRoaContent, generateQuotes } from "./quotes";
 import { hashOf } from "./sha256";
+import { pickSignatureFont, syntheticIp } from "./signature-fonts";
 import type {
   AppState,
   CaseRecord,
@@ -376,13 +377,19 @@ export function signDocument(
   const docHash = hashOf(
     roaBound ? { kind, roa: v?.hash } : { kind, client: c.id, template: "v1.0" },
   );
+  const sigId = uid("sig", c.id, kind, now);
+  const otherFonts = c.signatures
+    .filter((x) => x.kind === kind && (roaBound ? x.roaVersion === v?.version : true))
+    .map((x) => x.font);
   c.signatures.push({
-    id: uid("sig", c.id, kind, now),
+    id: sigId,
     kind,
     signerName: c.clientName,
     signedAt: now,
     docHash,
     roaVersion: roaBound ? v?.version : undefined,
+    font: pickSignatureFont(sigId, otherFonts[otherFonts.length - 1]),
+    ipAddress: syntheticIp(sigId),
   });
   log(
     s,

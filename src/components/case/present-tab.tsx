@@ -3,7 +3,7 @@ import { useRef } from "react";
 
 import { GateList, toastResult } from "@/components/common";
 import { RoaSummary } from "@/components/case/quotes-tab";
-import { SignButton } from "@/components/sign-dialog";
+import { SignButton, SignatureMark } from "@/components/sign-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,16 +21,19 @@ function SigRow({ c, kind, disabled }: { c: CaseRecord; kind: SignatureKind; dis
         <p className="font-medium">{SIGNATURE_LABEL[kind]}</p>
         <p className="text-xs text-muted-foreground">
           {sig
-            ? `Signed ${fmtDateTime(sig.signedAt)} · ROA v${sig.roaVersion}`
+            ? `ROA v${sig.roaVersion}`
             : v
               ? `Applies to ROA v${v.version}`
               : "Requires a Record of Advice"}
         </p>
       </div>
       {sig ? (
-        <Badge variant="success">
-          <Check className="h-3 w-3" /> Signed
-        </Badge>
+        <div className="flex items-center gap-3">
+          <SignatureMark sig={sig} className="text-right" />
+          <Badge variant="success">
+            <Check className="h-3 w-3" /> Signed
+          </Badge>
+        </div>
       ) : (
         <SignButton
           caseId={c.id}

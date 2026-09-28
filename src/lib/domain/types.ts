@@ -1,3 +1,5 @@
+import type { SignatureFont } from "./signature-fonts";
+
 export type Role = "client" | "advisor" | "fsp" | "insurer";
 
 export const ROLE_LABEL: Record<Role, string> = {
@@ -151,6 +153,8 @@ export interface Signature {
   signedAt: string;
   docHash: string;
   roaVersion?: number | undefined;
+  font: SignatureFont;
+  ipAddress: string;
 }
 
 export interface RoaContent {

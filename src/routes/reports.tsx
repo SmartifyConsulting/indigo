@@ -3,6 +3,7 @@ import { Download } from "lucide-react";
 import { useState } from "react";
 
 import { PageHeader } from "@/components/common";
+import { SignatureMark } from "@/components/sign-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -21,6 +22,7 @@ import {
   providerName,
   type CaseRecord,
   type RoaVersion,
+  type Signature,
 } from "@/lib/domain/types";
 import { fmtDateTime, zar } from "@/lib/fmt";
 
@@ -36,6 +38,7 @@ interface Doc {
   date: string;
   status: "Signed" | "Current" | "Superseded" | "Issued";
   fingerprint: string;
+  signature?: Signature;
   download?: () => void;
 }
 
@@ -94,6 +97,7 @@ function Documents() {
       date: sg.signedAt,
       status: "Signed",
       fingerprint: sg.docHash,
+      signature: sg,
     })),
     ...c.roa.map<Doc>((v) => {
       const signed = c.signatures.some((sg) => sg.kind === "roa" && sg.roaVersion === v.version);
@@ -144,6 +148,7 @@ function Documents() {
               {role !== "client" && <TableHead>Client</TableHead>}
               <TableHead>Date</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Signature</TableHead>
               <TableHead>Fingerprint</TableHead>
               <TableHead />
             </TableRow>
@@ -167,6 +172,7 @@ function Documents() {
                     {d.status}
                   </Badge>
                 </TableCell>
+                <TableCell>{d.signature && <SignatureMark sig={d.signature} />}</TableCell>
                 <TableCell className="font-mono text-xs text-muted-foreground">
                   {d.fingerprint.slice(0, 14)}
                 </TableCell>
@@ -181,7 +187,7 @@ function Documents() {
             ))}
             {rows.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
                   No documents yet.
                 </TableCell>
               </TableRow>
