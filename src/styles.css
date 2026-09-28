@@ -151,8 +151,7 @@
   --sidebar-accent-foreground: oklch(0.465 0.138 251.8);
   --sidebar-border: oklch(0.935 0.01 273.4);
   --sidebar-ring: oklch(0.519 0.156 252.1);
-  /* Izenzo cream (alpha-bravo) */
-  --background: oklch(0.98 0.006 90);
+  --background: oklch(1 0 0);
   --foreground: oklch(0.19 0.01 260);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.19 0.01 260);
