@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { isAdmin as isAdminFn } from "@/lib/admin.functions";
 import { Switch } from "@/components/ui/switch";
+import { getStage } from "@/lib/domain/gates";
 import { actions, resetDemo, useAppState } from "@/lib/domain/store";
 import { useTheme } from "@/lib/theme";
 import { useAuth } from "@/lib/use-auth";
@@ -137,10 +138,17 @@ interface SwitchUserOption {
   name: string;
 }
 
+/** The case that best shows off the client dashboard: the one furthest along the advice lifecycle. */
+function useDemoClientCase() {
+  const s = useAppState();
+  return [...s.cases].sort((a, b) => getStage(b) - getStage(a))[0];
+}
+
 function useSwitchUserOptions(): SwitchUserOption[] {
   const s = useAppState();
+  const demoClient = useDemoClientCase();
   return [
-    { role: "client", name: s.cases[0]?.clientName ?? "Client" },
+    { role: "client", name: demoClient?.clientName ?? "Client" },
     { role: "advisor", name: s.advisors?.[0]?.name ?? "Wealth Manager" },
     { role: "fsp", name: s.fsp?.keyIndividual ?? "Key Individual" },
     { role: "insurer", name: PROVIDERS[0]?.name ?? "Insurer" },
@@ -151,6 +159,7 @@ function SwitchUserMenu() {
   const s = useAppState();
   const navigate = useNavigate();
   const options = useSwitchUserOptions();
+  const demoClient = useDemoClientCase();
 
   return (
     <>
@@ -159,7 +168,7 @@ function SwitchUserMenu() {
         <DropdownMenuItem
           key={opt.role}
           onSelect={() => {
-            if (opt.role === "client" && s.cases[0]) actions.setClientCase(s.cases[0].id);
+            if (opt.role === "client" && demoClient) actions.setClientCase(demoClient.id);
             if (opt.role === "insurer" && PROVIDERS[0]) actions.setInsurer(PROVIDERS[0].id);
             actions.setRole(opt.role);
             void navigate({ to: "/" });
