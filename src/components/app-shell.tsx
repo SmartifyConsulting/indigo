@@ -5,6 +5,7 @@ import {
   Bell,
   FolderKanban,
   Building2,
+  Check,
   ClipboardCheck,
   CreditCard,
   FileText,
@@ -35,19 +36,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { isAdmin as isAdminFn } from "@/lib/admin.functions";
 import { Switch } from "@/components/ui/switch";
 import { actions, resetDemo, useAppState } from "@/lib/domain/store";
 import { useTheme } from "@/lib/theme";
 import { useAuth } from "@/lib/use-auth";
-import { PROVIDERS, ROLE_LABEL, type Role } from "@/lib/domain/types";
+import { PROVIDERS, ROLE_LABEL, ROLE_TAG, type Role } from "@/lib/domain/types";
 import { initials } from "@/lib/fmt";
 import { cn } from "@/lib/utils";
 
@@ -59,37 +53,33 @@ interface NavItem {
 
 const NAV: Record<Role, NavItem[]> = {
   advisor: [
-    { to: "/workspace", label: "Live Workspace", icon: Workflow },
     { to: "/", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/workspace", label: "Live Workspace", icon: Workflow },
     { to: "/clients", label: "Clients", icon: Users },
-    { to: "/cases", label: "All cases", icon: FolderKanban },
-    { to: "/inbox", label: "Inbox", icon: Bell },
+    { to: "/cases", label: "All Cases", icon: FolderKanban },
     { to: "/reports", label: "Documents & ROAs", icon: FileText },
     { to: "/integrations", label: "Integrations", icon: Plug },
   ],
   client: [
     { to: "/", label: "Dashboard", icon: LayoutDashboard },
     { to: "/workspace", label: "Live Workspace", icon: Workflow },
-    { to: "/portfolios", label: "My wealth & protection", icon: Wallet },
-    { to: "/actions", label: "Actions & signatures", icon: ClipboardCheck },
-    { to: "/reports", label: "My documents", icon: FileText },
-    { to: "/inbox", label: "Inbox", icon: Bell },
+    { to: "/portfolios", label: "My Wealth & Protection", icon: Wallet },
+    { to: "/actions", label: "Actions & Signatures", icon: ClipboardCheck },
+    { to: "/reports", label: "My Documents", icon: FileText },
   ],
   fsp: [
-    { to: "/workspace", label: "Live Workspace", icon: Workflow },
     { to: "/", label: "Dashboard", icon: LayoutDashboard },
-    { to: "/compliance", label: "Compliance & audit", icon: ShieldCheck },
-    { to: "/clients", label: "Client pipeline", icon: Users },
-    { to: "/cases", label: "All cases", icon: FolderKanban },
-    { to: "/inbox", label: "Inbox", icon: Bell },
+    { to: "/workspace", label: "Live Workspace", icon: Workflow },
+    { to: "/compliance", label: "Compliance & Audit", icon: ShieldCheck },
+    { to: "/clients", label: "Client Pipeline", icon: Users },
+    { to: "/cases", label: "All Cases", icon: FolderKanban },
     { to: "/integrations", label: "Integrations", icon: Plug },
     { to: "/billing", label: "Billing", icon: CreditCard },
   ],
   insurer: [
-    { to: "/workspace", label: "Live Workspace", icon: Workflow },
     { to: "/", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/workspace", label: "Live Workspace", icon: Workflow },
     { to: "/applications", label: "Applications", icon: Inbox },
-    { to: "/inbox", label: "Inbox", icon: Bell },
   ],
 };
 
@@ -117,7 +107,8 @@ function NavLink({ to, label, icon: Icon }: NavItem) {
 
 /** Main menu, a horizontal row under the header. Scrolls sideways on narrow screens. */
 function NavLinks({ role }: { role: Role }) {
-  const admin = useIsAdmin();
+  const pathname = useRouterState({ select: (r) => r.location.pathname });
+  const onAdminView = pathname.startsWith("/admin");
   return (
     <nav aria-label="Main" className="border-t border-white/10 px-2 sm:px-4">
       <ul className="flex items-center gap-1 overflow-x-auto">
@@ -126,7 +117,7 @@ function NavLinks({ role }: { role: Role }) {
             <NavLink {...item} />
           </li>
         ))}
-        {admin && (
+        {onAdminView && (
           <>
             <li aria-hidden className="mx-2 h-5 w-px shrink-0 bg-white/20" />
             {ADMIN_NAV.map((item) => (
@@ -141,77 +132,50 @@ function NavLinks({ role }: { role: Role }) {
   );
 }
 
-function ContextPicker() {
-  const s = useAppState();
-  if (s.session.role === "client") {
-    return (
-      <Select value={s.session.clientCaseId} onValueChange={(v) => actions.setClientCase(v)}>
-        <SelectTrigger
-          className="h-8 w-44 border-navy-muted bg-navy text-xs text-navy-foreground"
-          aria-label="Viewing as client"
-        >
-          <SelectValue placeholder="Choose client" />
-        </SelectTrigger>
-        <SelectContent>
-          {s.cases.map((c) => (
-            <SelectItem key={c.id} value={c.id}>
-              {c.clientName}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    );
-  }
-  if (s.session.role === "insurer") {
-    return (
-      <Select
-        value={s.session.insurerId}
-        onValueChange={(v) => actions.setInsurer(v as (typeof PROVIDERS)[number]["id"])}
-      >
-        <SelectTrigger
-          className="h-8 w-44 border-navy-muted bg-navy text-xs text-navy-foreground"
-          aria-label="Insurer"
-        >
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {PROVIDERS.map((p) => (
-            <SelectItem key={p.id} value={p.id}>
-              {p.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    );
-  }
-  return null;
+interface SwitchUserOption {
+  role: Role;
+  name: string;
 }
 
-function RoleSwitcher() {
+function useSwitchUserOptions(): SwitchUserOption[] {
+  const s = useAppState();
+  return [
+    { role: "client", name: s.cases[0]?.clientName ?? "Client" },
+    { role: "advisor", name: s.advisors?.[0]?.name ?? "Wealth Manager" },
+    { role: "fsp", name: s.fsp?.keyIndividual ?? "Key Individual" },
+    { role: "insurer", name: PROVIDERS[0]?.name ?? "Insurer" },
+  ];
+}
+
+function SwitchUserMenu() {
   const s = useAppState();
   const navigate = useNavigate();
+  const options = useSwitchUserOptions();
+
   return (
-    <Select
-      value={s.session.role}
-      onValueChange={(v) => {
-        actions.setRole(v as Role);
-        void navigate({ to: "/" });
-      }}
-    >
-      <SelectTrigger
-        className="h-8 w-52 border-navy-muted bg-navy text-xs text-navy-foreground"
-        aria-label="Switch role"
-      >
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {(Object.keys(ROLE_LABEL) as Role[]).map((r) => (
-          <SelectItem key={r} value={r}>
-            View as {ROLE_LABEL[r]}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <>
+      <DropdownMenuLabel className="text-xs text-muted-foreground">Switch User</DropdownMenuLabel>
+      {options.map((opt) => (
+        <DropdownMenuItem
+          key={opt.role}
+          onSelect={() => {
+            if (opt.role === "client" && s.cases[0]) actions.setClientCase(s.cases[0].id);
+            if (opt.role === "insurer" && PROVIDERS[0]) actions.setInsurer(PROVIDERS[0].id);
+            actions.setRole(opt.role);
+            void navigate({ to: "/" });
+          }}
+        >
+          <Avatar className="h-6 w-6">
+            <AvatarFallback className="bg-secondary text-[10px] font-semibold">
+              {ROLE_TAG[opt.role]}
+            </AvatarFallback>
+          </Avatar>
+          <span className="min-w-0 flex-1 truncate">{opt.name}</span>
+          <span className="text-xs text-muted-foreground">{ROLE_LABEL[opt.role]}</span>
+          {s.session.role === opt.role && <Check className="h-4 w-4 text-brand" />}
+        </DropdownMenuItem>
+      ))}
+    </>
   );
 }
 
@@ -238,6 +202,19 @@ function useIdentity() {
     }
   }
   return { name: "User", sub: "" };
+}
+
+function InboxButton() {
+  return (
+    <Link
+      to="/inbox"
+      aria-label="Inbox"
+      className="flex h-9 w-9 items-center justify-center rounded-full border border-navy-foreground/30 text-navy-foreground/80 transition-colors hover:text-brand"
+      activeProps={{ className: "text-brand border-brand" }}
+    >
+      <Bell className="h-4 w-4" />
+    </Link>
+  );
 }
 
 function ThemeToggle() {
@@ -293,6 +270,7 @@ export function AppShell({
   const id = useIdentity();
   const { signOut } = useAuth();
   const role = s.session.role;
+  const isAdmin = useIsAdmin();
 
   return (
     <div className="flex min-h-screen flex-col overflow-x-hidden bg-background">
@@ -303,10 +281,7 @@ export function AppShell({
           </Link>
 
           <div className="ml-auto flex items-center gap-2">
-            <div className="hidden items-center gap-2 md:flex">
-              <ContextPicker />
-              <RoleSwitcher />
-            </div>
+            <InboxButton />
             <ThemeToggle />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -332,13 +307,16 @@ export function AppShell({
                   <Building2 className="h-4 w-4 text-muted-foreground" />
                   <span className="truncate text-xs text-muted-foreground">{s.fsp?.name ?? ""}</span>
                 </DropdownMenuLabel>
-                <div className="px-2 pb-2 md:hidden">
-                  <div className="flex flex-col gap-2 [&_button]:w-full">
-                    <RoleSwitcher />
-                    <ContextPicker />
-                  </div>
-                </div>
                 <DropdownMenuSeparator />
+                <SwitchUserMenu />
+                <DropdownMenuSeparator />
+                {isAdmin && (
+                  <DropdownMenuItem asChild>
+                    <Link to="/admin/integrations">
+                      <KeyRound className="h-4 w-4" /> APIs
+                    </Link>
+                  </DropdownMenuItem>
+                )}
                 <ThemeItem />
                 <DropdownMenuItem onSelect={() => resetDemo()}>
                   <RotateCcw className="h-4 w-4" /> Reset demo data

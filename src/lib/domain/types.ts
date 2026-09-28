@@ -4,7 +4,14 @@ export const ROLE_LABEL: Record<Role, string> = {
   client: "Client",
   advisor: "Wealth Manager",
   fsp: "FSP / Key Individual",
-  insurer: "Risk Bearer (Insurer)",
+  insurer: "Insurer",
+};
+
+export const ROLE_TAG: Record<Role, string> = {
+  client: "C",
+  advisor: "WM",
+  fsp: "FSP",
+  insurer: "I",
 };
 
 export type NeedCategory = "life" | "short-term" | "investment";
