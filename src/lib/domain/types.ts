@@ -197,6 +197,7 @@ export interface ExternalPolicy {
     | "Disability"
     | "Severe illness"
     | "Retirement annuity"
+    | "Preservation Fund"
     | "Unit trust"
     | "Endowment"
     | "Offshore"

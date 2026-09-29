@@ -1,9 +1,15 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Plus, Search } from "lucide-react";
+import { ArrowUpRight, Mail, Phone, Plus, Search } from "lucide-react";
 import { useState } from "react";
 
 import { PageHeader, RequireRole, StageBadge, StageDots, VerifiedBadge } from "@/components/common";
 import { InviteClientDialog } from "@/components/invite-client-dialog";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,7 +24,9 @@ import {
 import { getStage, isComplete } from "@/lib/domain/gates";
 import { nextAction } from "@/lib/domain/next-action";
 import { useAppState } from "@/lib/domain/store";
+import type { CaseRecord } from "@/lib/domain/types";
 import { fmtDate } from "@/lib/fmt";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/clients/")({
   head: () => ({ meta: [{ title: "Clients | indigro" }] }),
@@ -57,77 +65,81 @@ function Clients() {
           )
         }
       />
-      <div className="relative mb-4 max-w-sm">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          className="pl-9"
-          placeholder="Search clients"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          aria-label="Search clients"
-        />
-      </div>
-      <Card>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Client</TableHead>
-              {!isAdvisor && <TableHead>Advisor</TableHead>}
-              <TableHead>Stage</TableHead>
-              <TableHead>Progress</TableHead>
-              <TableHead>Next step</TableHead>
-              <TableHead>Invited</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.map((c) => {
-              const na = nextAction(c);
-              return (
-                <TableRow key={c.id}>
-                  <TableCell>
-                    <span className="flex items-center gap-2">
-                      <Link
-                        to="/clients/$clientId"
-                        params={{ clientId: c.id }}
-                        className="font-medium text-primary hover:underline"
-                      >
-                        {c.clientName}
-                      </Link>
-                      <VerifiedBadge c={c} />
-                    </span>
-                    <p className="text-xs text-muted-foreground">{c.email}</p>
-                  </TableCell>
-                  {!isAdvisor && (
-                    <TableCell>{s.advisors.find((a) => a.id === c.advisorId)?.name}</TableCell>
-                  )}
-                  <TableCell>
-                    <StageBadge c={c} />
-                  </TableCell>
-                  <TableCell>
-                    <StageDots stage={getStage(c)} complete={isComplete(c)} />
-                  </TableCell>
-                  <TableCell className="max-w-64 text-sm">
-                    {na.text}
-                    {na.owner !== "none" && (
-                      <span className="block text-xs capitalize text-muted-foreground">
-                        {na.owner === "fsp" ? "Key Individual" : na.owner}
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">{fmtDate(c.createdAt)}</TableCell>
+      {isAdvisor ? (
+        <AlphabeticalClients cases={rows} />
+      ) : (
+        <>
+          <div className="relative mb-4 max-w-sm">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              className="pl-9"
+              placeholder="Search clients"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              aria-label="Search clients"
+            />
+          </div>
+          <Card>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Client</TableHead>
+                  <TableHead>Advisor</TableHead>
+                  <TableHead>Stage</TableHead>
+                  <TableHead>Progress</TableHead>
+                  <TableHead>Next step</TableHead>
+                  <TableHead>Invited</TableHead>
                 </TableRow>
-              );
-            })}
-            {rows.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
-                  No clients match.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </Card>
+              </TableHeader>
+              <TableBody>
+                {rows.map((c) => {
+                  const na = nextAction(c);
+                  return (
+                    <TableRow key={c.id}>
+                      <TableCell>
+                        <span className="flex items-center gap-2">
+                          <Link
+                            to="/clients/$clientId"
+                            params={{ clientId: c.id }}
+                            className="font-medium text-primary hover:underline"
+                          >
+                            {c.clientName}
+                          </Link>
+                          <VerifiedBadge c={c} />
+                        </span>
+                        <p className="text-xs text-muted-foreground">{c.email}</p>
+                      </TableCell>
+                      <TableCell>{s.advisors.find((a) => a.id === c.advisorId)?.name}</TableCell>
+                      <TableCell>
+                        <StageBadge c={c} />
+                      </TableCell>
+                      <TableCell>
+                        <StageDots stage={getStage(c)} complete={isComplete(c)} />
+                      </TableCell>
+                      <TableCell className="max-w-64 text-sm">
+                        {na.text}
+                        {na.owner !== "none" && (
+                          <span className="block text-xs capitalize text-muted-foreground">
+                            {na.owner === "fsp" ? "Key Individual" : na.owner}
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">{fmtDate(c.createdAt)}</TableCell>
+                    </TableRow>
+                  );
+                })}
+                {rows.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                      No clients match.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </Card>
+        </>
+      )}
       <InviteClientDialog
         open={invite}
         onOpenChange={setInvite}
@@ -135,5 +147,169 @@ function Clients() {
         onDone={(id) => void navigate({ to: "/clients/$clientId", params: { clientId: id } })}
       />
     </>
+  );
+}
+
+const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
+/** The advisor sorts and looks clients up by surname, so the index groups on it too. */
+function surnameOf(name: string) {
+  const parts = name.trim().split(/\s+/);
+  return parts[parts.length - 1] ?? name;
+}
+
+function initials(name: string) {
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0]?.[0] ?? "") + (parts[parts.length - 1]?.[0] ?? "")).toUpperCase();
+}
+
+function LetterPill({
+  label,
+  active,
+  disabled,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  disabled?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className={cn(
+        "flex h-8 min-w-8 items-center justify-center rounded-full border px-2.5 text-sm font-medium transition-colors",
+        disabled
+          ? "cursor-not-allowed border-border text-muted-foreground/30"
+          : active
+            ? "border-brand bg-brand text-brand-foreground"
+            : "border-border text-foreground hover:border-brand hover:text-brand",
+      )}
+    >
+      {label}
+    </button>
+  );
+}
+
+/** WM's client list, grouped and quick-jumped by surname initial. */
+function AlphabeticalClients({ cases }: { cases: CaseRecord[] }) {
+  const [letter, setLetter] = useState<string | "All">("All");
+  const [open, setOpen] = useState<string[]>([]);
+
+  const groups = new Map<string, CaseRecord[]>();
+  for (const c of cases) {
+    const l = surnameOf(c.clientName)[0]?.toUpperCase() ?? "";
+    if (!LETTERS.includes(l)) continue;
+    if (!groups.has(l)) groups.set(l, []);
+    groups.get(l)!.push(c);
+  }
+  for (const list of groups.values()) {
+    list.sort(
+      (a, b) =>
+        surnameOf(a.clientName).localeCompare(surnameOf(b.clientName)) ||
+        a.clientName.localeCompare(b.clientName),
+    );
+  }
+
+  const visibleLetters = letter === "All" ? LETTERS.filter((l) => groups.has(l)) : [letter];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-1.5">
+        <LetterPill label="All" active={letter === "All"} onClick={() => setLetter("All")} />
+        {LETTERS.map((l) => (
+          <LetterPill
+            key={l}
+            label={l}
+            active={letter === l}
+            disabled={!groups.has(l)}
+            onClick={() => setLetter(l)}
+          />
+        ))}
+      </div>
+
+      <Card className="overflow-hidden p-0">
+        <div className="grid grid-cols-[2fr_1.6fr_1.3fr_1fr_60px] items-center gap-3 bg-brand px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-brand-foreground">
+          <span>Client</span>
+          <span>Contact</span>
+          <span>Stage</span>
+          <span>Client since</span>
+          <span className="text-right">Actions</span>
+        </div>
+        {visibleLetters.length === 0 ? (
+          <p className="px-4 py-8 text-center text-sm text-muted-foreground">No clients match.</p>
+        ) : (
+          <Accordion
+            type="multiple"
+            value={letter === "All" ? open : visibleLetters}
+            onValueChange={letter === "All" ? setOpen : () => {}}
+          >
+            {visibleLetters.map((l) => {
+              const list = groups.get(l) ?? [];
+              return (
+                <AccordionItem key={l} value={l} className="border-b last:border-b-0">
+                  <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                    <span className="flex items-baseline gap-2">
+                      <span className="font-semibold text-brand">{l}</span>
+                      <span className="text-sm text-muted-foreground">({list.length})</span>
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent className="p-0">
+                    {list.map((c) => (
+                      <div
+                        key={c.id}
+                        className="grid grid-cols-[2fr_1.6fr_1.3fr_1fr_60px] items-center gap-3 border-t px-4 py-3"
+                      >
+                        <div className="flex min-w-0 items-center gap-3">
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-soft text-xs font-semibold text-brand-ink">
+                            {initials(c.clientName)}
+                          </span>
+                          <span className="flex items-center gap-2 truncate">
+                            <Link
+                              to="/clients/$clientId"
+                              params={{ clientId: c.id }}
+                              className="truncate font-medium text-primary hover:underline"
+                            >
+                              {c.clientName}
+                            </Link>
+                            <VerifiedBadge c={c} />
+                          </span>
+                        </div>
+                        <div className="min-w-0 space-y-0.5 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1.5 truncate">
+                            <Mail className="h-3.5 w-3.5 shrink-0" />
+                            {c.email}
+                          </span>
+                          <span className="flex items-center gap-1.5 truncate">
+                            <Phone className="h-3.5 w-3.5 shrink-0" />
+                            {c.phone}
+                          </span>
+                        </div>
+                        <div>
+                          <StageBadge c={c} />
+                        </div>
+                        <div className="text-sm text-muted-foreground">{fmtDate(c.createdAt)}</div>
+                        <div className="text-right">
+                          <Link
+                            to="/clients/$clientId"
+                            params={{ clientId: c.id }}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                            aria-label={`Open ${c.clientName}`}
+                          >
+                            <ArrowUpRight className="h-4 w-4" />
+                          </Link>
+                        </div>
+                      </div>
+                    ))}
+                  </AccordionContent>
+                </AccordionItem>
+              );
+            })}
+          </Accordion>
+        )}
+      </Card>
+    </div>
   );
 }

@@ -73,6 +73,7 @@ const POLICY_TYPES: ExternalPolicy["type"][] = [
   "Disability",
   "Severe illness",
   "Retirement annuity",
+  "Preservation Fund",
   "Unit trust",
   "Endowment",
   "Offshore",

@@ -359,7 +359,7 @@ export function LifecycleFlow({
       const b = el.getBoundingClientRect();
       return { l: b.left - o.left, t: b.top - o.top, r: b.right - o.left, b: b.bottom - o.top };
     };
-    const order: StageNo[] = [1, 2, 3, 4, 5, 6, 3];
+    const order: StageNo[] = [1, 2, 3, 4, 5, 6];
     const out: { d: string; tone: "done" | "next" | "todo" }[] = [];
     for (let i = 0; i < order.length - 1; i++) {
       const from = order[i]!;
@@ -377,13 +377,6 @@ export function LifecycleFlow({
         // A single straight arrow from the top of step 5 to the bottom of step 6.
         const x = (a.l + a.r) / 2;
         d = `M${x},${a.t} V${b.b}`;
-      } else if (from === 6 && to === 3) {
-        // Annual review cycle: loops back up into step 3 (re-assess needs), not step 1. The
-        // horizontal jog sits close to step 6's top edge, then a straight run up into the
-        // horizontal middle of step 3.
-        const x1 = (a.l + a.r) / 2, x2 = (b.l + b.r) / 2;
-        const my = a.t - (a.t - (a.t + b.b) / 2) / 2;
-        d = `M${x1},${a.t} V${my} H${x2} V${b.b}`;
       } else if (b.l >= a.r) {
         // to the right: right edge -> left edge
         const y1 = hy(a), y2 = hy(b), mx = (a.r + b.l) / 2;
