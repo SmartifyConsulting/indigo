@@ -206,10 +206,35 @@ export function LiveWorkspacePanel({
 function FrameLabel({ children, onDark = false }: { children: string; onDark?: boolean }) {
   return (
     <p
-      className={`mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.2em] ${onDark ? "text-brand" : "text-brand-ink"}`}
+      className={`font-mono text-[11px] font-medium uppercase tracking-[0.2em] ${onDark ? "text-brand" : "text-brand-ink"}`}
     >
       {children}
     </p>
+  );
+}
+
+function ViewToggle({
+  mode,
+  onChange,
+}: {
+  mode: "map" | "steps";
+  onChange: (m: "map" | "steps") => void;
+}) {
+  return (
+    <div role="group" aria-label="View" className="flex shrink-0 gap-1">
+      {(["map", "steps"] as const).map((m) => (
+        <Button
+          key={m}
+          size="sm"
+          variant={mode === m ? "default" : "outline"}
+          aria-pressed={mode === m}
+          onClick={() => onChange(m)}
+          className="h-7 px-2.5 text-xs capitalize"
+        >
+          {m}
+        </Button>
+      ))}
+    </div>
   );
 }
 
@@ -272,36 +297,27 @@ export function LiveWorkspaceScreen() {
             </SelectContent>
           </Select>
         )}
-        <div role="group" aria-label="View" className="flex gap-1">
-          {(["map", "steps"] as const).map((m) => (
-            <Button
-              key={m}
-              size="sm"
-              variant={mode === m ? "default" : "outline"}
-              aria-pressed={mode === m}
-              onClick={() => setMode(m)}
-              className="h-8 capitalize"
-            >
-              {m}
-            </Button>
-          ))}
-        </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-start">
         {mode === "steps" ? (
           <section aria-label="Steps" className="rounded-lg border bg-card p-4 sm:p-6">
-            {openCase ? (
-              <>
-                <div className="mb-4 flex items-center justify-between gap-2">
-                  <div>
-                    <p className="font-mono text-xs text-muted-foreground">{openCase.code}</p>
-                    <h2 className="text-lg font-medium">{openCase.clientName}</h2>
-                  </div>
-                  <StageBadge c={openCase} />
+            <div className="mb-4 flex items-center justify-between gap-2">
+              {openCase ? (
+                <div>
+                  <p className="font-mono text-xs text-muted-foreground">{openCase.code}</p>
+                  <h2 className="text-lg font-medium">{openCase.clientName}</h2>
                 </div>
-                <StepsView c={openCase} />
-              </>
+              ) : (
+                <FrameLabel>Steps</FrameLabel>
+              )}
+              <div className="flex items-center gap-2">
+                {openCase && <StageBadge c={openCase} />}
+                <ViewToggle mode={mode} onChange={setMode} />
+              </div>
+            </div>
+            {openCase ? (
+              <StepsView c={openCase} />
             ) : (
               <Empty>Open a case above to follow its steps.</Empty>
             )}
@@ -311,7 +327,10 @@ export function LiveWorkspaceScreen() {
             aria-label="Advice lifecycle"
             className="rounded-lg border bg-card p-4 text-card-foreground sm:p-6"
           >
-            <FrameLabel>Workflow map</FrameLabel>
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <FrameLabel>Workflow map</FrameLabel>
+              <ViewToggle mode={mode} onChange={setMode} />
+            </div>
             <LifecycleFlow
               chips={openCase ? {} : view.chips}
               active={openCase ? getStage(openCase) : view.active}
