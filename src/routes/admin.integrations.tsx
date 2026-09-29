@@ -43,6 +43,7 @@ import {
   type IntegrationRow,
 } from "@/lib/admin.functions";
 import { BRAND } from "@/lib/brand";
+import { useAuth } from "@/lib/use-auth";
 import { fmtDateTime } from "@/lib/fmt";
 
 export const Route = createFileRoute("/admin/integrations")({
@@ -84,8 +85,20 @@ function AdminIntegrations() {
   const revokeKey = useServerFn(revokeIntegrationKey);
   const testKey = useServerFn(testIntegration);
 
-  const admin = useQuery({ queryKey: ["is-admin"], queryFn: () => checkAdmin() });
-  const data = useQuery({ queryKey: ["integrations"], queryFn: () => load() });
+  const { session } = useAuth();
+  const userId = session?.user.id;
+  const admin = useQuery({
+    queryKey: ["is-admin", userId],
+    queryFn: () => checkAdmin(),
+    enabled: !!userId,
+    retry: false,
+  });
+  const data = useQuery({
+    queryKey: ["integrations", userId],
+    queryFn: () => load(),
+    enabled: !!userId,
+    retry: false,
+  });
   const [editing, setEditing] = useState<IntegrationRow | null>(null);
   const [apiKey, setApiKey] = useState("");
   const [environment, setEnvironment] = useState<"sandbox" | "production">("sandbox");
