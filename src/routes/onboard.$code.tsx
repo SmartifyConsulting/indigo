@@ -131,7 +131,7 @@ function Wizard({ c }: { c: CaseRecord }) {
   return (
     <AuthLayout
       wide
-      title={allDone ? "You're all set" : `Welcome, ${c.clientName.split(" ")[0]}`}
+      title={allDone ? "You're All Set" : `Welcome, ${c.clientName.split(" ")[0]}`}
       subtitle={
         allDone
           ? undefined

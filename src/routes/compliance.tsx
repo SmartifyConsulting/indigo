@@ -132,7 +132,7 @@ function Compliance() {
   return (
     <>
       <PageHeader
-        title="Compliance & audit"
+        title="Compliance & Audit"
         description="Supervise advisors in real time and evidence every step for internal audit, external compliance officers and the FSCA."
       />
       <Tabs defaultValue="overview">

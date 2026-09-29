@@ -142,7 +142,7 @@ function AdminIntegrations() {
   return (
     <>
       <PageHeader
-        title="APIs and credentials"
+        title="APIs and Credentials"
         description="Administrator console: store and rotate provider keys, check connections and review call history."
       />
 

@@ -67,7 +67,7 @@ export function AdvisorDashboard() {
   return (
     <>
       <PageHeader
-        title={`Good day, ${me.name.split(" ")[0]}`}
+        title={`Good Day, ${me.name.split(" ")[0]}`}
         description={`${s.fsp.name} · ${me.fsNumber}`}
         actions={
           <Button asChild>
@@ -208,7 +208,7 @@ export function FspDashboard() {
   return (
     <>
       <PageHeader
-        title="Compliance overview"
+        title="Compliance Overview"
         description={`${s.fsp.name} · ${s.fsp.fspNumber} · Key Individual: ${s.fsp.keyIndividual}`}
         actions={
           <Button asChild>
@@ -290,7 +290,7 @@ export function InsurerDashboard() {
   return (
     <>
       <PageHeader
-        title={`${providerName(me)} underwriting desk`}
+        title={`${providerName(me)} Underwriting Desk`}
         description="Applications reach you only after the intermediary's compliance gates are met, so every file arrives with signed disclosures, mandates and a current Record of Advice."
         actions={
           <Button asChild>

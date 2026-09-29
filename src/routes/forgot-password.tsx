@@ -30,7 +30,7 @@ function ForgotPassword() {
 
   if (sent) {
     return (
-      <AuthLayout title="Check your email">
+      <AuthLayout title="Check Your Email">
         <div className="flex flex-col items-center gap-4 text-center text-sm">
           <MailCheck className="h-8 w-8 text-primary" />
           <p>
@@ -45,7 +45,7 @@ function ForgotPassword() {
   }
 
   return (
-    <AuthLayout title="Reset your password" subtitle="We'll email you a secure link.">
+    <AuthLayout title="Reset Your Password" subtitle="We'll email you a secure link.">
       <form
         className="space-y-4"
         onSubmit={(e) => {

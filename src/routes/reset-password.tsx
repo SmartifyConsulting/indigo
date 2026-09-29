@@ -33,7 +33,7 @@ function ResetPassword() {
   const strong = password.length >= 8 && /[A-Za-z]/.test(password) && /\d/.test(password);
 
   return (
-    <AuthLayout title="Choose a new password" subtitle="At least 8 characters, with a number.">
+    <AuthLayout title="Choose a New Password" subtitle="At least 8 characters, with a number.">
       <form
         className="space-y-4"
         onSubmit={(e) => {

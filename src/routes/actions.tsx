@@ -149,7 +149,7 @@ function Actions() {
   return (
     <>
       <PageHeader
-        title="Actions & signatures"
+        title="Actions & Signatures"
         description="Everything that needs you, in the order it's needed."
       />
       <Card className="mb-6">

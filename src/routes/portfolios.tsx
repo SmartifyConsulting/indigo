@@ -43,7 +43,7 @@ function Portfolio() {
   return (
     <>
       <PageHeader
-        title="My wealth & protection"
+        title="My Wealth & Protection"
         description="Your existing products and new cover, in one place."
       />
       {locked && (

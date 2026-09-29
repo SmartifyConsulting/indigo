@@ -150,7 +150,7 @@ function Clients() {
   return (
     <>
       <PageHeader
-        title={isAdvisor ? "Clients" : "Client pipeline"}
+        title={isAdvisor ? "Clients" : "Client Pipeline"}
         description={
           isAdvisor
             ? "Every client moves through the same six regulated stages."

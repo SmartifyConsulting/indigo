@@ -396,7 +396,7 @@ export function ClientFinancialDashboard() {
 
       {/* Scenarios */}
       <section className="mb-8">
-        <h2 className="title-lg mb-4">If something happened to you</h2>
+        <h2 className="title-lg mb-4">If Something Happened to You</h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <ScenarioCard
             label="If I die"
@@ -667,7 +667,7 @@ export function ClientFinancialDashboard() {
 
       {/* Things worth your attention */}
       <section className="mb-8">
-        <h2 className="title-lg mb-4">Things worth your attention</h2>
+        <h2 className="title-lg mb-4">Things Worth Your Attention</h2>
         <div className="space-y-2">
           <AttentionItem
             title="Review your income protection"
