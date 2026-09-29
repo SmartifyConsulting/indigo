@@ -97,7 +97,7 @@
   --navy-foreground: oklch(0.985 0.004 250);
   --navy-muted: oklch(0.466 0.045 248.8);
   --navy-card: oklch(0.265 0.035 250);
-  --brand: oklch(0.778 0.123 187);
+  --brand: oklch(0.78 0.12 185); /* #3AD0C4 */
   --brand-foreground: oklch(0.27 0.025 268.3);
   --brand-soft: oklch(0.963 0.022 189.9);
   --brand-ink: oklch(0.5 0.1 187);
@@ -115,11 +115,11 @@
   --primary-foreground: oklch(1 0 0);
   --primary-soft: oklch(0.95 0.018 245.4);
 
-  --secondary: oklch(0.971 0.005 275);
+  --secondary: oklch(0.95 0.015 245); /* #E6F0FA */
   --secondary-foreground: oklch(0.27 0.025 268.3);
   --muted: oklch(0.971 0.005 275);
   --muted-foreground: oklch(0.503 0.034 266.1);
-  --accent: oklch(0.95 0.018 245.4);
+  --accent: oklch(0.95 0.015 245);
   --accent-foreground: oklch(0.465 0.138 251.8);
 
   /* Status */

@@ -227,6 +227,12 @@ export function LiveWorkspaceScreen() {
   const filterable = role === "advisor" || role === "fsp";
   const caseId = isClient ? state.session.clientCaseId : search.case;
   const openCase = state.cases.find((c) => c.id === caseId);
+  const docCases = openCase ? [openCase] : state.cases;
+  const documentCount = docCases.reduce(
+    (n, c) =>
+      n + c.signatures.length + c.roa.length + c.applications.filter((a) => a.status === "issued").length,
+    0,
+  );
 
   useEffect(() => {
     if (!isClient && search.case) workspaceTabs.open(search.case);
@@ -312,7 +318,7 @@ export function LiveWorkspaceScreen() {
             </p>
           </div>
           <div
-            className={cn("grid gap-6 lg:items-start", !isClient && "lg:grid-cols-2")}
+            className={cn("grid gap-6 lg:items-start", !isClient && "lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]")}
           >
             <div className="rounded-lg border bg-card p-4 text-card-foreground sm:p-5">
               <FrameLabel>Flow map</FrameLabel>
@@ -321,6 +327,7 @@ export function LiveWorkspaceScreen() {
                 active={view.active}
                 rowsDone={view.activeRowsDone}
                 complete={view.complete}
+                documentCount={documentCount}
                 selected={filterable ? selected : null}
                 onSelect={filterable ? setSelected : undefined}
               />
