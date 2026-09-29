@@ -114,12 +114,6 @@ const ACTOR_STYLE: Record<Actor, string> = {
   INSURER: "bg-warning-soft text-warning",
 };
 
-const ENGINE_POINTS = [
-  "Hard gates on every step",
-  "Hash-chained audit ledger",
-  "Key Individual oversight",
-];
-
 type StageState = "done" | "current" | "todo";
 
 function StageCard({
@@ -154,7 +148,7 @@ function StageCard({
   return (
     <div
       className={cn(
-        "flex h-full flex-col overflow-hidden rounded-lg border bg-card text-card-foreground",
+        "flex h-full flex-col overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm",
         active
           ? "pulse-border border-brand"
           : selected
@@ -188,7 +182,7 @@ function StageCard({
           >
             {state === "done" ? <Check className="h-3 w-3" /> : def.no}
           </span>
-          <Icon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+          <Icon className="h-3.5 w-3.5 shrink-0 text-brand-ink" />
           <span className="truncate text-[13px] font-medium">{def.title}</span>
         </button>
         {chip && !expanded && (
@@ -281,28 +275,6 @@ function StageCard({
           </div>
         </>
       )}
-    </div>
-  );
-}
-
-function Hub() {
-  return (
-    <div className="flex w-56 flex-col items-center rounded-lg bg-card px-3 py-1 text-center">
-      <span className="flex h-14 w-14 items-center justify-center rounded-full border bg-card shadow-[0_0_40px_-4px_var(--brand)]">
-        <LogoMark className="h-8 w-8" />
-      </span>
-      <p className="mt-2 text-[13px] font-medium text-foreground">Compliance engine</p>
-      <ul className="mt-1 space-y-0.5">
-        {ENGINE_POINTS.map((p) => (
-          <li
-            key={p}
-            className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground"
-          >
-            <Check className="h-3 w-3 text-brand-ink" />
-            {p}
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }
