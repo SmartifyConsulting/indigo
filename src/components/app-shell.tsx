@@ -135,9 +135,12 @@ interface SwitchUserOption {
   name: string;
 }
 
-/** The case that best shows off the client dashboard: the one furthest along the advice lifecycle. */
+/** The case shown for the "Client" quick-switch: Georgia Adams if she exists, else whichever
+ * case is furthest along the advice lifecycle (the one that best shows off the client dashboard). */
 function useDemoClientCase() {
   const s = useAppState();
+  const named = s.cases.find((c) => c.clientName === "Georgia Adams");
+  if (named) return named;
   return [...s.cases].sort((a, b) => getStage(b) - getStage(a))[0];
 }
 
