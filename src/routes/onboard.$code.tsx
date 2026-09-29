@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Check, Loader2, ScanFace, ShieldAlert } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
+import { toast } from "sonner";
 
 import { AuthLayout } from "@/components/auth-layout";
 import { Field, toastResult } from "@/components/common";
@@ -17,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { BRAND } from "@/lib/brand";
+import { getDiditSessionDecision, startDiditSession } from "@/lib/didit-session.functions";
 import { hasSig } from "@/lib/domain/gates";
 import { needLabel } from "@/lib/domain/quotes";
 import { actions, useAppState } from "@/lib/domain/store";
@@ -89,6 +91,7 @@ function Wizard({ c }: { c: CaseRecord }) {
     job: c.employment,
   });
   const [scanning, setScanning] = useState(false);
+  const [checking, setChecking] = useState(false);
   const [single, setSingle] = useState<NeedId>("life");
   const [amount, setAmount] = useState("1000000");
   const [editingEmail, setEditingEmail] = useState(false);
@@ -103,7 +106,40 @@ function Wizard({ c }: { c: CaseRecord }) {
   const disclaimerOk = c.fnaMode !== "single-need" || hasSig(c, "single-need");
   const allDone = verified && !hit && disclosed && loa && routed && disclaimerOk;
 
-  const runScan = () => {
+  // If we're coming back from a hosted Didit session (redirect round-trip), pick up its outcome.
+  useEffect(() => {
+    if (verified) return;
+    const storageKey = `didit-session-${c.id}`;
+    const sessionId = sessionStorage.getItem(storageKey);
+    if (!sessionId) return;
+    let cancelled = false;
+    setChecking(true);
+    const poll = () => {
+      void getDiditSessionDecision({ data: { sessionId } }).then((result) => {
+        if (cancelled) return;
+        if (result.status === "pending") {
+          setTimeout(poll, 3000);
+          return;
+        }
+        sessionStorage.removeItem(storageKey);
+        setChecking(false);
+        if (result.status === "approved") {
+          toastResult(actions.verifyIdentity(c.id), "Identity verified");
+        } else if (result.status === "declined") {
+          actions.recordIdentityFailure(c.id, result.reason ?? "Declined by Didit");
+        } else {
+          toast.error(result.message);
+        }
+      });
+    };
+    poll();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [c.id, verified]);
+
+  const runScan = async () => {
     actions.updateProfile(c.id, {
       idNumber: profile.idNumber,
       age: Number(profile.age) || 35,
@@ -112,6 +148,20 @@ function Wizard({ c }: { c: CaseRecord }) {
       employment: profile.job,
     });
     setScanning(true);
+    const result = await startDiditSession({
+      data: { caseId: c.id, callback: `${window.location.origin}${window.location.pathname}` },
+    });
+    if (result.mode === "live") {
+      sessionStorage.setItem(`didit-session-${c.id}`, result.sessionId);
+      window.location.href = result.url;
+      return;
+    }
+    if (result.mode === "error") {
+      setScanning(false);
+      toast.error(result.message);
+      return;
+    }
+    // Not connected: fall back to the onboarding demo's simulated check.
     setTimeout(() => {
       setScanning(false);
       toastResult(actions.verifyIdentity(c.id), "Identity verified");
@@ -248,13 +298,15 @@ function Wizard({ c }: { c: CaseRecord }) {
             </label>
             <Button
               onClick={runScan}
-              disabled={scanning || profile.idNumber.replace(/\D/g, "").length !== 13}
+              disabled={scanning || checking || profile.idNumber.replace(/\D/g, "").length !== 13}
             >
-              {scanning ? <Loader2 className="animate-spin" /> : <ScanFace />}{" "}
-              {scanning ? "Checking…" : "Start face and ID check"}
+              {scanning || checking ? <Loader2 className="animate-spin" /> : <ScanFace />}{" "}
+              {checking ? "Confirming your check…" : scanning ? "Starting…" : "Start face and ID check"}
             </Button>
             <p className="text-xs text-muted-foreground">
-              Prototype: simulates the liveness and Home Affairs check. Nothing leaves your browser.
+              {checking
+                ? "Finishing up with Didit — this only takes a few seconds."
+                : "You'll be sent to Didit's secure verification flow, then brought back here automatically."}
             </p>
           </div>
         </Step>

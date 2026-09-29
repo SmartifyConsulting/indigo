@@ -10,6 +10,9 @@ export const DIDIT_BASE = "https://verification.didit.me";
 export const ID_CHECK_PATH = "/v3/id-verification/";
 export const LIVENESS_PATH = "/v3/passive-liveness/";
 
+/** The hosted verification workflow (ID + liveness + AML/PEP) configured in the Didit console. */
+export const DIDIT_WORKFLOW_ID = "1360b4fd-dfda-4091-85bd-c7879fcd7503";
+
 export const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
 
 /** Base64 length limit that keeps an upload under DIDIT's 10 MB image cap. */
