@@ -233,7 +233,7 @@ function StageCard({
                         <Check className="h-3 w-3 text-positive" />
                       ) : current ? (
                         <span className="relative flex h-2 w-2">
-                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-70 motion-reduce:animate-none" />
+                          <span className="soft-ping absolute inline-flex h-full w-full rounded-full bg-brand" />
                           <span className="relative inline-flex h-2 w-2 rounded-full bg-brand" />
                         </span>
                       ) : (

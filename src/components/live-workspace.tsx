@@ -312,10 +312,7 @@ export function LiveWorkspaceScreen() {
             </p>
           </div>
           <div
-            className={cn(
-              "grid gap-6 lg:items-start",
-              !isClient && "lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]",
-            )}
+            className={cn("grid gap-6 lg:items-start", !isClient && "lg:grid-cols-2")}
           >
             <div className="rounded-lg border bg-card p-4 text-card-foreground sm:p-5">
               <FrameLabel>Flow map</FrameLabel>

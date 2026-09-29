@@ -164,7 +164,7 @@
   --navy-muted: oklch(0.3 0.01 260);
   --success: oklch(0.63 0.15 155);
   --info: oklch(0.6 0.14 240);
-  --throb-accent: oklch(0.63 0.15 155);
+  --throb-accent: oklch(0.778 0.123 187);
   --step-pill-bg: oklch(0.82 0.005 260);
   --lw-pill-bg: oklch(0.52 0.005 285);
   --sidebar-primary: oklch(0.19 0.01 260);
@@ -282,27 +282,49 @@
   }
 }
 
-/* The step the client is on: a border that gently pulses */
+/* The step the client is on: a border that gently pulses, in the theme's brand colour */
 @keyframes pulse-ring {
   0%,
   100% {
     box-shadow:
-      0 0 0 0 color-mix(in oklab, var(--throb-accent) 60%, transparent),
-      0 0 22px -6px var(--throb-accent);
+      0 0 0 0 color-mix(in oklab, var(--throb-accent) 30%, transparent),
+      0 0 14px -8px var(--throb-accent);
   }
   50% {
     box-shadow:
-      0 0 0 7px color-mix(in oklab, var(--throb-accent) 0%, transparent),
-      0 0 34px -2px var(--throb-accent);
+      0 0 0 4px color-mix(in oklab, var(--throb-accent) 0%, transparent),
+      0 0 20px -6px var(--throb-accent);
   }
 }
 
 @utility pulse-border {
-  animation: pulse-ring 2.2s ease-in-out infinite;
+  animation: pulse-ring 3.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
-    box-shadow: 0 0 22px -6px var(--throb-accent);
+    box-shadow: 0 0 14px -8px var(--throb-accent);
+  }
+}
+
+/* A quieter alternative to Tailwind's animate-ping: fades and settles instead of snapping */
+@keyframes soft-ping {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.55;
+  }
+  70%,
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+@utility soft-ping {
+  animation: soft-ping 2.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    opacity: 0;
   }
 }
 
