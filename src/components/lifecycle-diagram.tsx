@@ -107,7 +107,10 @@ const STAGES: StageDef[] = [
   },
 ];
 
-const ACTOR_STYLE: Record<Actor, string> = {
+export const STAGE_DEFS = STAGES;
+export type { Actor, StageDef };
+
+export const ACTOR_STYLE: Record<Actor, string> = {
   CLIENT: "bg-brand-soft text-brand-ink",
   ADVISOR: "bg-primary-soft text-primary",
   SYSTEM: "bg-secondary text-muted-foreground",
