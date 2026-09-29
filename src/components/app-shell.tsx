@@ -15,7 +15,6 @@ import {
   Workflow,
   LogOut,
   Moon,
-  Plug,
   RotateCcw,
   Sun,
   ShieldCheck,
@@ -59,7 +58,6 @@ const NAV: Record<Role, NavItem[]> = {
     { to: "/clients", label: "Clients", icon: Users },
     { to: "/cases", label: "All Cases", icon: FolderKanban },
     { to: "/reports", label: "Documents & ROAs", icon: FileText },
-    { to: "/integrations", label: "Integrations", icon: Plug },
   ],
   client: [
     { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -74,7 +72,6 @@ const NAV: Record<Role, NavItem[]> = {
     { to: "/compliance", label: "Compliance & Audit", icon: ShieldCheck },
     { to: "/clients", label: "Client Pipeline", icon: Users },
     { to: "/cases", label: "All Cases", icon: FolderKanban },
-    { to: "/integrations", label: "Integrations", icon: Plug },
     { to: "/billing", label: "Billing", icon: CreditCard },
   ],
   insurer: [
