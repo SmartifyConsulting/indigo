@@ -41,7 +41,7 @@ import { getStage } from "@/lib/domain/gates";
 import { actions, resetDemo, useAppState } from "@/lib/domain/store";
 import { useTheme } from "@/lib/theme";
 import { useAuth } from "@/lib/use-auth";
-import { PROVIDERS, ROLE_LABEL, ROLE_TAG, type Role } from "@/lib/domain/types";
+import { PROVIDERS, ROLE_LABEL, ROLE_TAG, type CaseRecord, type Role } from "@/lib/domain/types";
 import { initials } from "@/lib/fmt";
 import { cn } from "@/lib/utils";
 
@@ -151,6 +151,23 @@ function useDemoClientCase() {
   return [...s.cases].sort((a, b) => getStage(b) - getStage(a))[0];
 }
 
+/**
+ * Whether this menu row is the one actually active right now. Role alone isn't enough for
+ * "client" and "insurer": the session also tracks *which* client case or insurer is current,
+ * and that can drift from this row's demo identity (e.g. visiting another client's onboarding
+ * link switches the session to them) without the role itself changing.
+ */
+function isActive(
+  s: ReturnType<typeof useAppState>,
+  opt: SwitchUserOption,
+  demoClient: CaseRecord | undefined,
+): boolean {
+  if (s.session.role !== opt.role) return false;
+  if (opt.role === "client") return s.session.clientCaseId === demoClient?.id;
+  if (opt.role === "insurer") return s.session.insurerId === PROVIDERS[0]?.id;
+  return true;
+}
+
 function useSwitchUserOptions(): SwitchUserOption[] {
   const s = useAppState();
   const demoClient = useDemoClientCase();
@@ -188,7 +205,7 @@ function SwitchUserMenu() {
           </Avatar>
           <span className="min-w-0 flex-1 truncate">{opt.name}</span>
           <span className="text-xs text-muted-foreground">{ROLE_LABEL[opt.role]}</span>
-          {s.session.role === opt.role && <Check className="h-4 w-4 text-brand" />}
+          {isActive(s, opt, demoClient) && <Check className="h-4 w-4 text-brand" />}
         </DropdownMenuItem>
       ))}
     </>

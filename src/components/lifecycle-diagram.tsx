@@ -359,7 +359,7 @@ export function LifecycleFlow({
       const b = el.getBoundingClientRect();
       return { l: b.left - o.left, t: b.top - o.top, r: b.right - o.left, b: b.bottom - o.top };
     };
-    const order: StageNo[] = [1, 2, 3, 4, 5, 6, 1];
+    const order: StageNo[] = [1, 2, 3, 4, 5, 6, 3];
     const out: { d: string; tone: "done" | "next" | "todo" }[] = [];
     for (let i = 0; i < order.length - 1; i++) {
       const from = order[i]!;
@@ -377,6 +377,10 @@ export function LifecycleFlow({
         // A single straight arrow from the top of step 5 to the bottom of step 6.
         const x = (a.l + a.r) / 2;
         d = `M${x},${a.t} V${b.b}`;
+      } else if (from === 6 && to === 3) {
+        // Annual review cycle: loops back up into step 3 (re-assess needs), not step 1.
+        const x1 = (a.l + a.r) / 2, x2 = (b.l + b.r) / 2, my = (a.t + b.b) / 2;
+        d = `M${x1},${a.t} V${my} H${x2} V${b.b}`;
       } else if (b.l >= a.r) {
         // to the right: right edge -> left edge
         const y1 = hy(a), y2 = hy(b), mx = (a.r + b.l) / 2;
@@ -436,7 +440,7 @@ export function LifecycleFlow({
         </svg>
         {frame(1, "md:col-start-1 md:row-start-1")}
         {frame(2, "md:col-start-2 md:row-start-1 md:mt-10")}
-        <div className="md:col-start-1 md:row-start-2 relative z-10 flex items-center justify-center">
+        <div className="md:col-start-1 md:row-start-2 relative z-10 flex items-center justify-start">
           <Link
             to="/reports"
             className="group flex w-44 flex-col items-center gap-2 rounded-lg bg-secondary p-4 transition-colors hover:bg-brand-soft"
