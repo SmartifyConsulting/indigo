@@ -30,7 +30,7 @@ export function RingChart({
   const total = data.reduce((n, d) => n + d.value, 0);
   const shown = total ? data.filter((d) => d.value > 0) : [{ label: "None", value: 1 }];
   return (
-    <div className="flex flex-col items-center gap-4 sm:flex-row">
+    <div className="flex flex-col items-center gap-4">
       <div className="relative shrink-0" style={{ width: height, height }}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
