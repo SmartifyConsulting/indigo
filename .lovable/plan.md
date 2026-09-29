@@ -1,56 +1,37 @@
-# Landing page, role-based sign-up, and the API integrations console
+# Live Workspace: step-by-step tray, Ayesha Patel walkthrough, connected map arrows
 
-Four pieces of work: a public hero landing page as the front door, sign-up/sign-in that captures the role a person is joining as, a fuller Integrations screen (active/inactive services with usernames, passwords, keys, top-up links and unit pricing), and a new collapsed-by-default monthly cost report.
+## 1. Live Workspace tray (right side of the map)
+Replace the "go to your Dashboard" placeholder with a real tray for the open case:
+- Header: "LIVE WORKSPACE" with the case ID pill (e.g. LW-CASE-xxxx) in place of the Live dot.
+- Six stacked step bars in the fixed order (Client Gateway, Portfolio, Needs Analysis, Quotes & ROA, Presentation, Issuance & Review), each with a `+` / `−` expander.
+- Folding rules as the case moves forward:
+  - Finished steps fold up into a single bar with a tick (complete colour). They can be reopened to read, but not changed.
+  - The current step is the only one open. Inside it, sub-steps show one at a time: finished sub-steps shrink to a ticked row, the current sub-step pulses, later sub-steps are hidden behind a "then N more" line.
+  - Later steps stay folded with a lock icon.
+- Each current sub-step shows who acts (Client, Wealth Manager, System, Insurer) and, when it is the viewer's turn, the action button (for example "Sign disclosure", "Request quotes"). Only the viewer's own next action pulses; the other party's turn shows "Waiting on Erin Kruger" or "Waiting on Ayesha Patel".
+- The same fold/reveal state drives the map: the current sub-step is highlighted in its frame, finished frames show ticks.
+- Stays visible in both Map and Steps views.
 
-## 1. Landing page becomes the front door
+## 2. Ayesha Patel use case with Erin Kruger
+- Ayesha's case moves to Erin Kruger as her wealth manager and starts again at Step 1 (invited, nothing done), so the whole exchange can be walked through.
+- Opening Live Workspace auto-opens Ayesha's case in a tab, so the tray and ID pill are visible straight away.
+- The walkthrough alternates between the two sides using the existing role switch:
+  - Erin: sends invite, chooses route, runs portfolio pull, captures needs, requests quotes, selects options and commentary, submits.
+  - Ayesha: verifies identity, signs disclosure and LOA, signs ROA, uploads FICA, signs debit order.
+  - System steps (screening, portfolio pull, affordability, ROA generation) complete on their own when their trigger is met.
+- Every action goes through the existing compliance rules, so out-of-order attempts are still refused and logged.
+- The other example clients are unchanged, apart from Ayesha. The "completed, policy issued" example moves to Pieter van Wyk's issued vehicle policy, which already exists, so the dashboards still show a finished case.
 
-- The home address shows a public hero modelled on the Simple Izenzo layout: an eyebrow badge, a large headline, a short lead paragraph, primary and secondary buttons, and a compact sign in / sign up card sitting to the right of the headline.
-- Below the hero, a row of numbered stage cards describing how the advice lifecycle runs, plus a closing call-to-action strip.
-- The signed-in workspace moves to its own address (`/dashboard`). Anyone already signed in who lands on the home page is sent straight there; the nav, role switcher and every internal link are updated to match.
-- The landing page keeps its own page title, description and social preview text.
+## 3. Map arrows that touch the frames
+- Draw 1px grey connectors with small solid arrowheads linking 1 → 2 → 3 → 4 → 5 → 6 → back to 1, following the perimeter loop.
+- Arrow positions are measured from the real frame edges, so each line starts on one frame's edge and its tip touches the next frame. They redraw when frames expand or collapse and when the window resizes.
+- Connectors between finished steps turn to the complete colour. The connector leading into the current step uses the teal accent.
+- On narrow screens, where frames stack, the arrows become short downward arrows between frames.
 
-## 2. Sign-up and sign-in per the sign-up skill (auth scope)
-
-- Sign-up completes immediately — no "check your email" wall. New accounts get a session and land in the workspace.
-- One-time email verification on the **second** sign-in only, via an emailed link (never a code). Once verified, the prompt never appears again. People who signed in with Google skip it entirely.
-- Live password checklist on sign-up (8+ characters, a letter and a number, not the same as the email name), with the first failing rule focused on submit.
-- One shared message helper for all auth errors — wrong password, breached password, rate limits, expired links — shown as both a toast and an inline live-region message.
-- Every password field keeps its eye / eye-off toggle; "Forgot password?" and the toggles stay out of the tab order so tabbing runs Email → Password → Submit.
-- Forgot-password and reset-password pages stay public and keep working.
-- Out of scope for now (per your answer): email 2FA, first-visit navigation tips, install-app banner.
-
-## 3. Choosing a role when signing up or in
-
-- Sign-up asks which role the person is joining as: Adviser, Compliance officer, Client, Insurer, or FSP administrator.
-- The chosen role is saved against the account and decides what they see. Sensitive roles (administrator, compliance) are requested rather than granted — they land in a pending state until an existing administrator approves them from the admin area; everyone else is granted straight away.
-- Sign-in shows the role the account holds and, where an account legitimately holds more than one, lets the person pick which one to open.
-- The first account on a workspace still becomes the administrator automatically.
-
-## 4. Integrations tab: active and inactive services
-
-Rebuild `/admin/integrations` around a service catalogue, modelled on Simple Izenzo:
-
-- Two columns — **Active** and **Inactive** — each service as a card showing what it is used for and what it costs.
-- Per service, fields for portal username, portal password/credentials, API key, secret, webhook secret, base URL and sandbox/production. Secrets are encrypted at rest and never returned to the browser unless an administrator presses **Reveal**; leaving a secret field blank keeps the saved value.
-- A **Top up** button linking to the provider's own billing/credits page, and a link to their docs.
-- **Price per unit of measure** per service (for example "R12.50 per identity check", "R0.85 per quote request") — editable by an administrator, with the unit name stored alongside the amount.
-- Test connection, rotate and remove actions, as today, all written to the call log.
-- Non-administrators see status only, with no credential fields.
-
-## 5. API Integration Report tab
-
-A new tab on the same screen:
-
-- One accordion row per service, **all collapsed by default**, showing the service name, this month's measured call count and this month's running cost.
-- Expanding a row shows a month-by-month breakdown for the last 12 months: calls recorded, price per unit at the time, and cost for that month, with successful vs failed calls separated.
-- A total across all services per month sits at the top of the tab.
-- Costs are measured from real usage: calls recorded in the app's own API call log, multiplied by the price per unit you set on each service. Where no unit price is set, the row shows "No price set" rather than a zero.
-
-## Technical notes
-
-- New route `src/routes/dashboard.tsx` for the workspace, `src/routes/index.tsx` rewritten as the public marketing route; `__root.tsx` bare-prefix list and auth gate updated so the landing page renders outside the shell for signed-out visitors.
-- Migration: `auto_confirm_email = true`; add `profiles.login_count`, `profiles.email_verified_at`; RPCs `bump_login_count`, `mark_email_verified`, `mark_email_verified_if_oauth`; extend `app_role` with `insurer` and `fsp`; add `role_requests` table for pending sensitive roles; add `api_integrations` columns `unit_price`, `unit_label`, `top_up_url`, `docs_url`, `portal_username`; extend `api_credentials` for multi-field secrets. Grants and RLS on every new object; roles stay in `user_roles` behind `has_role`.
-- Cost aggregation runs as a server function over `api_call_log` grouped by integration and month, joined to the current unit price; admin-only.
-- Secrets read/written only through the privileged server client; reveal is an explicit admin-only server call that is itself logged.
-- New `src/lib/integrations.catalog.ts` describing each provider, its fields, cost note, top-up and docs links.
-- Landing hero reuses existing design tokens (navy / teal, Poppins) rather than Izenzo's palette.
+## Technical details
+- New `src/components/workspace-tray.tsx`: gate bars and sub-step reveal, built on `stageRowsDone()` and `nextAction()` from the domain layer. Action buttons call the existing `actions.*` store functions and `SignButton`.
+- A sub-step catalogue shared by the map and the tray (actor, label, action) moves from `lifecycle-diagram.tsx` into `src/lib/domain/steps.ts`.
+- `LifecycleFlow` takes an optional `case` prop so it can show one case's progress (current row, ticks) as well as the all-clients chips.
+- Connectors: an absolutely positioned SVG overlay inside the map grid. Frame refs, `getBoundingClientRect` and a `ResizeObserver` compute the edge-to-edge paths, with an arrowhead `<marker>`.
+- In `seed.ts`, Ayesha is created under `ADV.erin` and her stage 2 to 6 calls are removed. Existing saved demo data only picks this up after "Reset demo".
+- `live-workspace.tsx`: if no `?case=` is given, it defaults to Ayesha's case (or the first case) and opens the tab.
