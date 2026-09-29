@@ -7,6 +7,7 @@ import { LifecycleFlow } from "@/components/lifecycle-diagram";
 import { LiveStats } from "@/components/live-stats";
 import { StepsView } from "@/components/steps-view";
 import { WorkspaceTaskbar } from "@/components/workspace-taskbar";
+import { WorkspaceTray } from "@/components/workspace-tray";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -17,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { STAGES, getStage, isComplete, type StageNo } from "@/lib/domain/gates";
-import { lifecycleView } from "@/lib/domain/lifecycle";
+import { lifecycleView, stageRowsDone } from "@/lib/domain/lifecycle";
 import { nextAction } from "@/lib/domain/next-action";
 import { useAppState } from "@/lib/domain/store";
 import { type CaseRecord } from "@/lib/domain/types";
@@ -225,7 +226,9 @@ export function LiveWorkspaceScreen() {
   const isClient = role === "client";
   // Advisors and FSPs pick a stage to filter the live view.
   const filterable = role === "advisor" || role === "fsp";
-  const caseId = isClient ? state.session.clientCaseId : search.case;
+  const defaultCase =
+    state.cases.find((c) => c.clientName === "Ayesha Patel")?.id ?? state.cases[0]?.id;
+  const caseId = isClient ? state.session.clientCaseId : (search.case ?? defaultCase);
   const openCase = state.cases.find((c) => c.id === caseId);
   const docCases = openCase ? [openCase] : state.cases;
   const documentCount = docCases.reduce(
@@ -235,8 +238,8 @@ export function LiveWorkspaceScreen() {
   );
 
   useEffect(() => {
-    if (!isClient && search.case) workspaceTabs.open(search.case);
-  }, [isClient, search.case]);
+    if (!isClient && caseId) workspaceTabs.open(caseId);
+  }, [isClient, caseId]);
 
   return (
     <div className={cn(!isClient && "pb-16")}>
@@ -252,7 +255,7 @@ export function LiveWorkspaceScreen() {
         <p className="label-caps mr-auto text-muted-foreground">indigro advice workflow</p>
         {!isClient && (
           <Select
-            value={search.case ?? ""}
+            value={caseId ?? ""}
             onValueChange={(v) => void navigate({ to: "/workspace", search: { case: v } })}
           >
             <SelectTrigger className="h-8 w-56 text-xs" aria-label="Open a case">
@@ -283,77 +286,50 @@ export function LiveWorkspaceScreen() {
         </div>
       </div>
 
-      {mode === "steps" ? (
-        <section aria-label="Steps" className="rounded-lg border bg-card p-4 sm:p-6">
-          {openCase ? (
-            <>
-              <div className="mb-4 flex items-center justify-between gap-2">
-                <div>
-                  <p className="font-mono text-xs text-muted-foreground">{openCase.code}</p>
-                  <h2 className="text-lg font-medium">{openCase.clientName}</h2>
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-start">
+        {mode === "steps" ? (
+          <section aria-label="Steps" className="rounded-lg border bg-card p-4 sm:p-6">
+            {openCase ? (
+              <>
+                <div className="mb-4 flex items-center justify-between gap-2">
+                  <div>
+                    <p className="font-mono text-xs text-muted-foreground">{openCase.code}</p>
+                    <h2 className="text-lg font-medium">{openCase.clientName}</h2>
+                  </div>
+                  <StageBadge c={openCase} />
                 </div>
-                <StageBadge c={openCase} />
-              </div>
-              <StepsView c={openCase} />
-            </>
-          ) : (
-            <Empty>Open a case above to follow its steps.</Empty>
-          )}
-        </section>
-      ) : (
-        <section
-          aria-label="Advice lifecycle"
-          className="rounded-lg border bg-card p-4 text-card-foreground sm:p-6"
-        >
-          <div className="mb-6">
-            <p className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-brand-ink">
-              The advice lifecycle
-            </p>
-            <h2 className="mt-1 text-xl font-medium leading-7 sm:text-2xl sm:leading-8">
-              From first scan to annual review, in a fixed legal order.
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Every step is checked by the compliance engine. Out-of-order actions are refused and
-              logged.
-            </p>
-          </div>
-          <div
-            className={cn("grid gap-6 lg:items-start", !isClient && "lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]")}
-          >
-            <div className="rounded-lg border bg-card p-4 text-card-foreground sm:p-5">
-              <FrameLabel>Flow map</FrameLabel>
-              <LifecycleFlow
-                chips={view.chips}
-                active={view.active}
-                rowsDone={view.activeRowsDone}
-                complete={view.complete}
-                documentCount={documentCount}
-                selected={filterable ? selected : null}
-                onSelect={filterable ? setSelected : undefined}
-              />
-            </div>
-            {!isClient && (
-              <div className="lg:sticky lg:top-32">
-                <FrameLabel>Live workspace</FrameLabel>
-                {role === "advisor" ? (
-                  <Card>
-                    <CardContent className="p-5">
-                      <p className="text-sm text-muted-foreground">
-                        Your client list, stage filters and stats now live on your Dashboard.
-                      </p>
-                      <Button asChild className="mt-3" size="sm" variant="outline">
-                        <Link to="/">Go to Dashboard</Link>
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <LiveWorkspacePanel selected={selected} onSelect={setSelected} />
-                )}
-              </div>
+                <StepsView c={openCase} />
+              </>
+            ) : (
+              <Empty>Open a case above to follow its steps.</Empty>
             )}
-          </div>
-        </section>
-      )}
+          </section>
+        ) : (
+          <section
+            aria-label="Advice lifecycle"
+            className="rounded-lg border bg-card p-4 text-card-foreground sm:p-6"
+          >
+            <FrameLabel>Workflow map</FrameLabel>
+            <LifecycleFlow
+              chips={openCase ? {} : view.chips}
+              active={openCase ? getStage(openCase) : view.active}
+              rowsDone={
+                openCase ? stageRowsDone(openCase, getStage(openCase)) : view.activeRowsDone
+              }
+              complete={openCase ? isComplete(openCase) : view.complete}
+              documentCount={documentCount}
+              selected={filterable && !openCase ? selected : null}
+              onSelect={filterable && !openCase ? setSelected : undefined}
+            />
+          </section>
+        )}
+        <div className="space-y-4 lg:sticky lg:top-32">
+          <WorkspaceTray c={openCase} />
+          {!isClient && role !== "advisor" && (
+            <LiveWorkspacePanel selected={selected} onSelect={setSelected} />
+          )}
+        </div>
+      </div>
       {!isClient && <WorkspaceTaskbar />}
     </div>
   );
