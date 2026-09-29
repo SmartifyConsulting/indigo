@@ -1,12 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Download } from "lucide-react";
+import { Download, Eye } from "lucide-react";
 import { useState } from "react";
 
 import { PageHeader } from "@/components/common";
 import { SignatureMark } from "@/components/sign-dialog";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -16,10 +23,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { needLabel } from "@/lib/domain/quotes";
+import { syntheticIp } from "@/lib/domain/signature-fonts";
 import { useAppState } from "@/lib/domain/store";
 import {
   SIGNATURE_LABEL,
   providerName,
+  type Application,
   type CaseRecord,
   type RoaVersion,
   type Signature,
@@ -31,6 +41,18 @@ export const Route = createFileRoute("/reports")({
   component: Documents,
 });
 
+const GENERAL_GROUP = "Advice & Compliance";
+
+const SMALL_WORDS = new Set(["a", "an", "and", "of", "the", "in", "for", "to"]);
+
+/** needLabel() returns sentence case ("Vehicle insurance"); the accordion group headers need Title Case. */
+function titleCase(s: string): string {
+  return s
+    .split(" ")
+    .map((w, i) => (i > 0 && SMALL_WORDS.has(w.toLowerCase()) ? w.toLowerCase() : w[0]?.toUpperCase() + w.slice(1)))
+    .join(" ");
+}
+
 interface Doc {
   id: string;
   title: string;
@@ -39,7 +61,9 @@ interface Doc {
   status: "Signed" | "Current" | "Superseded" | "Issued";
   fingerprint: string;
   signature?: Signature;
-  download?: () => void;
+  policyType: string;
+  filename: string;
+  content: string;
 }
 
 function roaText(c: CaseRecord, v: RoaVersion): string {
@@ -69,6 +93,37 @@ function roaText(c: CaseRecord, v: RoaVersion): string {
   ].join("\n");
 }
 
+function signatureText(c: CaseRecord, sg: Signature): string {
+  return [
+    SIGNATURE_LABEL[sg.kind].toUpperCase(),
+    `Client: ${c.clientName}`,
+    `Case reference: ${c.code}`,
+    "",
+    `Signed by: ${sg.signerName}`,
+    `Signed at: ${fmtDateTime(sg.signedAt)}`,
+    `IP address: ${sg.ipAddress ?? syntheticIp(sg.id)}`,
+    sg.roaVersion ? `Applies to: Record of Advice v${sg.roaVersion}` : "",
+    "",
+    `Document fingerprint (SHA-256): ${sg.docHash}`,
+  ]
+    .filter((l) => l !== "")
+    .join("\n");
+}
+
+function policyText(c: CaseRecord, a: Application): string {
+  return [
+    "POLICY SCHEDULE",
+    `Product: ${a.product}`,
+    `Insurer: ${providerName(a.providerId)}`,
+    `Client: ${c.clientName}`,
+    `Case reference: ${c.code}`,
+    "",
+    `Policy number: ${a.policyNumber ?? "—"}`,
+    `Status: ${a.status}`,
+    `Issued: ${a.decidedAt ? fmtDateTime(a.decidedAt) : "—"}`,
+  ].join("\n");
+}
+
 function download(name: string, text: string) {
   const url = URL.createObjectURL(new Blob([text], { type: "text/plain" }));
   const a = document.createElement("a");
@@ -78,9 +133,120 @@ function download(name: string, text: string) {
   URL.revokeObjectURL(url);
 }
 
+function DocActions({ doc, onPreview }: { doc: Doc; onPreview: () => void }) {
+  return (
+    <div className="flex justify-end gap-1">
+      <Button size="sm" variant="ghost" aria-label={`Preview ${doc.title}`} onClick={onPreview}>
+        <Eye className="h-4 w-4" />
+      </Button>
+      <Button
+        size="sm"
+        variant="ghost"
+        aria-label={`Download ${doc.title}`}
+        onClick={() => download(doc.filename, doc.content)}
+      >
+        <Download className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
+
+function StatusBadge({ status }: { status: Doc["status"] }) {
+  return (
+    <Badge
+      variant={
+        status === "Signed" || status === "Issued"
+          ? "success"
+          : status === "Current"
+            ? "warning"
+            : "secondary"
+      }
+    >
+      {status}
+    </Badge>
+  );
+}
+
+function DocTable({
+  docs,
+  showClient,
+  onPreview,
+}: {
+  docs: Doc[];
+  showClient: boolean;
+  onPreview: (d: Doc) => void;
+}) {
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Document</TableHead>
+          {showClient && <TableHead>Client</TableHead>}
+          <TableHead>Date</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead>Signature</TableHead>
+          <TableHead>Fingerprint</TableHead>
+          <TableHead />
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {docs.map((d) => (
+          <TableRow key={d.id}>
+            <TableCell className="font-medium">{d.title}</TableCell>
+            {showClient && <TableCell>{d.client}</TableCell>}
+            <TableCell className="text-muted-foreground">{fmtDateTime(d.date)}</TableCell>
+            <TableCell>
+              <StatusBadge status={d.status} />
+            </TableCell>
+            <TableCell>{d.signature && <SignatureMark sig={d.signature} />}</TableCell>
+            <TableCell className="font-mono text-xs text-muted-foreground">
+              {d.fingerprint.slice(0, 14)}
+            </TableCell>
+            <TableCell className="text-right">
+              <DocActions doc={d} onPreview={() => onPreview(d)} />
+            </TableCell>
+          </TableRow>
+        ))}
+        {docs.length === 0 && (
+          <TableRow>
+            <TableCell colSpan={showClient ? 7 : 6} className="py-8 text-center text-muted-foreground">
+              No documents yet.
+            </TableCell>
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
+  );
+}
+
+function PreviewDialog({ doc, onOpenChange }: { doc: Doc | null; onOpenChange: (o: boolean) => void }) {
+  return (
+    <Dialog open={!!doc} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>{doc?.title}</DialogTitle>
+        </DialogHeader>
+        <pre className="max-h-[60vh] overflow-auto whitespace-pre-wrap rounded-md border bg-background p-4 font-mono text-xs leading-5 text-foreground">
+          {doc?.content}
+        </pre>
+        {doc && (
+          <Button
+            variant="outline"
+            className="self-end"
+            onClick={() => download(doc.filename, doc.content)}
+          >
+            <Download /> Download
+          </Button>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function Documents() {
   const s = useAppState();
   const [q, setQ] = useState("");
+  const [preview, setPreview] = useState<Doc | null>(null);
   const role = s.session.role;
   const cases: CaseRecord[] =
     role === "client"
@@ -98,6 +264,9 @@ function Documents() {
       status: "Signed",
       fingerprint: sg.docHash,
       signature: sg,
+      policyType: GENERAL_GROUP,
+      filename: `${sg.kind}-${c.code}.txt`,
+      content: signatureText(c, sg),
     })),
     ...c.roa.map<Doc>((v) => {
       const signed = c.signatures.some((sg) => sg.kind === "roa" && sg.roaVersion === v.version);
@@ -108,29 +277,44 @@ function Documents() {
         date: v.createdAt,
         status: signed ? "Signed" : v.version === c.roa.length ? "Current" : "Superseded",
         fingerprint: v.hash,
-        download: () => download(`ROA-${c.code}-v${v.version}.txt`, roaText(c, v)),
+        policyType: GENERAL_GROUP,
+        filename: `ROA-${c.code}-v${v.version}.txt`,
+        content: roaText(c, v),
       };
     }),
     ...c.applications
       .filter((a) => a.status === "issued")
-      .map<Doc>((a) => ({
-        id: `pol-${a.quoteId}`,
-        title: `Policy schedule: ${a.product} (${providerName(a.providerId)})`,
-        client: c.clientName,
-        date: a.decidedAt ?? a.submittedAt,
-        status: "Issued",
-        fingerprint: a.policyNumber ?? "",
-      })),
+      .map<Doc>((a) => {
+        const quote = c.quotes.items.find((q) => q.id === a.quoteId);
+        return {
+          id: `pol-${a.quoteId}`,
+          title: `Policy schedule: ${a.product} (${providerName(a.providerId)})`,
+          client: c.clientName,
+          date: a.decidedAt ?? a.submittedAt,
+          status: "Issued",
+          fingerprint: a.policyNumber ?? "",
+          policyType: quote ? needLabel(quote.needId) : "Other policies",
+          filename: `Policy-${a.policyNumber ?? c.code}.txt`,
+          content: policyText(c, a),
+        };
+      }),
   ]);
 
   const rows = docs
     .filter((d) => (d.title + d.client).toLowerCase().includes(q.toLowerCase()))
     .sort((a, b) => b.date.localeCompare(a.date));
 
+  const groups = Object.entries(
+    rows.reduce<Record<string, Doc[]>>((acc, d) => {
+      (acc[d.policyType] ??= []).push(d);
+      return acc;
+    }, {}),
+  ).sort(([a], [b]) => (a === GENERAL_GROUP ? 1 : b === GENERAL_GROUP ? -1 : a.localeCompare(b)));
+
   return (
     <>
       <PageHeader
-        title={role === "client" ? "My documents" : "Documents & ROAs"}
+        title={role === "client" ? "My Documents" : "Documents & ROAs"}
         description="Everything signed or issued, with its tamper-evident fingerprint."
       />
       <Input
@@ -140,61 +324,31 @@ function Documents() {
         onChange={(e) => setQ(e.target.value)}
         aria-label="Search documents"
       />
-      <Card>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Document</TableHead>
-              {role !== "client" && <TableHead>Client</TableHead>}
-              <TableHead>Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Signature</TableHead>
-              <TableHead>Fingerprint</TableHead>
-              <TableHead />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.map((d) => (
-              <TableRow key={d.id}>
-                <TableCell className="font-medium">{d.title}</TableCell>
-                {role !== "client" && <TableCell>{d.client}</TableCell>}
-                <TableCell className="text-muted-foreground">{fmtDateTime(d.date)}</TableCell>
-                <TableCell>
-                  <Badge
-                    variant={
-                      d.status === "Signed" || d.status === "Issued"
-                        ? "success"
-                        : d.status === "Current"
-                          ? "warning"
-                          : "secondary"
-                    }
-                  >
-                    {d.status}
-                  </Badge>
-                </TableCell>
-                <TableCell>{d.signature && <SignatureMark sig={d.signature} />}</TableCell>
-                <TableCell className="font-mono text-xs text-muted-foreground">
-                  {d.fingerprint.slice(0, 14)}
-                </TableCell>
-                <TableCell className="text-right">
-                  {d.download && (
-                    <Button variant="ghost" size="sm" onClick={d.download}>
-                      <Download /> Download
-                    </Button>
-                  )}
-                </TableCell>
-              </TableRow>
+      {role === "client" ? (
+        <Card className="px-4">
+          <Accordion type="multiple" defaultValue={groups.map(([type]) => type)}>
+            {groups.map(([type, groupDocs]) => (
+              <AccordionItem key={type} value={type}>
+                <AccordionTrigger>
+                  {titleCase(type)}
+                  <span className="ml-2 font-normal text-muted-foreground">{groupDocs.length}</span>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <DocTable docs={groupDocs} showClient={false} onPreview={setPreview} />
+                </AccordionContent>
+              </AccordionItem>
             ))}
-            {rows.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
-                  No documents yet.
-                </TableCell>
-              </TableRow>
+            {groups.length === 0 && (
+              <p className="py-8 text-center text-sm text-muted-foreground">No documents yet.</p>
             )}
-          </TableBody>
-        </Table>
-      </Card>
+          </Accordion>
+        </Card>
+      ) : (
+        <Card>
+          <DocTable docs={rows} showClient onPreview={setPreview} />
+        </Card>
+      )}
+      <PreviewDialog doc={preview} onOpenChange={(o) => !o && setPreview(null)} />
     </>
   );
 }
