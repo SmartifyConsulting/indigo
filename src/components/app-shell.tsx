@@ -85,8 +85,15 @@ const ADMIN_NAV: NavItem[] = [{ to: "/admin/integrations", label: "APIs", icon: 
 
 function useIsAdmin() {
   const check = useServerFn(isAdminFn);
-  const { data } = useQuery({ queryKey: ["is-admin"], queryFn: () => check() });
-  return data?.admin === true;
+  const { session } = useAuth();
+  const userId = session?.user.id;
+  const { data } = useQuery({
+    queryKey: ["is-admin", userId],
+    queryFn: () => check(),
+    enabled: !!userId,
+    retry: false,
+  });
+  return !!userId && data?.admin === true;
 }
 
 function NavLink({ to, label, icon: Icon }: NavItem) {
