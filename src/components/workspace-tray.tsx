@@ -1,8 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { Check, Lock, Minus, Plus } from "lucide-react";
+import { Check, Lock, Minus, Plus, ScanFace } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { useEffect, useState } from "react";
 
 import { ACTOR_STYLE, STAGE_DEFS } from "@/components/lifecycle-diagram";
+import { useOrigin } from "@/components/case/onboarding-tab";
+import { VerifiedBadge } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { getStage, isComplete, type StageNo } from "@/lib/domain/gates";
 import { stageRowsDone } from "@/lib/domain/lifecycle";
@@ -11,6 +14,8 @@ import { useAppState } from "@/lib/domain/store";
 import type { CaseRecord } from "@/lib/domain/types";
 import { cn } from "@/lib/utils";
 
+const LIVENESS_ROW = "Liveness and Home Affairs ID";
+
 /**
  * The Live Workspace tray for one case: six step bars in fixed order. Finished steps fold up
  * with a tick, the current step is the only one open and reveals its sub-steps one at a time,
@@ -18,6 +23,7 @@ import { cn } from "@/lib/utils";
  */
 export function WorkspaceTray({ c }: { c: CaseRecord | undefined }) {
   const s = useAppState();
+  const origin = useOrigin();
   const role = s.session.role;
   const stage = c ? getStage(c) : 1;
   const complete = c ? isComplete(c) : false;
@@ -58,7 +64,10 @@ export function WorkspaceTray({ c }: { c: CaseRecord | undefined }) {
         </span>
       </header>
       <div className="border-b px-4 py-3">
-        <p className="text-sm font-medium">{c.clientName}</p>
+        <p className="flex items-center gap-2 text-sm font-medium">
+          {c.clientName}
+          <VerifiedBadge c={c} />
+        </p>
         <p className="text-[11px] text-muted-foreground">Wealth manager: {advisor?.name ?? "—"}</p>
       </div>
       <ol className="space-y-2 p-3">
@@ -66,6 +75,7 @@ export function WorkspaceTray({ c }: { c: CaseRecord | undefined }) {
           const n = def.no;
           const state = complete || n < stage ? "done" : n === stage ? "current" : "locked";
           const isOpen = open.has(n) && state !== "locked";
+          const showLivenessQr = state === "current" && def.rows[done]?.text === LIVENESS_ROW;
           return (
             <li key={n} className="rounded-lg border border-border">
               <button
@@ -136,7 +146,31 @@ export function WorkspaceTray({ c }: { c: CaseRecord | undefined }) {
                       then {def.rows.length - done - 1} more
                     </li>
                   )}
-                  {state === "current" && (
+                  {state === "current" && showLivenessQr && (
+                    <li className="mt-2 flex flex-col items-center gap-2 rounded-md border bg-background p-4 text-center">
+                      <p className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+                        <ScanFace className="h-3.5 w-3.5" /> Liveness check via DIDIT
+                      </p>
+                      <div className="rounded-md border bg-white p-2">
+                        <QRCodeSVG value={`${origin}/onboard/${c.code}`} size={120} />
+                      </div>
+                      <p className="max-w-56 text-[11px] text-muted-foreground">
+                        Scan with your phone's camera to complete the face and ID check on your own
+                        device.
+                      </p>
+                      {myTurn && (
+                        <Button asChild size="sm" variant="outline" className="mt-1">
+                          <Link to="/onboard/$code" params={{ code: c.code }}>
+                            Continue here instead
+                          </Link>
+                        </Button>
+                      )}
+                      {!myTurn && waitingOn && (
+                        <p className="text-[11px] text-muted-foreground">Waiting on {waitingOn}</p>
+                      )}
+                    </li>
+                  )}
+                  {state === "current" && !showLivenessQr && (
                     <li className="mt-2 rounded-md border bg-background p-3">
                       <p className="text-[11px] text-muted-foreground">Next</p>
                       <p className="text-sm font-medium">{na.text}</p>

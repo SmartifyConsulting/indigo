@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { STAGES, getStage, isComplete, type Gate, type StageNo } from "@/lib/domain/gates";
+import { STAGES, getStage, isComplete, isVerified, type Gate, type StageNo } from "@/lib/domain/gates";
 import { LEDGER_TONE } from "@/lib/domain/ledger";
 import { useAppState } from "@/lib/domain/store";
 import type { AppState, CaseRecord, Role } from "@/lib/domain/types";
@@ -135,6 +135,16 @@ export function StageBadge({ c }: { c: CaseRecord }) {
   return (
     <Badge variant="info">
       Stage {stage} · {STAGES[stage - 1]!.short}
+    </Badge>
+  );
+}
+
+/** Shown next to a client's name once liveness/ID passed and sanctions screening cleared. */
+export function VerifiedBadge({ c }: { c: CaseRecord }) {
+  if (!isVerified(c)) return null;
+  return (
+    <Badge variant="success">
+      <Check className="h-3 w-3" /> Verified
     </Badge>
   );
 }

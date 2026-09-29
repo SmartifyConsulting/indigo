@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Plus, Search } from "lucide-react";
 import { useState } from "react";
 
-import { PageHeader, RequireRole, StageBadge, StageDots } from "@/components/common";
+import { PageHeader, RequireRole, StageBadge, StageDots, VerifiedBadge } from "@/components/common";
 import { InviteClientDialog } from "@/components/invite-client-dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -85,13 +85,16 @@ function Clients() {
               return (
                 <TableRow key={c.id}>
                   <TableCell>
-                    <Link
-                      to="/clients/$clientId"
-                      params={{ clientId: c.id }}
-                      className="font-medium text-primary hover:underline"
-                    >
-                      {c.clientName}
-                    </Link>
+                    <span className="flex items-center gap-2">
+                      <Link
+                        to="/clients/$clientId"
+                        params={{ clientId: c.id }}
+                        className="font-medium text-primary hover:underline"
+                      >
+                        {c.clientName}
+                      </Link>
+                      <VerifiedBadge c={c} />
+                    </span>
                     <p className="text-xs text-muted-foreground">{c.email}</p>
                   </TableCell>
                   {!isAdvisor && (

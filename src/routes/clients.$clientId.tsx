@@ -8,7 +8,7 @@ import { OnboardingTab } from "@/components/case/onboarding-tab";
 import { PortfolioTab } from "@/components/case/portfolio-tab";
 import { PresentTab } from "@/components/case/present-tab";
 import { QuotesTab } from "@/components/case/quotes-tab";
-import { EmptyState, PageHeader, RequireRole, StageBadge } from "@/components/common";
+import { EmptyState, PageHeader, RequireRole, StageBadge, VerifiedBadge } from "@/components/common";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { STAGES, getStage, isComplete } from "@/lib/domain/gates";
 import { nextAction } from "@/lib/domain/next-action";
@@ -64,7 +64,12 @@ function Workspace() {
             {advisor?.name} · Invited {fmtDate(c.createdAt)} · Ref {c.code}
           </>
         }
-        actions={<StageBadge c={c} />}
+        actions={
+          <>
+            <VerifiedBadge c={c} />
+            <StageBadge c={c} />
+          </>
+        }
       />
 
       <div className="mb-6 rounded-lg border bg-card p-4">

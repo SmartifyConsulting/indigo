@@ -38,6 +38,10 @@ export const ficaComplete = (c: CaseRecord) =>
 
 export const astuteLocked = (c: CaseRecord) => !!c.astute.alert && !c.astute.alert.resolvedAt;
 
+/** Full identity clearance: liveness/ID passed and sanctions screening came back clean. */
+export const isVerified = (c: CaseRecord) =>
+  c.identity.livenessVerified && c.identity.sanctions === "clear";
+
 /** Gate 1: identity, screening and mandates that must exist before any advice is given. */
 export function adviceGates(c: CaseRecord): Gate[] {
   return [

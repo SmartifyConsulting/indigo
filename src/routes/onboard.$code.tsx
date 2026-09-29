@@ -91,6 +91,8 @@ function Wizard({ c }: { c: CaseRecord }) {
   const [scanning, setScanning] = useState(false);
   const [single, setSingle] = useState<NeedId>("life");
   const [amount, setAmount] = useState("1000000");
+  const [editingEmail, setEditingEmail] = useState(false);
+  const [email, setEmail] = useState(c.email);
 
   const emailVerified = !!c.identity.emailVerifiedAt;
   const verified = c.identity.livenessVerified;
@@ -157,6 +159,36 @@ function Wizard({ c }: { c: CaseRecord }) {
             We sent an invitation to <strong className="text-foreground">{c.email}</strong>.
             Confirming it's you keeps your information secure.
           </p>
+          {editingEmail ? (
+            <div className="flex items-end gap-2">
+              <Field label="Email address" hint="We'll resend the invitation to this address.">
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoFocus
+                />
+              </Field>
+              <Button
+                size="sm"
+                disabled={!email.includes("@")}
+                onClick={() => {
+                  toastResult(actions.updateProfile(c.id, { email }), "Email updated");
+                  setEditingEmail(false);
+                }}
+              >
+                Save
+              </Button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setEditingEmail(true)}
+              className="text-xs font-medium text-primary hover:underline"
+            >
+              Not your email address?
+            </button>
+          )}
           <EmailPreview
             to={c.email}
             subject={`${c.clientName.split(" ")[0]}, your indigro client portal is ready`}

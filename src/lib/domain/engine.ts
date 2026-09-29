@@ -6,6 +6,7 @@ import {
   gatesMet,
   hasSig,
   isComplete,
+  isVerified as isVerifiedIdentity,
   latestRoa,
   quoteGates,
   roaSigned,
@@ -163,21 +164,30 @@ export function createCase(
     .slice(0, 2)
     .toUpperCase();
   const code = `${initials}-${hashOf(id).slice(0, 4).toUpperCase()}`;
+
+  // A returning client (matched by email) who already cleared identity on another case doesn't
+  // need to prove who they are again for a new policy — carry their verification forward.
+  const priorVerified = s.cases.find(
+    (x) => norm(x.email) === norm(input.email) && isVerifiedIdentity(x),
+  );
+
   const c: CaseRecord = {
     id,
     code,
     createdAt: now,
     advisorId: input.advisorId,
     clientName: name,
-    idNumber: "",
+    idNumber: priorVerified?.idNumber ?? "",
     email: input.email,
     phone: input.phone,
-    age: 35,
-    smoker: false,
-    employment: "",
-    monthlyNetIncome: 0,
+    age: priorVerified?.age ?? 35,
+    smoker: priorVerified?.smoker ?? false,
+    employment: priorVerified?.employment ?? "",
+    monthlyNetIncome: priorVerified?.monthlyNetIncome ?? 0,
     entry: input.entry ?? "qr",
-    identity: { livenessVerified: false, sanctions: "pending" },
+    identity: priorVerified
+      ? { ...priorVerified.identity }
+      : { livenessVerified: false, sanctions: "pending" },
     fica: {},
     meetings: [],
     review: {},
@@ -198,6 +208,16 @@ export function createCase(
     "CASE_CREATED",
     `Client invitation created via ${c.entry === "qr" ? "QR code" : c.entry === "link" ? "secure link" : "advisor entry"} (${code})`,
   );
+  if (priorVerified) {
+    log(
+      s,
+      now,
+      c,
+      "IDENTITY_VERIFIED",
+      `Returning client: identity verification carried over from case ${priorVerified.code}`,
+      true,
+    );
+  }
   return { ok: true, caseId: id, code };
 }
 
