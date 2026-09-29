@@ -12,9 +12,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { pickSignatureFont, syntheticIp } from "@/lib/domain/signature-fonts";
+import { advisorSignatureFont, pickSignatureFont, syntheticIp } from "@/lib/domain/signature-fonts";
 import { actions, useAppState } from "@/lib/domain/store";
-import { SIGNATURE_LABEL, type Signature, type SignatureKind } from "@/lib/domain/types";
+import { SIGNATURE_LABEL, type CaseRecord, type Signature, type SignatureKind } from "@/lib/domain/types";
 import { fmtDateTime } from "@/lib/fmt";
 
 const DOCUMENT_TEXT: Record<SignatureKind, string[]> = {
@@ -132,6 +132,28 @@ export function SignatureMark({ sig, className }: { sig: Signature; className?: 
       <p className="mt-1 text-[11px] text-muted-foreground">
         Signed {fmtDateTime(sig.signedAt)} · IP {ip}
       </p>
+    </div>
+  );
+}
+
+/** The wealth manager's countersignature: one consistent style per client, never the client's. */
+export function AdvisorSignatureMark({
+  c,
+  advisorName,
+  className,
+}: {
+  c: CaseRecord;
+  advisorName: string;
+  className?: string;
+}) {
+  const clientFonts = c.signatures.map((x) => x.font ?? pickSignatureFont(x.id));
+  const font = advisorSignatureFont(c.advisorId, c.id, clientFonts);
+  return (
+    <div className={className}>
+      <p className="text-2xl leading-none text-navy" style={{ fontFamily: `"${font}", cursive` }}>
+        {advisorName}
+      </p>
+      <p className="mt-1 text-[11px] text-muted-foreground">Wealth manager</p>
     </div>
   );
 }

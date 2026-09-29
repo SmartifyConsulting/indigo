@@ -31,6 +31,25 @@ export function pickSignatureFont(seed: string, avoid?: SignatureFont): Signatur
   return SIGNATURE_FONTS[idx]!;
 }
 
+/**
+ * The wealth manager's signature font for one client. Seeded by advisor + case so it is the same
+ * on every document for that client (it may differ on another client's documents), and never
+ * uses a font the client's own signatures use on that case.
+ */
+export function advisorSignatureFont(
+  advisorId: string,
+  caseId: string,
+  clientFonts: (SignatureFont | undefined)[],
+): SignatureFont {
+  const avoid = new Set(clientFonts.filter(Boolean));
+  const start = Math.abs(hash(`wm:${advisorId}:${caseId}`)) % SIGNATURE_FONTS.length;
+  for (let i = 0; i < SIGNATURE_FONTS.length; i++) {
+    const f = SIGNATURE_FONTS[(start + i) % SIGNATURE_FONTS.length]!;
+    if (!avoid.has(f)) return f;
+  }
+  return SIGNATURE_FONTS[start]!;
+}
+
 /** A synthetic IP for the demo audit trail; not a real network address. */
 export function syntheticIp(seed: string): string {
   const h = Math.abs(hash(seed));
