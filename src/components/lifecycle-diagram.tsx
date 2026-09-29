@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import {
   BadgeCheck,
   Calculator,
@@ -5,6 +6,7 @@ import {
   ChevronDown,
   Database,
   FileText,
+  FolderOpen,
   Lock,
   PenLine,
   Repeat,
@@ -13,7 +15,6 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { LogoMark } from "@/components/brand/logo";
 import type { StageNo } from "@/lib/domain/gates";
 import { cn } from "@/lib/utils";
 
@@ -317,6 +318,7 @@ export function LifecycleFlow({
   onSelect,
   rowsDone,
   complete = false,
+  documentCount,
 }: {
   chips?: Partial<Record<StageNo, string>>;
   active?: StageNo | undefined;
@@ -327,15 +329,15 @@ export function LifecycleFlow({
   rowsDone?: number | undefined;
   /** The client's whole journey is done, so every step shows as done. */
   complete?: boolean;
+  /** Number of documents shown on the central Documents tile. */
+  documentCount?: number;
 }) {
   const stateOf = (n: StageNo): StageState => {
     if (active) return complete || n < active ? "done" : n === active ? "current" : "todo";
     return selected === n ? "current" : "todo";
   };
-  // Step 1 starts open. A client's own current step also opens, so the line they are on is visible.
-  const [open, setOpen] = useState<Set<StageNo>>(
-    () => new Set<StageNo>(active ? [1, active] : [1]),
-  );
+  // Every step starts open, matching the perimeter map; a chevron collapses each one.
+  const [open, setOpen] = useState<Set<StageNo>>(() => new Set<StageNo>([1, 2, 3, 4, 5, 6]));
 
   // A stage chosen elsewhere (for example a filter chip) opens so its detail is visible.
   useEffect(() => {
@@ -350,38 +352,52 @@ export function LifecycleFlow({
       return next;
     });
 
+  const card = (n: StageNo) => {
+    const s = STAGES[n - 1]!;
+    return (
+      <StageCard
+        def={s}
+        chip={chips[s.no]}
+        active={active === s.no}
+        selected={selected === s.no}
+        state={stateOf(s.no)}
+        expanded={open.has(s.no)}
+        onToggle={() => toggle(s.no)}
+        rowsDone={active === s.no ? rowsDone : undefined}
+        onSelect={onSelect ? () => onSelect(selected === s.no ? null : s.no) : undefined}
+      />
+    );
+  };
+
+  // Perimeter loop: 1 → 2 → 3 → 4 down the right, 5 along the bottom, 6 back up the left,
+  // with the Documents tile in the middle of the loop.
   return (
-    <div className="relative">
-      <div className="absolute bottom-4 left-3 top-4 w-px overflow-hidden bg-border" aria-hidden>
-        <span className="flow-light-v absolute left-0 h-16 w-px bg-gradient-to-b from-transparent via-brand to-transparent" />
-      </div>
-      <ol className="space-y-4">
-        {STAGES.map((s) => (
-          <li key={s.no} className="relative pl-9">
-            <span
-              className="absolute left-0 top-3 flex h-6 w-6 items-center justify-center rounded-full border bg-card text-brand-ink"
-              aria-hidden
-            >
-              <ChevronDown className="h-3.5 w-3.5" />
+    <div>
+      <div className="grid gap-5 md:grid-cols-2 md:gap-x-10">
+        <div className="md:col-start-1 md:row-start-1">{card(1)}</div>
+        <div className="md:col-start-2 md:row-start-1 md:mt-10">{card(2)}</div>
+        <div className="md:col-start-1 md:row-start-2 flex items-center justify-center">
+          <Link
+            to="/reports"
+            className="group flex w-44 flex-col items-center gap-2 rounded-lg bg-secondary p-4 transition-colors hover:bg-brand-soft"
+          >
+            <span className="relative flex h-32 w-32 items-center justify-center rounded-2xl border-2 border-dashed border-muted-foreground/40 group-hover:border-brand">
+              <FolderOpen className="h-10 w-10 text-muted-foreground group-hover:text-brand-ink" />
+              {documentCount !== undefined && (
+                <span className="absolute -right-2 -top-2 flex h-6 min-w-6 items-center justify-center rounded-full bg-brand px-1.5 text-[11px] font-semibold text-brand-foreground">
+                  {documentCount}
+                </span>
+              )}
             </span>
-            <StageCard
-              def={s}
-              chip={chips[s.no]}
-              active={active === s.no}
-              selected={selected === s.no}
-              state={stateOf(s.no)}
-              expanded={open.has(s.no)}
-              onToggle={() => toggle(s.no)}
-              rowsDone={active === s.no ? rowsDone : undefined}
-              onSelect={onSelect ? () => onSelect(selected === s.no ? null : s.no) : undefined}
-            />
-          </li>
-        ))}
-      </ol>
-      <div className="mt-6 flex justify-center">
-        <Hub />
+            <span className="label-caps text-muted-foreground">Documents</span>
+          </Link>
+        </div>
+        <div className="md:col-start-2 md:row-start-2">{card(3)}</div>
+        <div className="md:col-start-1 md:row-start-3 md:mt-16">{card(6)}</div>
+        <div className="md:col-start-2 md:row-start-3">{card(4)}</div>
+        <div className="md:col-start-1 md:row-start-4 md:ml-16 md:-mr-16">{card(5)}</div>
       </div>
-      <p className="mt-2 text-center font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
+      <p className="mt-6 text-center font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
         <Repeat className="mr-1 inline h-3 w-3 text-brand-ink" /> Annual review cycle: repeats every
         12 months
       </p>
