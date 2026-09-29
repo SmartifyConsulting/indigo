@@ -3,7 +3,7 @@ import { Download, Eye } from "lucide-react";
 import { useState } from "react";
 
 import { PageHeader } from "@/components/common";
-import { SignatureMark } from "@/components/sign-dialog";
+import { AdvisorSignatureMark, SignatureMark } from "@/components/sign-dialog";
 import {
   Accordion,
   AccordionContent,
@@ -62,6 +62,8 @@ interface Doc {
   fingerprint: string;
   signature?: Signature;
   policyType: string;
+  caseRec: CaseRecord;
+  advisorName: string;
   filename: string;
   content: string;
 }
@@ -198,7 +200,14 @@ function DocTable({
             <TableCell>
               <StatusBadge status={d.status} />
             </TableCell>
-            <TableCell>{d.signature && <SignatureMark sig={d.signature} />}</TableCell>
+            <TableCell>
+              <div className="flex flex-wrap items-end gap-4">
+                {d.signature && <SignatureMark sig={d.signature} />}
+                {(d.signature || d.id.startsWith("roa-")) && (
+                  <AdvisorSignatureMark c={d.caseRec} advisorName={d.advisorName} />
+                )}
+              </div>
+            </TableCell>
             <TableCell className="font-mono text-xs text-muted-foreground">
               {d.fingerprint.slice(0, 14)}
             </TableCell>
@@ -302,11 +311,15 @@ function Documents() {
         ? s.cases.filter((c) => c.advisorId === s.advisors[0]!.id)
         : s.cases;
 
+  const advisorOf = (c: CaseRecord) =>
+    s.advisors.find((a) => a.id === c.advisorId)?.name ?? "Wealth manager";
   const docs: Doc[] = cases.flatMap((c) => [
     ...c.signatures.map<Doc>((sg) => ({
       id: sg.id,
       title: `${SIGNATURE_LABEL[sg.kind]}${sg.roaVersion ? ` (ROA v${sg.roaVersion})` : ""}`,
       client: c.clientName,
+      caseRec: c,
+      advisorName: advisorOf(c),
       date: sg.signedAt,
       status: "Signed",
       fingerprint: sg.docHash,
@@ -321,6 +334,10 @@ function Documents() {
         id: `roa-${c.id}-${v.version}`,
         title: `Record of Advice v${v.version}`,
         client: c.clientName,
+        caseRec: c,
+        advisorName: advisorOf(c),
+      caseRec: c,
+      advisorName: advisorOf(c),
         date: v.createdAt,
         status: signed ? "Signed" : v.version === c.roa.length ? "Current" : "Superseded",
         fingerprint: v.hash,
@@ -337,6 +354,12 @@ function Documents() {
           id: `pol-${a.quoteId}`,
           title: `Policy schedule: ${a.product} (${providerName(a.providerId)})`,
           client: c.clientName,
+          caseRec: c,
+          advisorName: advisorOf(c),
+        caseRec: c,
+        advisorName: advisorOf(c),
+      caseRec: c,
+      advisorName: advisorOf(c),
           date: a.decidedAt ?? a.submittedAt,
           status: "Issued",
           fingerprint: a.policyNumber ?? "",
