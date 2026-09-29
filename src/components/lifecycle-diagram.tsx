@@ -35,7 +35,7 @@ const STAGES: StageDef[] = [
     title: "Client Onboarding",
     icon: ScanFace,
     rows: [
-      { actor: "ADVISOR", text: "Register new client (name and email)" },
+      { actor: "ADVISOR", text: "Register new client" },
       { actor: "CLIENT", text: "Verify email address" },
       { actor: "CLIENT", text: "Liveness and Home Affairs ID" },
       { actor: "SYSTEM", text: "L0 sanctions and PEP screen" },
@@ -378,8 +378,11 @@ export function LifecycleFlow({
         const x = (a.l + a.r) / 2;
         d = `M${x},${a.t} V${b.b}`;
       } else if (from === 6 && to === 3) {
-        // Annual review cycle: loops back up into step 3 (re-assess needs), not step 1.
-        const x1 = (a.l + a.r) / 2, x2 = (b.l + b.r) / 2, my = (a.t + b.b) / 2;
+        // Annual review cycle: loops back up into step 3 (re-assess needs), not step 1. The
+        // horizontal jog sits close to step 6's top edge, then a straight run up into the
+        // horizontal middle of step 3.
+        const x1 = (a.l + a.r) / 2, x2 = (b.l + b.r) / 2;
+        const my = a.t - (a.t - (a.t + b.b) / 2) / 2;
         d = `M${x1},${a.t} V${my} H${x2} V${b.b}`;
       } else if (b.l >= a.r) {
         // to the right: right edge -> left edge

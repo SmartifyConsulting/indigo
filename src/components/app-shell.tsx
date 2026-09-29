@@ -36,6 +36,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { isAdmin as isAdminFn } from "@/lib/admin.functions";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { getStage } from "@/lib/domain/gates";
 import { actions, resetDemo, useAppState } from "@/lib/domain/store";
@@ -212,6 +219,82 @@ function SwitchUserMenu() {
   );
 }
 
+/** Header dropdown: picks which client case (or insurer) the current role is looking at. */
+function ContextPicker() {
+  const s = useAppState();
+  if (s.session.role === "client") {
+    return (
+      <Select value={s.session.clientCaseId} onValueChange={(v) => actions.setClientCase(v)}>
+        <SelectTrigger
+          className="h-8 w-44 border-navy-muted bg-navy text-xs text-navy-foreground"
+          aria-label="Viewing as client"
+        >
+          <SelectValue placeholder="Choose client" />
+        </SelectTrigger>
+        <SelectContent>
+          {s.cases.map((c) => (
+            <SelectItem key={c.id} value={c.id}>
+              {c.clientName}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    );
+  }
+  if (s.session.role === "insurer") {
+    return (
+      <Select
+        value={s.session.insurerId}
+        onValueChange={(v) => actions.setInsurer(v as (typeof PROVIDERS)[number]["id"])}
+      >
+        <SelectTrigger
+          className="h-8 w-44 border-navy-muted bg-navy text-xs text-navy-foreground"
+          aria-label="Insurer"
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {PROVIDERS.map((p) => (
+            <SelectItem key={p.id} value={p.id}>
+              {p.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    );
+  }
+  return null;
+}
+
+/** Header dropdown: switches which role the demo is viewed as. */
+function RoleSwitcher() {
+  const s = useAppState();
+  const navigate = useNavigate();
+  return (
+    <Select
+      value={s.session.role}
+      onValueChange={(v) => {
+        actions.setRole(v as Role);
+        void navigate({ to: "/" });
+      }}
+    >
+      <SelectTrigger
+        className="h-8 w-52 border-navy-muted bg-navy text-xs text-navy-foreground"
+        aria-label="Switch role"
+      >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {(Object.keys(ROLE_LABEL) as Role[]).map((r) => (
+          <SelectItem key={r} value={r}>
+            View as {ROLE_LABEL[r]}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
 function useIdentity() {
   const s = useAppState();
   switch (s.session.role) {
@@ -314,6 +397,10 @@ export function AppShell({
           </Link>
 
           <div className="ml-auto flex items-center gap-2">
+            <div className="hidden items-center gap-2 md:flex">
+              <ContextPicker />
+              <RoleSwitcher />
+            </div>
             <InboxButton />
             <ThemeToggle />
             <DropdownMenu>

@@ -160,6 +160,8 @@ export const actions = {
     single?: { needId: NeedId; amount: number },
   ) => act((d, now) => engine.chooseRoute(d, now, id, mode, single)),
   runAstute: (id: string) => act((d, now) => engine.runAstutePull(d, now, id)),
+  addExternalPolicy: (id: string, input: Parameters<typeof engine.addExternalPolicy>[3]) =>
+    act((d, now) => engine.addExternalPolicy(d, now, id, input)),
   saveFna: (id: string, inputs: FnaInputs) => act((d, now) => engine.saveFna(d, now, id, inputs)),
   requestQuotes: (id: string) => act((d, now) => engine.requestQuotes(d, now, id)),
   toggleQuote: (id: string, quoteId: string) =>

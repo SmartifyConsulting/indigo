@@ -542,6 +542,36 @@ export function runAstutePull(
   return OK;
 }
 
+/**
+ * Records an existing policy the advisor has verified directly from the client's own documents
+ * (a policy schedule or statement), rather than through the automated Astute pull. Marks the
+ * portfolio as retrieved if it wasn't already, so the policy shows up alongside anything Astute
+ * later returns.
+ */
+export function addExternalPolicy(
+  s: AppState,
+  now: string,
+  caseId: string,
+  input: Omit<ExternalPolicy, "id">,
+): Result {
+  const c = findCase(s, caseId);
+  if (!c) return fail("Case not found");
+  if (!input.provider.trim() || !input.reference.trim()) {
+    return fail("Enter the provider and a reference or policy number");
+  }
+  if (!c.astute.fetchedAt) c.astute.fetchedAt = now;
+  c.astute.policies.push({ ...input, id: uid("pol", c.id, input.reference, now) });
+  log(
+    s,
+    now,
+    c,
+    "ASTUTE_PULL",
+    `${input.provider} ${input.type.toLowerCase()} policy captured from the client's documents (${input.reference})`,
+    true,
+  );
+  return OK;
+}
+
 /* ------------------------------------------------------------ Stage 3 */
 
 export function saveFna(s: AppState, now: string, caseId: string, inputs: FnaInputs): Result {
