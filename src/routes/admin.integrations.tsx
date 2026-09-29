@@ -43,6 +43,7 @@ import {
   type IntegrationRow,
 } from "@/lib/admin.functions";
 import { BRAND } from "@/lib/brand";
+import { useAuth } from "@/lib/use-auth";
 import { fmtDateTime } from "@/lib/fmt";
 
 export const Route = createFileRoute("/admin/integrations")({
