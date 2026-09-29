@@ -6,7 +6,7 @@ import { ActivityList, PageHeader, StageBadge } from "@/components/common";
 import { LifecycleFlow } from "@/components/lifecycle-diagram";
 import { LiveStats } from "@/components/live-stats";
 import { StepsView } from "@/components/steps-view";
-import { WorkspaceTaskbar } from "@/components/workspace-taskbar";
+import { WorkspaceTaskbar, myCases } from "@/components/workspace-taskbar";
 import { WorkspaceTray } from "@/components/workspace-tray";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -52,8 +52,7 @@ function ClientsView({
   onSelect: (n: StageNo | null) => void;
 }) {
   const s = useAppState();
-  const isAdvisor = s.session.role === "advisor";
-  const mine = isAdvisor ? s.cases.filter((c) => c.advisorId === s.advisors[0]?.id) : s.cases;
+  const mine = myCases(s);
   const ids = new Set(mine.map((c) => c.id));
   const rows = mine.filter((c) => (selected ? inStage(c, selected) : true));
 
@@ -226,9 +225,12 @@ export function LiveWorkspaceScreen() {
   const isClient = role === "client";
   // Advisors and FSPs pick a stage to filter the live view.
   const filterable = role === "advisor" || role === "fsp";
+  const scopedCases = myCases(state);
+  const scopedIds = new Set(scopedCases.map((c) => c.id));
   const defaultCase =
-    state.cases.find((c) => c.clientName === "Ayesha Patel")?.id ?? state.cases[0]?.id;
-  const caseId = isClient ? state.session.clientCaseId : (search.case ?? defaultCase);
+    scopedCases.find((c) => c.clientName === "Ayesha Patel")?.id ?? scopedCases[0]?.id;
+  const requestedCase = search.case && scopedIds.has(search.case) ? search.case : undefined;
+  const caseId = isClient ? state.session.clientCaseId : (requestedCase ?? defaultCase);
   const openCase = state.cases.find((c) => c.id === caseId);
   const docCases = openCase ? [openCase] : state.cases;
   const documentCount = docCases.reduce(
@@ -262,7 +264,7 @@ export function LiveWorkspaceScreen() {
               <SelectValue placeholder="Open a case in a tab…" />
             </SelectTrigger>
             <SelectContent>
-              {state.cases.map((c) => (
+              {scopedCases.map((c) => (
                 <SelectItem key={c.id} value={c.id}>
                   {c.code} · {c.clientName}
                 </SelectItem>
