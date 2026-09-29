@@ -266,36 +266,9 @@ export function buildSeedState(): AppState {
   insurerDecision(s, tick(45), pieter.id, `${pieter.id}:santam:vehicle`, "issue");
   s.session.insurerId = "momentum";
 
-  /* 7 · Complete: single-need route, policy issued, annual review scheduled */
-  const ayesha = mk("Ayesha Patel", ADV.priya, "ayesha.patel@example.co.za", "081 555 0121");
-  onboard(ayesha, { id: "9506120199083", age: 30, net: 42_000, job: "Physiotherapist" });
-  as("advisor");
-  chooseRoute(s, tick(), ayesha.id, "single-need", { needId: "vehicle", amount: 320_000 });
-  as("client");
-  signDocument(s, tick(), ayesha.id, "single-need", ayesha.clientName);
-  as("advisor");
-  requestQuotes(s, tick(), ayesha.id);
-  toggleQuote(s, tick(), ayesha.id, `${ayesha.id}:auto-general:vehicle`);
-  setCommentary(
-    s,
-    tick(),
-    ayesha.id,
-    "Single-need request: vehicle cover only. Client declined a full analysis and signed the disclaimer. Lowest premium selected.",
-  );
-  commitCommentary(s, tick(), ayesha.id);
-  as("client");
-  signDocument(s, tick(), ayesha.id, "roa", ayesha.clientName);
-  uploadFica(s, tick(), ayesha.id, "idDocument", "id.pdf");
-  uploadFica(s, tick(), ayesha.id, "proofOfResidence", "lease.pdf");
-  uploadFica(s, tick(), ayesha.id, "bankStatement", "capitec-statement.pdf");
-  validateBank(s, tick(), ayesha.id);
-  signDocument(s, tick(), ayesha.id, "debit-order", ayesha.clientName);
-  as("advisor");
-  submitApplication(s, tick(), ayesha.id);
-  s.session.role = "insurer";
-  s.session.insurerId = "auto-general";
-  insurerDecision(s, tick(90), ayesha.id, `${ayesha.id}:auto-general:vehicle`, "issue");
-  s.session.insurerId = "momentum";
+  /* 7 · Ayesha Patel: live walkthrough with Erin Kruger, starts at step 1 */
+  // Use case walkthrough: invited by Erin Kruger, nothing done yet.
+  mk("Ayesha Patel", ADV.erin, "ayesha.patel@example.co.za", "081 555 0121");
 
   /* 8 · Escalated: sanctions/PEP potential match */
   const marcus = mk("Marcus Jacobs", ADV.lwazi, "marcus.jacobs@example.co.za", "083 555 0188");

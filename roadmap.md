@@ -5,3 +5,4 @@
 - [x] Dashboards: no repetition, ring charts
 - [x] Documents grouped by policy type; WM view grouped by client then policy type
 - [x] WM signature: distinct from client's, consistent per client across all documents
+- [x] LW tray with fold/reveal, Ayesha–Erin walkthrough, frame-to-frame arrows

@@ -13,7 +13,7 @@ import {
   ScanFace,
   type LucideIcon,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import type { StageNo } from "@/lib/domain/gates";
 import { cn } from "@/lib/utils";
@@ -107,7 +107,10 @@ const STAGES: StageDef[] = [
   },
 ];
 
-const ACTOR_STYLE: Record<Actor, string> = {
+export const STAGE_DEFS = STAGES;
+export type { Actor, StageDef };
+
+export const ACTOR_STYLE: Record<Actor, string> = {
   CLIENT: "bg-brand-soft text-brand-ink",
   ADVISOR: "bg-primary-soft text-primary",
   SYSTEM: "bg-secondary text-muted-foreground",
@@ -341,14 +344,90 @@ export function LifecycleFlow({
     );
   };
 
+  const gridRef = useRef<HTMLDivElement>(null);
+  const frameRefs = useRef<Partial<Record<StageNo, HTMLDivElement | null>>>({});
+  const [paths, setPaths] = useState<{ d: string; tone: "done" | "next" | "todo" }[]>([]);
+
+  const measure = useCallback(() => {
+    const g = gridRef.current;
+    if (!g) return;
+    const o = g.getBoundingClientRect();
+    const r = (n: StageNo) => {
+      const el = frameRefs.current[n];
+      if (!el) return null;
+      const b = el.getBoundingClientRect();
+      return { l: b.left - o.left, t: b.top - o.top, r: b.right - o.left, b: b.bottom - o.top };
+    };
+    const order: StageNo[] = [1, 2, 3, 4, 5, 6, 1];
+    const out: { d: string; tone: "done" | "next" | "todo" }[] = [];
+    for (let i = 0; i < order.length - 1; i++) {
+      const from = order[i]!;
+      const to = order[i + 1]!;
+      const a = r(from);
+      const b = r(to);
+      if (!a || !b) continue;
+      const hy = (x: { t: number; b: number }) => Math.min(x.t + 22, (x.t + x.b) / 2);
+      let d: string;
+      if (b.l >= a.r) {
+        // to the right: right edge -> left edge
+        const y1 = hy(a), y2 = hy(b), mx = (a.r + b.l) / 2;
+        d = `M${a.r},${y1} H${mx} V${y2} H${b.l}`;
+      } else if (b.r <= a.l) {
+        const y1 = hy(a), y2 = hy(b), mx = (a.l + b.r) / 2;
+        d = `M${a.l},${y1} H${mx} V${y2} H${b.r}`;
+      } else if (b.t >= a.b) {
+        // below: bottom edge -> top edge
+        const x1 = (Math.max(a.l, b.l) + Math.min(a.r, b.r)) / 2;
+        const my = (a.b + b.t) / 2;
+        const x2 = x1;
+        d = `M${x1},${a.b} V${my} H${x2} V${b.t}`;
+      } else {
+        // above (loop back): run up the outside left edge
+        const x = Math.min(a.l, b.l) - 12;
+        d = `M${a.l},${hy(a)} H${x} V${hy(b)} H${b.l}`;
+      }
+      const sa = stateOf(from), sb = stateOf(to);
+      out.push({ d, tone: sa === "done" && sb === "done" ? "done" : sb === "current" ? "next" : "todo" });
+    }
+    setPaths(out);
+  }, [active, complete, selected]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useLayoutEffect(() => {
+    measure();
+    const g = gridRef.current;
+    if (!g) return;
+    const ro = new ResizeObserver(() => measure());
+    ro.observe(g);
+    Object.values(frameRefs.current).forEach((el) => el && ro.observe(el));
+    return () => ro.disconnect();
+  }, [measure, open]);
+
+  const frame = (n: StageNo, cls: string) => (
+    <div ref={(el) => { frameRefs.current[n] = el; }} className={cn("relative z-10", cls)}>
+      {card(n)}
+    </div>
+  );
+
   // Perimeter loop: 1 → 2 → 3 → 4 down the right, 5 along the bottom, 6 back up the left,
   // with the Documents tile in the middle of the loop.
   return (
     <div>
-      <div className="grid gap-5 md:grid-cols-2 md:gap-x-10">
-        <div className="md:col-start-1 md:row-start-1">{card(1)}</div>
-        <div className="md:col-start-2 md:row-start-1 md:mt-10">{card(2)}</div>
-        <div className="md:col-start-1 md:row-start-2 flex items-center justify-center">
+      <div ref={gridRef} className="relative grid gap-8 pl-4 md:grid-cols-2 md:gap-x-12">
+        <svg className="pointer-events-none absolute inset-0 z-0 h-full w-full overflow-visible" aria-hidden>
+          <defs>
+            {(["todo", "done", "next"] as const).map((t) => (
+              <marker key={t} id={`lw-arrow-${t}`} viewBox="0 0 8 8" refX="8" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M0,0 L8,4 L0,8 z" className={t === "done" ? "fill-positive" : t === "next" ? "fill-brand" : "fill-muted-foreground"} />
+              </marker>
+            ))}
+          </defs>
+          {paths.map((p, i) => (
+            <path key={i} d={p.d} fill="none" strokeWidth={1} markerEnd={`url(#lw-arrow-${p.tone})`} className={p.tone === "done" ? "stroke-positive" : p.tone === "next" ? "stroke-brand" : "stroke-muted-foreground"} />
+          ))}
+        </svg>
+        {frame(1, "md:col-start-1 md:row-start-1")}
+        {frame(2, "md:col-start-2 md:row-start-1 md:mt-10")}
+        <div className="md:col-start-1 md:row-start-2 relative z-10 flex items-center justify-center">
           <Link
             to="/reports"
             className="group flex w-44 flex-col items-center gap-2 rounded-lg bg-secondary p-4 transition-colors hover:bg-brand-soft"
@@ -364,10 +443,10 @@ export function LifecycleFlow({
             <span className="label-caps text-muted-foreground">Documents</span>
           </Link>
         </div>
-        <div className="md:col-start-2 md:row-start-2">{card(3)}</div>
-        <div className="md:col-start-1 md:row-start-3 md:mt-16">{card(6)}</div>
-        <div className="md:col-start-2 md:row-start-3">{card(4)}</div>
-        <div className="md:col-start-1 md:row-start-4 md:ml-16 md:-mr-16">{card(5)}</div>
+        {frame(3, "md:col-start-2 md:row-start-2")}
+        {frame(6, "md:col-start-1 md:row-start-3 md:mt-16")}
+        {frame(4, "md:col-start-2 md:row-start-3")}
+        {frame(5, "md:col-start-1 md:row-start-4 md:ml-16 md:-mr-16")}
       </div>
       <p className="mt-6 text-center font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
         <Repeat className="mr-1 inline h-3 w-3 text-brand-ink" /> Annual review cycle: repeats every
