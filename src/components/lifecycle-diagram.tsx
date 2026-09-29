@@ -32,15 +32,16 @@ interface StageDef {
 const STAGES: StageDef[] = [
   {
     no: 1,
-    title: "Client Gateway",
+    title: "Client Onboarding",
     icon: ScanFace,
     rows: [
-      { actor: "CLIENT", text: "Scan QR or open secure link" },
-      { actor: "SYSTEM", text: "Liveness and Home Affairs ID" },
+      { actor: "ADVISOR", text: "Register new client (name and email)" },
+      { actor: "CLIENT", text: "Verify email address" },
+      { actor: "CLIENT", text: "Liveness and Home Affairs ID" },
       { actor: "SYSTEM", text: "L0 sanctions and PEP screen" },
       { actor: "CLIENT", text: "Sign disclosure and LOA" },
     ],
-    footer: "No advice until all four pass",
+    footer: "No advice until every step passes",
     footerIcon: Lock,
   },
   {
@@ -368,7 +369,15 @@ export function LifecycleFlow({
       if (!a || !b) continue;
       const hy = (x: { t: number; b: number }) => Math.min(x.t + 22, (x.t + x.b) / 2);
       let d: string;
-      if (b.l >= a.r) {
+      if (from === 4 && to === 5) {
+        // Straight down from step 4 to the vertical middle of step 5, then turn left into it.
+        const x1 = (a.l + a.r) / 2, my = (b.t + b.b) / 2;
+        d = `M${x1},${a.b} V${my} H${b.r}`;
+      } else if (from === 5 && to === 6) {
+        // A single straight arrow from the top of step 5 to the bottom of step 6.
+        const x = (a.l + a.r) / 2;
+        d = `M${x},${a.t} V${b.b}`;
+      } else if (b.l >= a.r) {
         // to the right: right edge -> left edge
         const y1 = hy(a), y2 = hy(b), mx = (a.r + b.l) / 2;
         d = `M${a.r},${y1} H${mx} V${y2} H${b.l}`;

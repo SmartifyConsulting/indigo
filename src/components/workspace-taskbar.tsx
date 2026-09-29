@@ -10,6 +10,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { InviteClientDialog } from "@/components/invite-client-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -43,6 +44,7 @@ export function WorkspaceTaskbar() {
   const [closing, setClosing] = useState<string | null>(null);
   const [drag, setDrag] = useState<number | null>(null);
   const [searching, setSearching] = useState(false);
+  const [registering, setRegistering] = useState(false);
   const cases = myCases(s);
   const allowed = new Set(cases.map((c) => c.id));
   const name = (id: string) => s.cases.find((c) => c.id === id);
@@ -55,6 +57,11 @@ export function WorkspaceTaskbar() {
     workspaceTabs.open(id);
     go(id);
     setSearching(false);
+  };
+
+  const newTab = () => {
+    if (s.session.role === "advisor") setRegistering(true);
+    else go(null);
   };
 
   return (
@@ -72,7 +79,7 @@ export function WorkspaceTaskbar() {
           <button
             type="button"
             aria-label="New tab"
-            onClick={() => go(null)}
+            onClick={newTab}
             className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
           >
             <Plus className="h-3.5 w-3.5" />
@@ -169,6 +176,13 @@ export function WorkspaceTaskbar() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <InviteClientDialog
+        open={registering}
+        onOpenChange={setRegistering}
+        doneLabel="Open in Live Workspace"
+        onDone={openCase}
+      />
     </>
   );
 }

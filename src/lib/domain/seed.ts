@@ -17,6 +17,7 @@ import {
   updateProfile,
   uploadFica,
   validateBank,
+  verifyClientEmail,
   verifyIdentity,
 } from "./engine";
 import type { AppState, CaseRecord, FnaInputs, Role } from "./types";
@@ -32,6 +33,14 @@ function emptyState(): AppState {
       keyIndividual: "Sipho Nkosi",
     },
     advisors: [
+      {
+        id: "adv-jaco",
+        name: "Jaco Steyn",
+        title: "Wealth Manager",
+        fsNumber: "FA 101956",
+        active: true,
+        onboardedAt: "2023-05-15T08:00:00.000Z",
+      },
       {
         id: ADV.erin,
         name: "Erin Kruger",
@@ -55,14 +64,6 @@ function emptyState(): AppState {
         fsNumber: "FA 134410",
         active: true,
         onboardedAt: "2025-08-04T08:00:00.000Z",
-      },
-      {
-        id: "adv-jaco",
-        name: "Jaco Steyn",
-        title: "Financial Advisor (on leave)",
-        fsNumber: "FA 101956",
-        active: false,
-        onboardedAt: "2023-05-15T08:00:00.000Z",
       },
     ],
     cases: [],
@@ -109,6 +110,7 @@ export function buildSeedState(): AppState {
       employment: p.job,
     });
     as("client");
+    verifyClientEmail(s, tick(), c.id);
     verifyIdentity(s, tick(), c.id);
     signDocument(s, tick(), c.id, "disclosure", c.clientName);
     signDocument(s, tick(), c.id, "loa", c.clientName);
@@ -279,6 +281,7 @@ export function buildSeedState(): AppState {
     employment: "Municipal councillor",
   });
   as("client");
+  verifyClientEmail(s, tick(), marcus.id);
   marcus.clientName = "Marcus Jacobs PEP"; // triggers the demo screening hit
   verifyIdentity(s, tick(), marcus.id);
   marcus.clientName = "Marcus Jacobs";

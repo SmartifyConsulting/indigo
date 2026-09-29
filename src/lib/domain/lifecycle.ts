@@ -39,6 +39,7 @@ export function stageRowsDone(c: CaseRecord, stage: StageNo): number {
     case 1:
       return leadingDone([
         true,
+        !!c.identity.emailVerifiedAt,
         c.identity.livenessVerified,
         c.identity.sanctions === "clear",
         hasSig(c, "disclosure") && hasSig(c, "loa"),

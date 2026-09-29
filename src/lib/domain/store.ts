@@ -142,10 +142,11 @@ export const actions = {
   setClientCase: (id: string) => session((s) => void (s.clientCaseId = id)),
   setInsurer: (id: ProviderId) => session((s) => void (s.insurerId = id)),
 
-  createCase: (input: { name: string; email: string; phone: string; advisorId: string }) =>
+  createCase: (input: Parameters<typeof engine.createCase>[2]) =>
     act((d, now) => engine.createCase(d, now, input)),
   updateProfile: (id: string, patch: Parameters<typeof engine.updateProfile>[2]) =>
     act((d) => engine.updateProfile(d, id, patch)),
+  verifyEmail: (id: string) => act((d, now) => engine.verifyClientEmail(d, now, id)),
   verifyIdentity: (id: string) => act((d, now) => engine.verifyIdentity(d, now, id)),
   recordIdentityCheck: (id: string, input: Parameters<typeof engine.recordIdentityCheck>[3]) =>
     act((d, now) => engine.recordIdentityCheck(d, now, id, input)),

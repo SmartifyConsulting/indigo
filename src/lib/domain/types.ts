@@ -237,6 +237,8 @@ export interface CaseRecord {
   monthlyNetIncome: number;
   entry: "qr" | "link" | "advisor";
   identity: {
+    /** Set once the client clicks the link in their invite email. */
+    emailVerifiedAt?: string | undefined;
     livenessVerified: boolean;
     livenessRef?: string | undefined;
     livenessAt?: string | undefined;
@@ -284,6 +286,7 @@ export interface CaseRecord {
 
 export type LedgerType =
   | "CASE_CREATED"
+  | "EMAIL_VERIFIED"
   | "IDENTITY_VERIFIED"
   | "SCREENING"
   | "DOCUMENT_SIGNED"

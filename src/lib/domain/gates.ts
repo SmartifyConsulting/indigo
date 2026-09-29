@@ -42,6 +42,11 @@ export const astuteLocked = (c: CaseRecord) => !!c.astute.alert && !c.astute.ale
 export function adviceGates(c: CaseRecord): Gate[] {
   return [
     {
+      id: "email-verified",
+      label: "Client verified their email address",
+      met: !!c.identity.emailVerifiedAt,
+    },
+    {
       id: "liveness",
       label: "Liveness and ID verified (Home Affairs / DIDIT)",
       met: c.identity.livenessVerified,
@@ -142,7 +147,7 @@ export const unmet = (gates: Gate[]) => gates.filter((g) => !g.met).map((g) => g
 export type StageNo = 1 | 2 | 3 | 4 | 5 | 6;
 
 export const STAGES: { no: StageNo; title: string; short: string }[] = [
-  { no: 1, title: "Client gateway & onboarding", short: "Onboarding" },
+  { no: 1, title: "Client onboarding", short: "Onboarding" },
   { no: 2, title: "Portfolio aggregation & CRM sync", short: "Portfolio" },
   { no: 3, title: "Wealth & risk needs analysis", short: "Needs analysis" },
   { no: 4, title: "Multi-quote generation & ROA", short: "Quotes & ROA" },

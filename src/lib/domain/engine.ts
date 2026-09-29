@@ -219,9 +219,22 @@ export function updateProfile(
 
 /* ------------------------------------------------------------ Stage 1 */
 
+/** The client clicks the link in their invite email and confirms it's theirs. */
+export function verifyClientEmail(s: AppState, now: string, caseId: string): Result {
+  const c = findCase(s, caseId);
+  if (!c) return fail("Case not found");
+  if (c.identity.emailVerifiedAt) return OK;
+  c.identity.emailVerifiedAt = now;
+  log(s, now, c, "EMAIL_VERIFIED", `Client verified their email address (${c.email})`, true);
+  return OK;
+}
+
 export function verifyIdentity(s: AppState, now: string, caseId: string): Result {
   const c = findCase(s, caseId);
   if (!c) return fail("Case not found");
+  if (!c.identity.emailVerifiedAt) {
+    return block(s, now, c, "verify identity", ["Client must verify their email address first"]);
+  }
   if (!c.idNumber || c.idNumber.replace(/\D/g, "").length !== 13) {
     return fail("Enter a valid 13-digit South African ID number first");
   }
@@ -276,6 +289,9 @@ export function recordIdentityCheck(
 ): Result {
   const c = findCase(s, caseId);
   if (!c) return fail("Case not found");
+  if (!c.identity.emailVerifiedAt) {
+    return block(s, now, c, "verify identity", ["Client must verify their email address first"]);
+  }
   const number = input.documentNumber ?? "";
   if (!isValidSaId(number.replace(/\D/g, ""))) {
     return block(s, now, c, "verify identity", [

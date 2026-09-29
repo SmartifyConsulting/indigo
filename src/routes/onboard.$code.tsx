@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 
 import { AuthLayout } from "@/components/auth-layout";
 import { Field, toastResult } from "@/components/common";
+import { EmailPreview } from "@/components/email-preview";
 import { SignButton } from "@/components/sign-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -91,6 +92,7 @@ function Wizard({ c }: { c: CaseRecord }) {
   const [single, setSingle] = useState<NeedId>("life");
   const [amount, setAmount] = useState("1000000");
 
+  const emailVerified = !!c.identity.emailVerifiedAt;
   const verified = c.identity.livenessVerified;
   const hit = c.identity.sanctions === "hit";
   const disclosed = hasSig(c, "disclosure");
@@ -114,19 +116,21 @@ function Wizard({ c }: { c: CaseRecord }) {
     }, 1400);
   };
 
-  const active = !verified
+  const active = !emailVerified
     ? 1
-    : hit
-      ? 1
-      : !disclosed
+    : !verified
+      ? 2
+      : hit
         ? 2
-        : !loa
+        : !disclosed
           ? 3
-          : !routed
+          : !loa
             ? 4
-            : !disclaimerOk
+            : !routed
               ? 5
-              : 6;
+              : !disclaimerOk
+                ? 6
+                : 7;
 
   return (
     <AuthLayout
@@ -148,11 +152,29 @@ function Wizard({ c }: { c: CaseRecord }) {
         </div>
       )}
       <div className="space-y-2">
+        <Step n={1} title="Verify your email address" done={emailVerified} active={active === 1}>
+          <p className="text-sm text-muted-foreground">
+            We sent an invitation to <strong className="text-foreground">{c.email}</strong>.
+            Confirming it's you keeps your information secure.
+          </p>
+          <EmailPreview
+            to={c.email}
+            subject={`${c.clientName.split(" ")[0]}, your indigro client portal is ready`}
+            heading={`Welcome, ${c.clientName.split(" ")[0]}`}
+            body={[
+              `${advisor?.name ?? "Your wealth manager"} at ${s.fsp.name} has set up your secure client portal, where you'll review your financial plan, sign documents digitally and track your cover — all in one place.`,
+              "Verifying your email keeps your information secure and takes onboarding under three minutes.",
+            ]}
+            ctaLabel="Verify my email address"
+            onCta={() => toastResult(actions.verifyEmail(c.id), "Email verified")}
+            fromOrg={s.fsp.name}
+          />
+        </Step>
         <Step
-          n={1}
+          n={2}
           title="Verify who you are"
           done={verified && !hit}
-          active={active === 1 && !hit}
+          active={active === 2 && !hit}
         >
           <div className="grid gap-3">
             <Field label="ID number">
@@ -205,10 +227,10 @@ function Wizard({ c }: { c: CaseRecord }) {
           </div>
         </Step>
         <Step
-          n={2}
+          n={3}
           title="Read and sign your advisor's disclosure"
           done={disclosed}
-          active={active === 2}
+          active={active === 3}
         >
           <p className="text-sm text-muted-foreground">
             Who your advisor is, who they work for, and how they are paid.
@@ -216,10 +238,10 @@ function Wizard({ c }: { c: CaseRecord }) {
           <SignButton caseId={c.id} kind="disclosure" label="Review and sign" size="default" />
         </Step>
         <Step
-          n={3}
+          n={4}
           title="Give permission to find your existing policies"
           done={loa}
-          active={active === 3}
+          active={active === 4}
         >
           <p className="text-sm text-muted-foreground">
             A Letter of Authority lets your advisor look up policies you already have, so nothing is
@@ -227,7 +249,7 @@ function Wizard({ c }: { c: CaseRecord }) {
           </p>
           <SignButton caseId={c.id} kind="loa" label="Review and sign" size="default" />
         </Step>
-        <Step n={4} title="Tell us what you'd like help with" done={routed} active={active === 4}>
+        <Step n={5} title="Tell us what you'd like help with" done={routed} active={active === 5}>
           <div className="space-y-3">
             <button
               onClick={() => toastResult(actions.chooseRoute(c.id, "full"))}
@@ -279,10 +301,10 @@ function Wizard({ c }: { c: CaseRecord }) {
         </Step>
         {c.fnaMode === "single-need" && (
           <Step
-            n={5}
+            n={6}
             title="Confirm you only want one thing quoted"
             done={disclaimerOk && c.fnaMode === "single-need"}
-            active={active === 5}
+            active={active === 6}
           >
             <p className="text-sm text-muted-foreground">
               Advice on a single need may not cover your wider situation. You can ask for a full
