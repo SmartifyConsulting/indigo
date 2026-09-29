@@ -1,10 +1,12 @@
+import type React from "react";
 import { Link } from "@tanstack/react-router";
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useState } from "react";
 
 import { ClientFinancialDashboard } from "@/components/client-financial-dashboard";
 import { ActivityList, PageHeader, StageBadge, StatCard } from "@/components/common";
 import { LiveWorkspacePanel } from "@/components/live-workspace";
+import { RingChart } from "@/components/ring-chart";
+import { needLabel } from "@/lib/domain/quotes";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,45 +16,38 @@ import { useAppState } from "@/lib/domain/store";
 import { PROVIDERS, providerName, type CaseRecord } from "@/lib/domain/types";
 import { fmtDate, fmtDateTime, zar } from "@/lib/fmt";
 
-function StageChart({ cases }: { cases: CaseRecord[] }) {
+function StageRing({ cases }: { cases: CaseRecord[] }) {
   const data = STAGES.map((st) => ({
-    name: String(st.no),
-    full: `Stage ${st.no}: ${st.short}`,
-    clients: cases.filter((c) => !isComplete(c) && getStage(c) === st.no).length,
-  })).concat([{ name: "✓", full: "Complete", clients: cases.filter(isComplete).length }]);
+    label: `${st.no} · ${st.short}`,
+    value: cases.filter((c) => !isComplete(c) && getStage(c) === st.no).length,
+  })).concat([{ label: "Complete", value: cases.filter(isComplete).length }]);
+  return <RingChart data={data} centerLabel="Cases" />;
+}
+
+function CoverMixRing({ cases }: { cases: CaseRecord[] }) {
+  const counts = new Map<string, number>();
+  for (const c of cases)
+    for (const a of c.applications) {
+      const q = c.quotes.items.find((x) => x.id === a.quoteId);
+      const k = q ? needLabel(q.needId) : "Other";
+      counts.set(k, (counts.get(k) ?? 0) + 1);
+    }
+  const data = [...counts].map(([label, value]) => ({ label, value }));
+  return data.length ? (
+    <RingChart data={data} centerLabel="Policies" />
+  ) : (
+    <p className="py-10 text-center text-sm text-muted-foreground">No applications yet.</p>
+  );
+}
+
+function RingCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <ResponsiveContainer width="100%" height={220}>
-      <BarChart data={data} margin={{ left: -20, right: 8, top: 8 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
-        <XAxis
-          dataKey="name"
-          tickLine={false}
-          axisLine={false}
-          fontSize={11}
-          stroke="var(--color-muted-foreground)"
-          interval={0}
-        />
-        <YAxis
-          allowDecimals={false}
-          tickLine={false}
-          axisLine={false}
-          fontSize={11}
-          stroke="var(--color-muted-foreground)"
-        />
-        <Tooltip
-          cursor={{ fill: "var(--color-accent)" }}
-          contentStyle={{
-            borderRadius: 6,
-            border: "1px solid var(--color-border)",
-            background: "var(--color-card)",
-            color: "var(--color-foreground)",
-            fontSize: 12,
-          }}
-          labelFormatter={(_, p) => (p?.[0]?.payload as { full?: string } | undefined)?.full ?? ""}
-        />
-        <Bar dataKey="clients" fill="var(--color-primary)" radius={[3, 3, 0, 0]} />
-      </BarChart>
-    </ResponsiveContainer>
+    <Card className="border-t-4 border-t-brand">
+      <CardHeader className="pb-2">
+        <CardTitle className="label-caps text-brand-ink">{title}</CardTitle>
+      </CardHeader>
+      <CardContent>{children}</CardContent>
+    </Card>
   );
 }
 
@@ -79,14 +74,14 @@ export function AdvisorDashboard() {
         <div className="lg:col-span-2">
           <LiveWorkspacePanel selected={selected} onSelect={setSelected} />
         </div>
-        <Card>
-          <CardHeader>
-            <CardTitle>Pipeline by stage</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <StageChart cases={mine} />
-          </CardContent>
-        </Card>
+        <div className="space-y-6">
+          <RingCard title="Pipeline by stage">
+            <StageRing cases={mine} />
+          </RingCard>
+          <RingCard title="Policy mix">
+            <CoverMixRing cases={mine} />
+          </RingCard>
+        </div>
       </div>
     </>
   );
@@ -250,17 +245,24 @@ export function FspDashboard() {
             </ul>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Pipeline by stage</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <StageChart cases={s.cases} />
+        <div className="space-y-6">
+          <RingCard title="Firm pipeline">
+            <StageRing cases={s.cases} />
             <p className="mt-2 text-xs text-muted-foreground">
               {active.length} active cases across all advisors.
             </p>
-          </CardContent>
-        </Card>
+          </RingCard>
+          <RingCard title="Risk flags">
+            <RingChart
+              centerLabel="Flags"
+              data={[
+                { label: "Steps stopped", value: blocked.length },
+                { label: "Sanctions / PEP", value: escalations.length },
+                { label: "Astute alerts", value: alerts.length },
+              ]}
+            />
+          </RingCard>
+        </div>
       </div>
       <Card className="mt-6">
         <CardHeader>
@@ -298,6 +300,30 @@ export function InsurerDashboard() {
           </Button>
         }
       />
+      <div className="mb-6 grid gap-6 md:grid-cols-2">
+        <RingCard title="Applications">
+          <RingChart
+            centerLabel="Files"
+            data={[
+              { label: "Awaiting decision", value: pending.length },
+              { label: "Issued", value: issued.length },
+              { label: "Declined", value: apps.filter((x) => x.a.status === "declined").length },
+            ]}
+          />
+        </RingCard>
+        <RingCard title="Pending files">
+          <RingChart
+            centerLabel="Pending"
+            data={[
+              { label: "Medical outstanding", value: medical.length },
+              { label: "Ready to decide", value: pending.length - medical.length },
+            ]}
+          />
+          <p className="mt-2 text-xs text-muted-foreground">
+            Product line: {line === "life" ? "Life & risk" : "Short-term"}
+          </p>
+        </RingCard>
+      </div>
       <Card>
         <CardHeader>
           <CardTitle>Compliance evidence on every file</CardTitle>
