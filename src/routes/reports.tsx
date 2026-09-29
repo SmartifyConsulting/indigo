@@ -243,6 +243,53 @@ function PreviewDialog({ doc, onOpenChange }: { doc: Doc | null; onOpenChange: (
   );
 }
 
+/** Groups documents by policy type, with advice & compliance documents last. */
+function PolicyGroups({
+  docs,
+  showClient,
+  onPreview,
+}: {
+  docs: Doc[];
+  showClient: boolean;
+  onPreview: (d: Doc) => void;
+}) {
+  const groups = Object.entries(
+    docs.reduce<Record<string, Doc[]>>((acc, d) => {
+      (acc[d.policyType] ??= []).push(d);
+      return acc;
+    }, {}),
+  ).sort(([a], [b]) => (a === GENERAL_GROUP ? 1 : b === GENERAL_GROUP ? -1 : a.localeCompare(b)));
+  if (groups.length === 0)
+    return <p className="py-8 text-center text-sm text-muted-foreground">No documents yet.</p>;
+  return (
+    <Accordion type="multiple" defaultValue={groups.map(([t]) => t)}>
+      {groups.map(([type, groupDocs]) => (
+        <AccordionItem key={type} value={type}>
+          <AccordionTrigger className="text-sm">
+            <span className="flex items-center gap-2">
+              <span className="label-caps text-navy">{titleCase(type)}</span>
+              <span className="text-xs font-normal text-muted-foreground">{groupDocs.length}</span>
+            </span>
+          </AccordionTrigger>
+          <AccordionContent>
+            <DocTable docs={groupDocs} showClient={showClient} onPreview={onPreview} />
+          </AccordionContent>
+        </AccordionItem>
+      ))}
+    </Accordion>
+  );
+}
+
+const POLICY_TYPE_LABEL: Record<string, string> = {
+  "severe-illness": "Chronic & Severe Illness",
+  disability: "Income Protection",
+  life: "Life Cover",
+};
+
+function policyTypeOf(needId: Parameters<typeof needLabel>[0]): string {
+  return POLICY_TYPE_LABEL[needId] ?? needLabel(needId);
+}
+
 function Documents() {
   const s = useAppState();
   const [q, setQ] = useState("");
@@ -293,7 +340,7 @@ function Documents() {
           date: a.decidedAt ?? a.submittedAt,
           status: "Issued",
           fingerprint: a.policyNumber ?? "",
-          policyType: quote ? needLabel(quote.needId) : "Other policies",
+          policyType: quote ? policyTypeOf(quote.needId) : "Other policies",
           filename: `Policy-${a.policyNumber ?? c.code}.txt`,
           content: policyText(c, a),
         };
@@ -304,12 +351,12 @@ function Documents() {
     .filter((d) => (d.title + d.client).toLowerCase().includes(q.toLowerCase()))
     .sort((a, b) => b.date.localeCompare(a.date));
 
-  const groups = Object.entries(
+  const clientGroups = Object.entries(
     rows.reduce<Record<string, Doc[]>>((acc, d) => {
-      (acc[d.policyType] ??= []).push(d);
+      (acc[d.client] ??= []).push(d);
       return acc;
     }, {}),
-  ).sort(([a], [b]) => (a === GENERAL_GROUP ? 1 : b === GENERAL_GROUP ? -1 : a.localeCompare(b)));
+  ).sort(([a], [b]) => a.localeCompare(b));
 
   return (
     <>
@@ -326,26 +373,31 @@ function Documents() {
       />
       {role === "client" ? (
         <Card className="px-4">
-          <Accordion type="multiple" defaultValue={groups.map(([type]) => type)}>
-            {groups.map(([type, groupDocs]) => (
-              <AccordionItem key={type} value={type}>
+          <PolicyGroups docs={rows} showClient={false} onPreview={setPreview} />
+        </Card>
+      ) : (
+        <Card className="px-4">
+          <Accordion type="multiple" defaultValue={clientGroups.slice(0, 1).map(([k]) => k)}>
+            {clientGroups.map(([client, clientDocs]) => (
+              <AccordionItem key={client} value={client}>
                 <AccordionTrigger>
-                  {titleCase(type)}
-                  <span className="ml-2 font-normal text-muted-foreground">{groupDocs.length}</span>
+                  <span className="flex items-center gap-2">
+                    <span className="h-4 w-1 rounded-full bg-brand" aria-hidden />
+                    {client}
+                    <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[10px] font-medium text-brand-ink">
+                      {clientDocs.length}
+                    </span>
+                  </span>
                 </AccordionTrigger>
-                <AccordionContent>
-                  <DocTable docs={groupDocs} showClient={false} onPreview={setPreview} />
+                <AccordionContent className="pl-4">
+                  <PolicyGroups docs={clientDocs} showClient={false} onPreview={setPreview} />
                 </AccordionContent>
               </AccordionItem>
             ))}
-            {groups.length === 0 && (
+            {clientGroups.length === 0 && (
               <p className="py-8 text-center text-sm text-muted-foreground">No documents yet.</p>
             )}
           </Accordion>
-        </Card>
-      ) : (
-        <Card>
-          <DocTable docs={rows} showClient onPreview={setPreview} />
         </Card>
       )}
       <PreviewDialog doc={preview} onOpenChange={(o) => !o && setPreview(null)} />
