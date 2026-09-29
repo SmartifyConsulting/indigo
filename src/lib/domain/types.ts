@@ -153,8 +153,9 @@ export interface Signature {
   signedAt: string;
   docHash: string;
   roaVersion?: number | undefined;
-  font: SignatureFont;
-  ipAddress: string;
+  /** Absent on signatures persisted before this field existed; SignatureMark falls back by id. */
+  font?: SignatureFont | undefined;
+  ipAddress?: string | undefined;
 }
 
 export interface RoaContent {

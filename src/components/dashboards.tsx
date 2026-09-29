@@ -233,9 +233,9 @@ export function FspDashboard() {
                     className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm"
                   >
                     <div>
-                      <p className="font-medium">
+                      <div className="flex items-center gap-2 font-medium">
                         {a.name} {!a.active && <Badge variant="secondary">Inactive</Badge>}
-                      </p>
+                      </div>
                       <p className="text-xs text-muted-foreground">
                         {a.title} · {a.fsNumber}
                       </p>

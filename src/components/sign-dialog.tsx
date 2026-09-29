@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { pickSignatureFont, syntheticIp } from "@/lib/domain/signature-fonts";
 import { actions, useAppState } from "@/lib/domain/store";
 import { SIGNATURE_LABEL, type Signature, type SignatureKind } from "@/lib/domain/types";
 import { fmtDateTime } from "@/lib/fmt";
@@ -115,14 +116,21 @@ export function SignDialog({
 }
 
 /** Renders a signer's name in their assigned cursive font, with the date and IP the ledger records. */
+/**
+ * Signatures created before this feature existed (persisted from earlier sessions) have no
+ * font or ipAddress on record, so both fall back to the same deterministic functions the signer
+ * would have gotten at signing time, seeded from the signature's own id.
+ */
 export function SignatureMark({ sig, className }: { sig: Signature; className?: string }) {
+  const font = sig.font ?? pickSignatureFont(sig.id);
+  const ip = sig.ipAddress ?? syntheticIp(sig.id);
   return (
     <div className={className}>
-      <p className="text-2xl leading-none" style={{ fontFamily: `"${sig.font}", cursive` }}>
+      <p className="text-2xl leading-none" style={{ fontFamily: `"${font}", cursive` }}>
         {sig.signerName}
       </p>
       <p className="mt-1 text-[11px] text-muted-foreground">
-        Signed {fmtDateTime(sig.signedAt)} · IP {sig.ipAddress}
+        Signed {fmtDateTime(sig.signedAt)} · IP {ip}
       </p>
     </div>
   );
